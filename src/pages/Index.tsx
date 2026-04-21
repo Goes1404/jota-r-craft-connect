@@ -8,6 +8,8 @@ import { Button } from '@/components/ui/button';
 import { useFeaturedProducts, useAppSettings } from '@/hooks/useProducts';
 import { useAnalytics } from '@/hooks/useAnalytics';
 import { BackgroundPaths } from '@/components/ui/background-paths';
+import { GlowCard } from '@/components/ui/spotlight-card';
+import { LocationMap } from '@/components/ui/expand-map';
 
 /* ─── GlitterCanvas Removed to use BackgroundPaths ─── */
 
@@ -88,16 +90,24 @@ const Index: React.FC = () => {
 
           <div className="grid grid-cols-2 md:grid-cols-3 gap-3 md:gap-5">
             {[
-              { title: 'Celulares e Acessórios', img: 'https://images.unsplash.com/photo-1510557880182-3d4d3cba35a5?w=600&h=400&fit=crop', link: '/produtos' },
+              { title: 'Celulares e Acess\u00f3rios', img: 'https://images.unsplash.com/photo-1510557880182-3d4d3cba35a5?w=600&h=400&fit=crop', link: '/produtos' },
               { title: 'Smart Home', img: 'https://images.unsplash.com/photo-1558002038-1055907df827?w=600&h=400&fit=crop', link: '/produtos' },
-              { title: 'Eletrônicos e Gadgets', img: 'https://images.unsplash.com/photo-1461151304267-38535e770d71?w=600&h=400&fit=crop', link: '/produtos' },
+              { title: 'Eletr\u00f4nicos e Gadgets', img: 'https://images.unsplash.com/photo-1461151304267-38535e770d71?w=600&h=400&fit=crop', link: '/produtos' },
             ].map((cat, i) => (
-              <Link key={i} to={cat.link} className="group relative h-40 sm:h-52 md:h-64 rounded-xl overflow-hidden shadow-md">
-                <img src={cat.img} alt={cat.title} className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110" />
+              <Link
+                key={i}
+                to={cat.link}
+                className="group relative h-40 sm:h-52 md:h-64 rounded-xl overflow-hidden shadow-md block transition-all duration-300 hover:shadow-[0_0_24px_4px_rgba(255,215,0,0.35)] hover:ring-2 hover:ring-primary/60"
+              >
+                <img
+                  src={cat.img}
+                  alt={cat.title}
+                  className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
+                />
                 <div className="absolute inset-0 bg-gradient-to-t from-black/75 via-black/20 to-transparent" />
                 <div className="absolute bottom-3 left-3 md:bottom-5 md:left-5 text-white">
                   <h3 className="text-sm sm:text-base md:text-lg font-bold leading-tight">{cat.title}</h3>
-                  <span className="text-xs font-medium opacity-0 group-hover:opacity-100 transition-opacity">Explorar →</span>
+                  <span className="text-xs font-medium text-primary opacity-0 group-hover:opacity-100 transition-opacity">Explorar \u2192</span>
                 </div>
               </Link>
             ))}
@@ -220,6 +230,14 @@ const Index: React.FC = () => {
                     <p className="text-xs text-muted-foreground">Disponível via WhatsApp</p>
                   </div>
                 </div>
+              </div>
+
+              {/* Interactive LocationMap widget */}
+              <div className="flex justify-center pb-1">
+                <LocationMap
+                  location="Osasco, SP"
+                  coordinates="23°31'32\"S, 46°47'04\"W"
+                />
               </div>
 
               <Button className="w-full h-10 rounded-lg shadow font-bold text-sm gap-1" asChild>

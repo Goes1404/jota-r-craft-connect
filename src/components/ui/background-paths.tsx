@@ -15,15 +15,15 @@ function FloatingPaths({ position }: { position: number }) {
         } ${343 - i * 6}C${616 - i * 5 * position} ${470 - i * 6} ${
             684 - i * 5 * position
         } ${875 - i * 6} ${684 - i * 5 * position} ${875 - i * 6}`,
-        // Use primary color hue (45) from index.css for the path colors, making it gold/yellowish
-        color: `hsl(45, 75%, 55%, ${0.1 + i * 0.03})`,
-        width: 0.5 + i * 0.03,
+        // Bright golden hues with varying opacity
+        color: `rgba(255, 215, 0, ${0.4 + i * 0.02})`,
+        width: 0.5 + i * 0.04,
     }));
 
     return (
         <div className="absolute inset-0 pointer-events-none">
             <svg
-                className="w-full h-full text-primary/30"
+                className="w-full h-full"
                 viewBox="0 0 696 316"
                 fill="none"
             >
@@ -32,7 +32,7 @@ function FloatingPaths({ position }: { position: number }) {
                     <motion.path
                         key={path.id}
                         d={path.d}
-                        stroke="currentColor"
+                        stroke={path.color}
                         strokeWidth={path.width}
                         strokeOpacity={0.1 + path.id * 0.03}
                         initial={{ pathLength: 0.3, opacity: 0.6 }}
@@ -74,34 +74,42 @@ export function BackgroundPaths({
                     transition={{ duration: 2 }}
                     className="max-w-4xl mx-auto"
                 >
-                    <h1 className="text-5xl sm:text-7xl md:text-8xl font-serif font-black mb-6 tracking-tighter">
-                        {words.map((word, wordIndex) => (
-                            <span
-                                key={wordIndex}
-                                className="inline-block mr-4 last:mr-0"
-                            >
-                                {word.split("").map((letter, letterIndex) => (
-                                    <motion.span
-                                        key={`${wordIndex}-${letterIndex}`}
-                                        initial={{ y: 100, opacity: 0 }}
-                                        animate={{ y: 0, opacity: 1 }}
-                                        transition={{
-                                            delay:
-                                                wordIndex * 0.1 +
-                                                letterIndex * 0.03,
-                                            type: "spring",
-                                            stiffness: 150,
-                                            damping: 25,
-                                        }}
-                                        className={wordIndex === 1 
-                                            ? "inline-block text-transparent bg-clip-text bg-gradient-to-r from-primary to-primary/80 italic font-light" 
-                                            : "inline-block text-transparent bg-clip-text bg-gradient-to-b from-white to-white/70"}
-                                    >
-                                        {letter}
-                                    </motion.span>
-                                ))}
-                            </span>
-                        ))}
+                    <h1 className="text-4xl sm:text-5xl md:text-7xl font-serif font-black mb-6 tracking-tighter flex flex-wrap justify-center items-baseline gap-x-4">
+                        {/* "JR" – letter by letter animation */}
+                        <span className="inline-flex">
+                            {"JR".split("").map((letter, i) => (
+                                <motion.span
+                                    key={i}
+                                    initial={{ y: 80, opacity: 0 }}
+                                    animate={{ y: 0, opacity: 1 }}
+                                    transition={{
+                                        delay: i * 0.06,
+                                        type: "spring",
+                                        stiffness: 150,
+                                        damping: 25,
+                                    }}
+                                    className="inline-block text-white drop-shadow-[0_2px_12px_rgba(255,215,0,0.3)]"
+                                >
+                                    {letter}
+                                </motion.span>
+                            ))}
+                        </span>
+
+                        {/* "acessorios" – whole word animates in as one block */}
+                        <motion.span
+                            initial={{ y: 80, opacity: 0 }}
+                            animate={{ y: 0, opacity: 1 }}
+                            transition={{
+                                delay: 0.25,
+                                type: "spring",
+                                stiffness: 120,
+                                damping: 22,
+                            }}
+                            className="inline-block text-primary italic font-light"
+                            style={{ textShadow: "0 0 24px rgba(255,215,0,0.4)" }}
+                        >
+                            acessorios
+                        </motion.span>
                     </h1>
 
                     <p className="text-sm sm:text-base text-white/80 max-w-md mx-auto leading-relaxed font-light mb-8 animate-fade-in">
