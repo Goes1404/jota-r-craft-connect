@@ -71,9 +71,9 @@ const AdminLogin: React.FC = () => {
         {/* Logo */}
         <div className="text-center">
           <h1 className="text-4xl font-serif font-bold text-foreground mb-2">
-            Jota.r
+            JR <span className="text-primary italic">acessorios</span>
           </h1>
-          <p className="text-muted-foreground">acessórios</p>
+          <p className="text-muted-foreground mt-1">Admin</p>
         </div>
 
         {/* Login Card */}

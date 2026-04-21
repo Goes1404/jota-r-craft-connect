@@ -196,7 +196,7 @@ const AdminDashboard = () => {
           <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 py-4 sm:h-16 sm:py-0">
             <div className="flex items-center space-x-4">
               <h1 className="text-xl sm:text-2xl font-serif font-bold text-primary">
-                Jota.r Admin
+                JR <span className="italic font-light">acessorios</span> Admin
               </h1>
               <Badge variant="secondary">Dashboard</Badge>
             </div>

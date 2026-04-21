@@ -331,7 +331,7 @@ const Index: React.FC = () => {
               <iframe
                 title="Localização JR acessorios"
                 src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3658.694602283!2d-46.78453472390234!3d-23.525547960142647!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x94cf0164670f5e1f%3A0xc319bc30d31e9e0d!2sRua%20Martim%20Afonso%2C%20431%20-%20Piratininga%2C%20Osasco%20-%20SP%2C%2006233-130!5e0!3m2!1spt-BR!2sbr!4v1713735000000"
-                className="w-full h-full border-0 grayscale hover:grayscale-0 transition-all duration-700"
+                className="w-full h-full border-0 transition-all duration-700 rounded-b-2xl lg:rounded-r-2xl lg:rounded-bl-none"
                 allowFullScreen
                 loading="lazy"
                 referrerPolicy="no-referrer-when-downgrade"
