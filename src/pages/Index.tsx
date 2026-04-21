@@ -7,73 +7,9 @@ import { ProductCard } from '@/components/ProductCard';
 import { Button } from '@/components/ui/button';
 import { useFeaturedProducts, useAppSettings } from '@/hooks/useProducts';
 import { useAnalytics } from '@/hooks/useAnalytics';
+import { BackgroundPaths } from '@/components/ui/background-paths';
 
-/* ─── Golden Glitter Canvas ─── */
-const GlitterCanvas: React.FC = () => {
-  const canvasRef = useRef<HTMLCanvasElement>(null);
-
-  useEffect(() => {
-    const canvas = canvasRef.current;
-    if (!canvas) return;
-    const ctx = canvas.getContext('2d');
-    if (!ctx) return;
-
-    let animationId: number;
-    const particles: { x: number; y: number; size: number; speed: number; opacity: number; swing: number; swingSpeed: number }[] = [];
-    const PARTICLE_COUNT = 60;
-
-    const resize = () => {
-      canvas.width = canvas.offsetWidth;
-      canvas.height = canvas.offsetHeight;
-    };
-    resize();
-    window.addEventListener('resize', resize);
-
-    // Create particles
-    for (let i = 0; i < PARTICLE_COUNT; i++) {
-      particles.push({
-        x: Math.random() * canvas.width,
-        y: Math.random() * canvas.height,
-        size: Math.random() * 3 + 1,
-        speed: Math.random() * 1.2 + 0.3,
-        opacity: Math.random() * 0.7 + 0.3,
-        swing: Math.random() * Math.PI * 2,
-        swingSpeed: Math.random() * 0.02 + 0.005,
-      });
-    }
-
-    const draw = () => {
-      ctx.clearRect(0, 0, canvas.width, canvas.height);
-      particles.forEach((p) => {
-        p.y += p.speed;
-        p.swing += p.swingSpeed;
-        p.x += Math.sin(p.swing) * 0.5;
-
-        if (p.y > canvas.height + 5) {
-          p.y = -5;
-          p.x = Math.random() * canvas.width;
-        }
-
-        ctx.beginPath();
-        ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
-        ctx.fillStyle = `rgba(212, 175, 55, ${p.opacity})`;
-        ctx.shadowBlur = 6;
-        ctx.shadowColor = 'rgba(212, 175, 55, 0.5)';
-        ctx.fill();
-        ctx.shadowBlur = 0;
-      });
-      animationId = requestAnimationFrame(draw);
-    };
-    draw();
-
-    return () => {
-      cancelAnimationFrame(animationId);
-      window.removeEventListener('resize', resize);
-    };
-  }, []);
-
-  return <canvas ref={canvasRef} className="absolute inset-0 w-full h-full pointer-events-none" />;
-};
+/* ─── GlitterCanvas Removed to use BackgroundPaths ─── */
 
 /* ─── Page Component ─── */
 const Index: React.FC = () => {
@@ -87,41 +23,8 @@ const Index: React.FC = () => {
     <div className="min-h-screen bg-background">
       <Header />
 
-      {/* ═══ Hero – Golden Glitter + Centered Title ═══ */}
-      <section className="relative min-h-[60vh] md:min-h-[70vh] flex items-center justify-center overflow-hidden bg-black">
-        <GlitterCanvas />
-        <div className="absolute inset-0 bg-gradient-to-b from-transparent via-black/20 to-black/70" />
-
-        <div className="relative z-10 text-center px-4 max-w-2xl mx-auto space-y-5">
-          <div className="flex items-center justify-center gap-2 animate-fade-in">
-            <Diamond className="h-4 w-4 text-primary fill-primary/30" />
-            <span className="px-3 py-1 bg-primary/15 border border-primary/25 rounded-full text-xs font-bold tracking-widest uppercase text-primary backdrop-blur-sm">
-              Inovação &amp; Tecnologia
-            </span>
-          </div>
-
-          <h1 className="text-4xl sm:text-5xl md:text-6xl font-serif font-black text-white leading-tight drop-shadow-lg animate-fade-in">
-            JR <span className="text-primary italic">acessorios.</span>
-          </h1>
-
-          <p className="text-sm sm:text-base text-white/80 max-w-md mx-auto leading-relaxed font-light animate-fade-in">
-            Onde a sofisticação encontra a inovação. Celulares, acessórios premium e gadgets com a exclusividade que você merece.
-          </p>
-
-          <div className="flex flex-wrap justify-center gap-3 pt-2 animate-fade-in">
-            <Link to="/produtos">
-              <Button size="sm" className="h-10 px-6 text-sm font-bold rounded-full shadow-xl transition-all hover:scale-105">
-                Ver Ofertas
-              </Button>
-            </Link>
-            <Link to="/produtos">
-              <Button size="sm" variant="outline" className="h-10 px-6 text-sm font-bold rounded-full bg-white/5 text-white border-white/20 backdrop-blur-sm hover:bg-white/15 transition-all">
-                Lançamentos
-              </Button>
-            </Link>
-          </div>
-        </div>
-      </section>
+      {/* ═══ Hero – Background Paths Component ═══ */}
+      <BackgroundPaths title="JR acessorios" />
 
       {/* Quick Nav – Inspired by Decathlon Sports Bubbles */}
       <section className="bg-background py-6 border-b">
