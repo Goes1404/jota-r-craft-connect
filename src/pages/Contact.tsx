@@ -9,6 +9,7 @@ import { MapPin, Phone, Mail, Clock } from 'lucide-react';
 import { useForm } from 'react-hook-form';
 import { toast } from '@/components/ui/use-toast';
 import { useAnalytics } from '@/hooks/useAnalytics';
+import { INSTAGRAM_URL, WHATSAPP_LINK, WHATSAPP_NUMBER } from '@/config/constants';
 
 interface ContactFormData {
   name: string;
@@ -37,7 +38,7 @@ const Contact: React.FC = () => {
 📝 Mensagem: ${data.message}`
     );
 
-    const whatsappURL = `https://wa.me/5511954129039?text=${whatsappMessage}`;
+    const whatsappURL = `${WHATSAPP_LINK}?text=${whatsappMessage}`;
     
     toast({
       title: "Redirecionando para WhatsApp",
@@ -81,15 +82,15 @@ const Contact: React.FC = () => {
                   <p className="text-muted-foreground mb-2">WhatsApp</p>
                   <div className="space-y-2">
                     <a 
-                      href="https://wa.me/5511954129039" 
+                      href={WHATSAPP_LINK} 
                       target="_blank" 
                       rel="noopener noreferrer"
                       className="text-lg font-semibold text-primary hover:text-primary/80 transition-colors block"
                     >
-                      (11) 95412-9039
+                      {WHATSAPP_NUMBER}
                     </a>
                     <a 
-                      href="https://www.instagram.com/jota.r_acessorios?igsh=dzNxZGVkMGg0c2Rs" 
+                      href={INSTAGRAM_URL} 
                       target="_blank" 
                       rel="noopener noreferrer"
                       className="text-sm text-primary hover:text-primary/80 transition-colors block"

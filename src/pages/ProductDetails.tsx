@@ -11,6 +11,7 @@ import { useCart } from '@/contexts/CartContext';
 import { useToast } from '@/hooks/use-toast';
 import { useProduct, useAppSettings } from '@/hooks/useProducts';
 import { useAnalytics } from '@/hooks/useAnalytics';
+import { INSTAGRAM_URL } from '@/config/constants';
 
 const ProductDetails = () => {
   const { id } = useParams();
@@ -223,7 +224,7 @@ const ProductDetails = () => {
                 className="w-full border-primary text-primary hover:bg-primary hover:text-primary-foreground"
               >
                 <a 
-                  href="https://www.instagram.com/jota.r_acessorios?igsh=dzNxZGVkMGg0c2Rs" 
+                  href={INSTAGRAM_URL} 
                   target="_blank" 
                   rel="noopener noreferrer"
                 >

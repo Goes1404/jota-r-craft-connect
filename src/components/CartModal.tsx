@@ -2,6 +2,7 @@ import React from 'react';
 import { X, Plus, Minus, ShoppingBag } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useCart } from '@/contexts/CartContext';
+import { WHATSAPP_LINK } from '@/config/constants';
 
 interface CartModalProps {
   isOpen: boolean;
@@ -21,7 +22,7 @@ export const CartModal: React.FC<CartModalProps> = ({ isOpen, onClose }) => {
     const total = getTotalPrice().toFixed(2).replace('.', ',');
     const message = `Olá! Gostaria de fazer o pedido:\n\n${items}\n\nTotal: R$ ${total}`;
     
-    const whatsappUrl = `https://wa.me/5511954129039?text=${encodeURIComponent(message)}`;
+    const whatsappUrl = `${WHATSAPP_LINK}?text=${encodeURIComponent(message)}`;
     window.open(whatsappUrl, '_blank');
   };
 

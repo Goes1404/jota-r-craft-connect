@@ -1,5 +1,6 @@
 import React from 'react';
 import { Heart } from 'lucide-react';
+import { INSTAGRAM_URL, WHATSAPP_NUMBER } from '@/config/constants';
 export const Footer: React.FC = () => {
   return <footer className="bg-charcoal text-soft-white mt-24 border-t border-primary/20">
       <div className="container mx-auto px-4 py-12">
@@ -33,12 +34,12 @@ export const Footer: React.FC = () => {
           <div className="space-y-4">
             <h4 className="font-semibold text-lg text-primary">Contato</h4>
             <div className="space-y-2 text-sm text-soft-white/80">
-              <p>WhatsApp: <span className="text-primary font-medium">(11) 95412-9039</span></p>
+              <p>WhatsApp: <span className="text-primary font-medium">{WHATSAPP_NUMBER}</span></p>
               <p>Email: <span className="text-primary font-medium">contato@jotar.com.br</span></p>
               <div className="pt-2">
                 <p className="font-medium text-soft-white">Redes Sociais</p>
                 <div className="flex space-x-4 mt-2">
-                  <a href="https://www.instagram.com/jota.r_acessorios?igsh=dzNxZGVkMGg0c2Rs" target="_blank" rel="noopener noreferrer" className="hover:text-primary transition-colors">Instagram</a>
+                  <a href={INSTAGRAM_URL} target="_blank" rel="noopener noreferrer" className="hover:text-primary transition-colors">Instagram</a>
                   <a href="#" className="hover:text-primary transition-colors">Facebook</a>
                 </div>
               </div>

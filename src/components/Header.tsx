@@ -5,6 +5,7 @@ import { useCart } from '@/contexts/CartContext';
 import { Button } from '@/components/ui/button';
 import { CartModal } from './CartModal';
 import { ThemeToggle } from './ThemeToggle';
+import { INSTAGRAM_URL } from '@/config/constants';
 export const Header: React.FC = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isCartOpen, setIsCartOpen] = useState(false);
@@ -65,7 +66,7 @@ export const Header: React.FC = () => {
                       {totalItems}
                     </span>}
                 </Button>
-                <a href="https://www.instagram.com/jota.r_acessorios?igsh=dzNxZGVkMGg0c2Rs" target="_blank" rel="noopener noreferrer" className="text-muted-foreground hover:text-primary transition-colors text-sm font-medium">
+                <a href={INSTAGRAM_URL} target="_blank" rel="noopener noreferrer" className="text-muted-foreground hover:text-primary transition-colors text-sm font-medium">
                   Instagram
                 </a>
               </div>
