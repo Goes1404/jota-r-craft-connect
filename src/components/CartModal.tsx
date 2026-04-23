@@ -7,6 +7,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { WHATSAPP_LINK } from '@/config/constants';
+import { useNavigate } from 'react-router-dom';
 
 interface CartModalProps {
   isOpen: boolean;
@@ -17,61 +18,11 @@ export const CartModal: React.FC<CartModalProps> = ({ isOpen, onClose }) => {
   const { cartItems, updateQuantity, removeFromCart, getTotalPrice } = useCart();
   const { user } = useAuth();
   const { toast } = useToast();
+  const navigate = useNavigate();
 
-  const handleWhatsAppCheckout = async () => {
-    if (cartItems.length === 0) return;
-
-    // 1. Save order to database if user is logged in
-    if (user) {
-      try {
-        const total = getTotalPrice();
-        
-        // Insert into 'orders' table
-        const { data: order, error: orderError } = await supabase
-          .from('orders')
-          .insert({
-            user_id: user.id,
-            total_amount: total,
-            status: 'Pendente'
-          })
-          .select()
-          .single();
-
-        if (orderError) throw orderError;
-
-        // Insert items into 'sales' table for tracking
-        const salesItems = cartItems.map(item => ({
-          order_id: order.id, // Linking to the order
-          product_id: item.id,
-          quantity: item.quantity,
-          unit_price: item.price,
-          total_price: item.price * item.quantity,
-          status: 'Vendido'
-        }));
-
-        const { error: salesError } = await supabase.from('sales').insert(salesItems);
-        if (salesError) throw salesError;
-
-        toast({
-          title: "Pedido Registrado",
-          description: "Sua solicitação foi salva em seu perfil.",
-        });
-      } catch (error) {
-        console.error('Error saving order:', error);
-        // We still continue to WhatsApp even if DB fails, to not block the sale
-      }
-    }
-
-    // 2. Format and redirect to WhatsApp
-    const items = cartItems.map(item => 
-      `- ${item.quantity}x ${item.name} - R$ ${(item.price * item.quantity).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`
-    ).join('\n');
-    
-    const total = getTotalPrice().toLocaleString('pt-BR', { minimumFractionDigits: 2 });
-    const message = `Olá! Gostaria de prosseguir com a aquisição destes itens exclusivos:\n\n${items}\n\nTotal: R$ ${total}\n\nPor favor, informe a disponibilidade para entrega.`;
-    
-    const whatsappUrl = `${WHATSAPP_LINK}?text=${encodeURIComponent(message)}`;
-    window.open(whatsappUrl, '_blank');
+  const handleCheckout = () => {
+    onClose();
+    navigate('/checkout');
   };
 
   return (
@@ -177,9 +128,9 @@ export const CartModal: React.FC<CartModalProps> = ({ isOpen, onClose }) => {
             
             <Button
               className="w-full bg-[#d4af37] hover:bg-[#f2ca50] text-black font-black py-8 rounded-full shadow-[0_0_30px_rgba(212,175,55,0.3)] transition-all uppercase tracking-[0.2em] text-[10px] group"
-              onClick={handleWhatsAppCheckout}
+              onClick={handleCheckout}
             >
-              Finalizar no WhatsApp
+              Finalizar Pedido Seguro
               <ArrowRight className="ml-3 w-4 h-4 transition-transform group-hover:translate-x-1" />
             </Button>
             
