@@ -1,6 +1,7 @@
 import React from 'react';
-import { X, Plus, Minus, ShoppingBag } from 'lucide-react';
+import { X, Plus, Minus, ShoppingBag, Diamond, Trash2, ArrowRight } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
 import { useCart } from '@/contexts/CartContext';
 import { WHATSAPP_LINK } from '@/config/constants';
 
@@ -16,100 +17,98 @@ export const CartModal: React.FC<CartModalProps> = ({ isOpen, onClose }) => {
     if (cartItems.length === 0) return;
 
     const items = cartItems.map(item => 
-      `- ${item.quantity}x ${item.name} - R$ ${(item.price * item.quantity).toFixed(2).replace('.', ',')}`
+      `- ${item.quantity}x ${item.name} - R$ ${(item.price * item.quantity).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`
     ).join('\n');
     
-    const total = getTotalPrice().toFixed(2).replace('.', ',');
-    const message = `Olá! Gostaria de fazer o pedido:\n\n${items}\n\nTotal: R$ ${total}`;
+    const total = getTotalPrice().toLocaleString('pt-BR', { minimumFractionDigits: 2 });
+    const message = `Olá! Gostaria de prosseguir com a aquisição destes itens exclusivos:\n\n${items}\n\nTotal: R$ ${total}\n\nPor favor, informe a disponibilidade para entrega.`;
     
     const whatsappUrl = `${WHATSAPP_LINK}?text=${encodeURIComponent(message)}`;
     window.open(whatsappUrl, '_blank');
   };
 
-  if (!isOpen) return null;
-
   return (
-    <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center">
-      {/* Backdrop */}
-      <div 
-        className="absolute inset-0 bg-black/50 backdrop-blur-sm"
-        onClick={onClose}
-      />
-      
-      {/* Modal */}
-      <div className="relative bg-background rounded-t-2xl sm:rounded-2xl w-full sm:max-w-lg sm:mx-4 max-h-[90vh] flex flex-col shadow-2xl">
+    <Sheet open={isOpen} onOpenChange={(open) => !open && onClose()}>
+      <SheetContent side="right" className="w-full sm:max-w-md bg-black/95 backdrop-blur-2xl border-white/10 p-0 flex flex-col shadow-[0_0_100px_rgba(0,0,0,1)]">
         {/* Header */}
-        <div className="flex items-center justify-between p-6 border-b border-border">
-          <div className="flex items-center space-x-2">
-            <ShoppingBag className="h-5 w-5 text-primary" />
-            <h2 className="text-xl font-serif font-semibold">Carrinho</h2>
-          </div>
-          <Button variant="ghost" size="sm" onClick={onClose} className="p-2">
-            <X className="h-5 w-5" />
-          </Button>
-        </div>
+        <SheetHeader className="p-8 border-b border-white/5 bg-[#0a0a0a]">
+          <SheetTitle className="flex items-center gap-3">
+            <div className="relative">
+              <Diamond className="h-5 w-5 text-[#d4af37]" />
+              <div className="absolute inset-0 bg-[#d4af37]/20 blur-lg rounded-full"></div>
+            </div>
+            <span className="text-[10px] font-black uppercase tracking-[0.4em] text-white">Seu Vault</span>
+          </SheetTitle>
+        </SheetHeader>
 
         {/* Content */}
-        <div className="flex-1 overflow-y-auto">
+        <div className="flex-1 overflow-y-auto custom-scrollbar">
           {cartItems.length === 0 ? (
-            <div className="flex flex-col items-center justify-center py-12 px-6 text-center">
-              <ShoppingBag className="h-16 w-16 text-muted-foreground/50 mb-4" />
-              <p className="text-lg text-muted-foreground mb-2">Seu carrinho está vazio</p>
-              <p className="text-sm text-muted-foreground">
-                Adicione alguns acessórios únicos à sua coleção!
-              </p>
+            <div className="h-full flex flex-col items-center justify-center p-12 text-center space-y-6">
+              <div className="w-20 h-20 rounded-full bg-white/5 flex items-center justify-center relative">
+                <ShoppingBag className="h-8 w-8 text-white/10" />
+                <div className="absolute inset-0 bg-white/5 rounded-full animate-ping opacity-20"></div>
+              </div>
+              <div className="space-y-2">
+                <h3 className="font-serif text-xl font-bold text-white">O vault está vazio</h3>
+                <p className="text-xs text-white/20 uppercase tracking-widest leading-relaxed">
+                  Descubra peças únicas e inicie sua seleção exclusiva hoje.
+                </p>
+              </div>
+              <Button 
+                onClick={onClose}
+                className="bg-[#d4af37]/10 text-[#d4af37] border border-[#d4af37]/20 hover:bg-[#d4af37] hover:text-black transition-all rounded-full px-8 py-6 text-[10px] font-black uppercase tracking-widest"
+              >
+                Explorar Coleção
+              </Button>
             </div>
           ) : (
-            <div className="p-6 space-y-4">
+            <div className="p-8 space-y-6">
               {cartItems.map((item) => (
-                <div key={item.id} className="flex items-center space-x-4 p-4 bg-card rounded-lg border border-border">
-                  <img
-                    src={item.image}
-                    alt={item.name}
-                    className="w-16 h-16 object-cover rounded-md flex-shrink-0"
-                  />
+                <div key={item.id} className="group relative flex items-center gap-6 p-4 rounded-3xl bg-white/5 border border-white/5 hover:border-[#d4af37]/20 transition-all">
+                  <div className="w-20 h-20 rounded-2xl overflow-hidden bg-black border border-white/5 flex-shrink-0 group-hover:scale-105 transition-transform">
+                    <img
+                      src={item.image}
+                      alt={item.name}
+                      className="w-full h-full object-cover grayscale-0"
+                    />
+                  </div>
                   
-                  <div className="flex-1 min-w-0">
-                    <h3 className="font-medium text-foreground truncate">
+                  <div className="flex-1 min-w-0 space-y-1">
+                    <h3 className="text-sm font-bold text-white truncate uppercase tracking-tight">
                       {item.name}
                     </h3>
-                    <p className="text-sm text-muted-foreground">
-                      R$ {item.price.toFixed(2).replace('.', ',')}
+                    <p className="text-xs font-serif font-bold text-[#d4af37]">
+                      R$ {item.price.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
                     </p>
+                    
+                    <div className="flex items-center gap-4 pt-2">
+                      <div className="flex items-center gap-1 bg-black/40 rounded-full border border-white/5 p-1">
+                        <button
+                          onClick={() => updateQuantity(item.id, item.quantity - 1)}
+                          className="h-6 w-6 flex items-center justify-center text-white/20 hover:text-white transition-colors"
+                        >
+                          <Minus className="h-3 w-3" />
+                        </button>
+                        <span className="w-6 text-center text-[10px] font-black text-white">
+                          {item.quantity}
+                        </span>
+                        <button
+                          onClick={() => updateQuantity(item.id, item.quantity + 1)}
+                          className="h-6 w-6 flex items-center justify-center text-white/20 hover:text-white transition-colors"
+                        >
+                          <Plus className="h-3 w-3" />
+                        </button>
+                      </div>
+                    </div>
                   </div>
 
-                  <div className="flex items-center space-x-2">
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      className="h-8 w-8 p-0"
-                      onClick={() => updateQuantity(item.id, item.quantity - 1)}
-                    >
-                      <Minus className="h-3 w-3" />
-                    </Button>
-                    
-                    <span className="w-8 text-center font-medium text-sm">
-                      {item.quantity}
-                    </span>
-                    
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      className="h-8 w-8 p-0"
-                      onClick={() => updateQuantity(item.id, item.quantity + 1)}
-                    >
-                      <Plus className="h-3 w-3" />
-                    </Button>
-                  </div>
-
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    className="text-muted-foreground hover:text-destructive p-1"
+                  <button
                     onClick={() => removeFromCart(item.id)}
+                    className="absolute top-4 right-4 text-white/10 hover:text-red-500/60 transition-colors p-2"
                   >
-                    <X className="h-4 w-4" />
-                  </Button>
+                    <Trash2 className="h-4 w-4" />
+                  </button>
                 </div>
               ))}
             </div>
@@ -118,23 +117,31 @@ export const CartModal: React.FC<CartModalProps> = ({ isOpen, onClose }) => {
 
         {/* Footer */}
         {cartItems.length > 0 && (
-          <div className="border-t border-border p-6 space-y-4">
-            <div className="flex items-center justify-between text-lg font-semibold">
-              <span>Total:</span>
-              <span className="text-primary">
-                R$ {getTotalPrice().toFixed(2).replace('.', ',')}
-              </span>
+          <div className="p-8 bg-[#0a0a0a] border-t border-white/5 space-y-8">
+            <div className="flex items-center justify-between">
+              <span className="text-[10px] font-black uppercase tracking-[0.3em] text-white/20">Total da Seleção</span>
+              <div className="text-right">
+                <span className="text-2xl font-serif font-bold text-[#d4af37] block drop-shadow-[0_0_10px_rgba(212,175,55,0.2)]">
+                  R$ {getTotalPrice().toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                </span>
+                <span className="text-[9px] text-white/10 uppercase tracking-widest font-bold">Impostos e taxas inclusos</span>
+              </div>
             </div>
             
             <Button
-              className="w-full bg-primary hover:bg-primary/90 text-primary-foreground font-medium py-3"
+              className="w-full bg-[#d4af37] hover:bg-[#f2ca50] text-black font-black py-8 rounded-full shadow-[0_0_30px_rgba(212,175,55,0.3)] transition-all uppercase tracking-[0.2em] text-[10px] group"
               onClick={handleWhatsAppCheckout}
             >
-              Finalizar Compra via WhatsApp
+              Finalizar no WhatsApp
+              <ArrowRight className="ml-3 w-4 h-4 transition-transform group-hover:translate-x-1" />
             </Button>
+            
+            <p className="text-center text-[9px] text-white/10 uppercase tracking-[0.2em] font-bold">
+              Atendimento Premium 24/7 disponível
+            </p>
           </div>
         )}
-      </div>
-    </div>
+      </SheetContent>
+    </Sheet>
   );
 };

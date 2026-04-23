@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from 'react';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import React, { useState } from 'react';
+import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
@@ -11,11 +11,26 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, Di
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
 import { Textarea } from '@/components/ui/textarea';
-import { Separator } from '@/components/ui/separator';
 import { toast } from 'sonner';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
-import { CalendarIcon, Plus, TrendingUp, DollarSign, Package, Trophy, ArrowLeft, Trash2, Download } from 'lucide-react';
+import { 
+  CalendarIcon, 
+  Plus, 
+  TrendingUp, 
+  DollarSign, 
+  Package, 
+  Trophy, 
+  ArrowLeft, 
+  Trash2, 
+  Download,
+  Diamond,
+  History,
+  Filter,
+  Search,
+  ShoppingCart,
+  ArrowUpRight
+} from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
 import { useProducts } from '@/hooks/useProducts';
@@ -35,59 +50,29 @@ const SalesManagement = () => {
   const [productFilter, setProductFilter] = useState('');
   const [categoryFilter, setCategoryFilter] = useState('');
 
-  // Fetch products
   const { data: products = [] } = useProducts();
-
-  // Fetch sales with filters
-  const { data: sales = [] } = useSales({
-    date: dateFilter,
-    productId: productFilter,
-    category: categoryFilter,
-  });
-
-  // Fetch sales summary
-  const { data: salesSummary } = useSalesSummary({
-    date: dateFilter,
-    productId: productFilter,
-    category: categoryFilter,
-  });
-
-  // Mutations
+  const { data: sales = [] } = useSales({ date: dateFilter, productId: productFilter, category: categoryFilter });
+  const { data: salesSummary } = useSalesSummary({ date: dateFilter, productId: productFilter, category: categoryFilter });
   const { createSale, deleteSale, isCreating, isDeleting } = useSalesMutations();
 
   const resetForm = () => {
-    setSelectedProduct('');
-    setQuantity('');
-    setUnitPrice('');
-    setCostAtSale('');
-    setSaleType('manual');
-    setNotes('');
+    setSelectedProduct(''); setQuantity(''); setUnitPrice(''); setCostAtSale(''); setSaleType('manual'); setNotes('');
   };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    
     if (!selectedProduct || !quantity || !unitPrice) {
-      toast.error('Preencha todos os campos obrigatórios');
+      toast.error('Campos obrigatórios ausentes');
       return;
     }
-
     const product = products.find(p => p.id === selectedProduct);
-    if (!product) {
-      toast.error('Produto não encontrado');
-      return;
-    }
-
+    if (!product) return;
     const quantityNum = parseInt(quantity);
-    const unitPriceNum = parseFloat(unitPrice);
-    
-    // Check stock availability
     if (quantityNum > product.stock) {
-      toast.error(`Estoque insuficiente! Disponível: ${product.stock} unidades`);
+      toast.error(`Estoque insuficiente: ${product.stock} disponíveis`);
       return;
     }
-
-    const totalPrice = quantityNum * unitPriceNum;
+    const unitPriceNum = parseFloat(unitPrice);
     const costNum = parseFloat(costAtSale || '0');
 
     createSale({
@@ -95,7 +80,7 @@ const SalesManagement = () => {
       quantity: quantityNum,
       unit_price: unitPriceNum,
       cost_at_sale: costNum,
-      total_price: totalPrice,
+      total_price: quantityNum * unitPriceNum,
       category: product.category || '',
       sale_type: saleType,
       notes,
@@ -107,371 +92,198 @@ const SalesManagement = () => {
   };
 
   const handleExportCSV = () => {
-    if (sales.length === 0) {
-      toast.error('Nenhuma venda para exportar');
-      return;
-    }
-
-    const headers = [
-      'Data/Hora',
-      'Produto',
-      'Categoria',
-      'Quantidade',
-      'Preço Unitario',
-      'Custo Unitario',
-      'Total',
-      'Lucro',
-      'Tipo',
-      'Notas'
-    ];
-
+    if (sales.length === 0) { toast.error('Sem dados para exportação'); return; }
+    const headers = ['Data', 'Peça', 'Categoria', 'Qtd', 'Preço', 'Custo', 'Total', 'Lucro'];
     const rows = sales.map(sale => {
       const cost = (sale.cost_at_sale ?? sale.product?.cost ?? 0);
       const profit = (sale.unit_price - cost) * sale.quantity;
       return [
-        format(new Date(sale.sale_date), 'dd/MM/yyyy HH:mm'),
+        format(new Date(sale.sale_date), 'dd/MM/yyyy'),
         sale.product?.name || '?',
         sale.category || 'Geral',
         sale.quantity,
         sale.unit_price.toFixed(2),
         cost.toFixed(2),
         sale.total_price.toFixed(2),
-        profit.toFixed(2),
-        sale.sale_type,
-        (sale.notes || '').replace(/,/g, ';').replace(/\n/g, ' ')
+        profit.toFixed(2)
       ];
     });
-
-    const csvContent = [
-      headers.join(','),
-      ...rows.map(row => row.join(','))
-    ].join('\n');
-
+    const csvContent = [headers.join(','), ...rows.map(row => row.join(','))].join('\n');
     const blob = new Blob(["\ufeff" + csvContent], { type: 'text/csv;charset=utf-8;' });
     const link = document.createElement('a');
-    const url = URL.createObjectURL(blob);
-    link.setAttribute('href', url);
-    link.setAttribute('download', `vendas_jracessorios_${format(new Date(), 'yyyy-MM-dd')}.csv`);
-    link.style.visibility = 'hidden';
-    document.body.appendChild(link);
+    link.setAttribute('href', URL.createObjectURL(blob));
+    link.setAttribute('download', `relatorio_vendas_${format(new Date(), 'yyyy-MM-dd')}.csv`);
     link.click();
-    document.body.removeChild(link);
-    
-    toast.success('Arquivo exportado com sucesso!');
+    toast.success('Relatório exportado com sucesso');
   };
 
   const handleProductChange = (productId: string) => {
     setSelectedProduct(productId);
     const product = products.find(p => p.id === productId);
-    if (product) {
-      setUnitPrice(product.price.toString());
-      setCostAtSale((product.cost ?? 0).toString());
-    }
+    if (product) { setUnitPrice(product.price.toString()); setCostAtSale((product.cost ?? 0).toString()); }
   };
 
-  // Categories for filter
   const categories = [...new Set(products.map(p => p.category).filter(Boolean))];
 
-  if (!user) {
-    return (
-      <div className="flex items-center justify-center min-h-screen">
-        <p>Acesso negado. Faça login como administrador.</p>
-      </div>
-    );
-  }
+  if (!user) return <div className="min-h-screen bg-black flex items-center justify-center"><p className="text-white/40 uppercase tracking-widest font-black">Acesso Restrito</p></div>;
 
   return (
-    <div className="container mx-auto p-6 space-y-8">
-      <div className="flex justify-between items-center">
-        <div className="flex items-center gap-4">
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => navigate('/admin/dashboard')}
-            className="flex items-center gap-2"
-          >
-            <ArrowLeft className="h-4 w-4" />
-            Voltar
-          </Button>
-          <div>
-            <h1 className="text-3xl font-bold">Gestão de Vendas</h1>
-            <p className="text-muted-foreground">Registre e acompanhe as vendas em tempo real</p>
+    <div className="min-h-screen bg-[#050505] text-[#e2e2e2] font-sans selection:bg-[#f2ca50]/30 selection:text-[#f2ca50]">
+      <header className="sticky top-0 z-50 bg-black/60 backdrop-blur-2xl border-b border-white/5 py-4">
+        <div className="max-w-screen-2xl mx-auto px-8 flex items-center justify-between">
+          <div className="flex items-center gap-6">
+            <Button variant="ghost" onClick={() => navigate('/admin/dashboard')} className="text-white/40 hover:text-[#d4af37] transition-colors p-0">
+              <ArrowLeft className="h-5 w-5 mr-2" />
+              <span className="text-[10px] font-bold uppercase tracking-widest">Painel</span>
+            </Button>
+            <div className="h-6 w-[1px] bg-white/10"></div>
+            <h1 className="text-xl font-serif font-black text-white uppercase tracking-[0.2em]">Fluxo de <span className="text-[#d4af37]">Caixa</span></h1>
+          </div>
+          
+          <div className="flex gap-3">
+            <Button variant="ghost" onClick={handleExportCSV} className="text-white/40 hover:text-white hover:bg-white/5 font-bold text-[10px] uppercase tracking-widest px-6 h-12 rounded-full">
+              <Download className="h-4 w-4 mr-2" /> Exportar
+            </Button>
+            <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+              <DialogTrigger asChild>
+                <Button onClick={resetForm} className="bg-[#d4af37] text-black font-black text-[10px] uppercase tracking-widest px-8 h-12 rounded-full transition-all hover:bg-[#f2ca50] shadow-xl shadow-[#d4af37]/10">
+                  <Plus className="h-4 w-4 mr-2" /> Registrar Venda
+                </Button>
+              </DialogTrigger>
+              <DialogContent className="max-w-md bg-[#0a0a0a] border-white/10 text-white rounded-[32px] overflow-hidden p-0">
+                <div className="p-8 border-b border-white/5 bg-black/50">
+                  <DialogHeader>
+                    <DialogTitle className="text-2xl font-serif font-bold text-white">Novo Registro</DialogTitle>
+                    <DialogDescription className="text-white/40 text-xs uppercase tracking-widest font-bold mt-1">Insira os detalhes da transação comercial.</DialogDescription>
+                  </DialogHeader>
+                </div>
+                <form onSubmit={handleSubmit} className="p-8 space-y-6">
+                  <div className="space-y-4">
+                    <Label className="text-[10px] font-bold uppercase tracking-widest text-white/30">Peça Exclusiva</Label>
+                    <Select value={selectedProduct} onValueChange={handleProductChange}>
+                      <SelectTrigger className="bg-white/5 border-white/10 h-14 rounded-xl">
+                        <SelectValue placeholder="Selecione uma peça" />
+                      </SelectTrigger>
+                      <SelectContent className="bg-[#0f0f0f] border-white/10 text-white">
+                        {products.map(p => (
+                          <SelectItem key={p.id} value={p.id} className="hover:bg-white/5 focus:bg-white/5">
+                            {p.name} — R$ {p.price.toFixed(2)}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div className="grid grid-cols-2 gap-6">
+                    <div className="space-y-4">
+                      <Label className="text-[10px] font-bold uppercase tracking-widest text-white/30">Quantidade</Label>
+                      <Input type="number" min="1" value={quantity} onChange={(e) => setQuantity(e.target.value)} className="bg-white/5 border-white/10 h-12 rounded-xl" placeholder="1" />
+                    </div>
+                    <div className="space-y-4">
+                      <Label className="text-[10px] font-bold uppercase tracking-widest text-white/30">Preço Venda (un)</Label>
+                      <Input type="number" step="0.01" value={unitPrice} onChange={(e) => setUnitPrice(e.target.value)} className="bg-white/5 border-white/10 h-12 rounded-xl" />
+                    </div>
+                  </div>
+                  <div className="space-y-4">
+                    <Label className="text-[10px] font-bold uppercase tracking-widest text-white/30">Custo Operacional (un)</Label>
+                    <Input type="number" step="0.01" value={costAtSale} onChange={(e) => setCostAtSale(e.target.value)} className="bg-white/5 border-white/10 h-12 rounded-xl" placeholder="0.00" />
+                  </div>
+                  <div className="space-y-4">
+                    <Label className="text-[10px] font-bold uppercase tracking-widest text-white/30">Notas Internas</Label>
+                    <Textarea value={notes} onChange={(e) => setNotes(e.target.value)} className="bg-white/5 border-white/10 rounded-xl min-h-[80px]" placeholder="Opcional..." />
+                  </div>
+                  {quantity && unitPrice && (
+                    <div className="p-6 bg-[#d4af37]/10 rounded-2xl border border-[#d4af37]/20 flex items-center justify-between">
+                      <span className="text-[10px] font-black uppercase tracking-widest text-[#d4af37]">VPT (Valor Total):</span>
+                      <span className="text-xl font-serif font-black text-white">R$ {(parseInt(quantity) * parseFloat(unitPrice)).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</span>
+                    </div>
+                  )}
+                  <div className="flex justify-end gap-4 pt-4">
+                    <Button type="button" variant="ghost" onClick={() => setIsDialogOpen(false)} className="text-white/40 hover:text-white font-bold uppercase tracking-widest text-[10px]">Cancelar</Button>
+                    <Button type="submit" disabled={isCreating} className="bg-[#d4af37] text-black font-black uppercase tracking-widest text-[10px] px-10 h-12 rounded-full hover:bg-[#f2ca50] transition-all">Confirmar Registro</Button>
+                  </div>
+                </form>
+              </DialogContent>
+            </Dialog>
           </div>
         </div>
-        
-        <div className="flex gap-2 w-full sm:w-auto">
-          <Button
-            variant="outline"
-            onClick={handleExportCSV}
-            className="flex items-center gap-2 flex-1 sm:flex-initial"
-          >
-            <Download className="h-4 w-4" />
-            Exportar CSV
-          </Button>
+      </header>
 
-          <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-            <DialogTrigger asChild>
-              <Button className="flex items-center gap-2 flex-1 sm:flex-initial">
-                <Plus className="h-4 w-4" />
-                Nova Venda
-              </Button>
-            </DialogTrigger>
-          <DialogContent className="sm:max-w-[425px]">
-            <DialogHeader>
-              <DialogTitle>Registrar Nova Venda</DialogTitle>
-              <DialogDescription>
-                Preencha os dados da venda para registrar no sistema
-              </DialogDescription>
-            </DialogHeader>
-            <form onSubmit={handleSubmit} className="space-y-4">
-              <div className="space-y-2">
-                <Label htmlFor="product">Produto *</Label>
-                <Select value={selectedProduct} onValueChange={handleProductChange}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Selecione um produto" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {products.map((product) => (
-                      <SelectItem key={product.id} value={product.id}>
-                        {product.name} - R$ {product.price.toFixed(2)} (Estoque: {product.stock})
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+      <main className="max-w-screen-2xl mx-auto px-8 py-12">
+        {/* Performance Summary Cards */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-16">
+          {[
+            { label: 'Volume Bruto', value: `R$ ${salesSummary?.total_sales_value?.toLocaleString('pt-BR', { minimumFractionDigits: 2 }) || '0,00'}`, sub: `${salesSummary?.total_transactions || 0} Operações`, icon: DollarSign, color: 'text-green-400' },
+            { label: 'Itens Distribuídos', value: salesSummary?.total_quantity_sold || 0, sub: 'Unidades totais', icon: Package, color: 'text-blue-400' },
+            { label: 'Líder de Vendas', value: salesSummary?.best_selling_quantity || 0, sub: salesSummary?.best_selling_product_name || 'Nenhum', icon: TrendingUp, color: 'text-orange-400' },
+            { label: 'Alpha Profit', value: `R$ ${salesSummary?.most_profitable_profit?.toLocaleString('pt-BR', { minimumFractionDigits: 2 }) || '0,00'}`, sub: salesSummary?.most_profitable_product_name || 'Nenhum', icon: Trophy, color: 'text-[#d4af37]' }
+          ].map((card, i) => (
+            <div key={i} className="bg-[#0f0f0f]/40 backdrop-blur-2xl border border-white/5 rounded-[32px] p-8 group hover:border-[#d4af37]/20 transition-all">
+              <div className="flex items-center justify-between mb-6">
+                <div className={`w-10 h-10 rounded-xl bg-black border border-white/5 flex items-center justify-center ${card.color}`}><card.icon className="w-5 h-5" /></div>
+                <ArrowUpRight className="w-4 h-4 text-white/10 group-hover:text-[#d4af37] transition-colors" />
               </div>
-
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label htmlFor="quantity">Quantidade *</Label>
-                  <Input
-                    id="quantity"
-                    type="number"
-                    min="1"
-                    value={quantity}
-                    onChange={(e) => setQuantity(e.target.value)}
-                    placeholder="1"
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="unitPrice">Preço Unitário *</Label>
-                  <Input
-                    id="unitPrice"
-                    type="number"
-                    step="0.01"
-                    min="0"
-                    value={unitPrice}
-                    onChange={(e) => setUnitPrice(e.target.value)}
-                    placeholder="0.00"
-                  />
-                </div>
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="costAtSale">Custo Unitário (Despesa)</Label>
-                <Input
-                  id="costAtSale"
-                  type="number"
-                  step="0.01"
-                  min="0"
-                  value={costAtSale}
-                  onChange={(e) => setCostAtSale(e.target.value)}
-                  placeholder="0.00"
-                />
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="saleType">Tipo de Baixa</Label>
-                <Select value={saleType} onValueChange={(value: 'manual' | 'automatic') => setSaleType(value)}>
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="manual">Manual</SelectItem>
-                    <SelectItem value="automatic">Automática</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="notes">Observações</Label>
-                <Textarea
-                  id="notes"
-                  value={notes}
-                  onChange={(e) => setNotes(e.target.value)}
-                  placeholder="Informações adicionais sobre a venda..."
-                  rows={3}
-                />
-              </div>
-
-              {quantity && unitPrice && (
-                <div className="p-3 bg-muted rounded-lg">
-                  <p className="text-sm font-medium">
-                    Total: R$ {(parseInt(quantity || '0') * parseFloat(unitPrice || '0')).toFixed(2)}
-                  </p>
-                </div>
-              )}
-
-              <div className="flex justify-end gap-2">
-                <Button
-                  type="button"
-                  variant="outline"
-                  onClick={() => setIsDialogOpen(false)}
-                >
-                  Cancelar
-                </Button>
-                <Button type="submit" disabled={isCreating}>
-                  {isCreating ? 'Registrando...' : 'Registrar Venda'}
-                </Button>
-              </div>
-            </form>
-          </DialogContent>
-        </Dialog>
-      </div>
-    </div>
-
-      {/* Dashboard Cards */}
-      {salesSummary && (
-        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Vendas Totais</CardTitle>
-              <DollarSign className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">R$ {salesSummary.total_sales_value?.toFixed(2) || '0.00'}</div>
-              <p className="text-xs text-muted-foreground">{salesSummary.total_transactions} transações</p>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Produtos Vendidos</CardTitle>
-              <Package className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">{salesSummary.total_quantity_sold}</div>
-              <p className="text-xs text-muted-foreground">unidades totais</p>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Mais Vendido</CardTitle>
-              <TrendingUp className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">{salesSummary.best_selling_quantity || 0}</div>
-              <p className="text-xs text-muted-foreground">{salesSummary.best_selling_product_name || 'Nenhum'}</p>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Mais Rentável</CardTitle>
-              <Trophy className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">R$ {salesSummary.most_profitable_profit?.toFixed(2) || '0.00'}</div>
-              <p className="text-xs text-muted-foreground">{salesSummary.most_profitable_product_name || 'Nenhum'}</p>
-            </CardContent>
-          </Card>
+              <p className="text-[10px] font-bold text-white/20 uppercase tracking-[0.2em]">{card.label}</p>
+              <h3 className="text-2xl font-serif font-black text-white mt-1">{card.value}</h3>
+              <p className="text-xs text-white/40 mt-2 font-medium line-clamp-1">{card.sub}</p>
+            </div>
+          ))}
         </div>
-      )}
 
-      {/* Filters */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Filtros</CardTitle>
-          <CardDescription>Filtre as vendas por data, produto ou categoria</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="grid gap-4 md:grid-cols-3">
-            <div className="space-y-2">
-              <Label htmlFor="dateFilter">Data</Label>
-              <Input
-                id="dateFilter"
-                type="date"
-                value={dateFilter}
-                onChange={(e) => setDateFilter(e.target.value)}
-              />
-            </div>
-            
-            <div className="space-y-2">
-              <Label htmlFor="productFilter">Produto</Label>
-              <Select value={productFilter} onValueChange={(value) => setProductFilter(value === 'all' ? '' : value)}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Todos os produtos" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">Todos os produtos</SelectItem>
-                  {products.map((product) => (
-                    <SelectItem key={product.id} value={product.id}>
-                      {product.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="categoryFilter">Categoria</Label>
-              <Select value={categoryFilter} onValueChange={(value) => setCategoryFilter(value === 'all' ? '' : value)}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Todas as categorias" />
-                </SelectTrigger>
-                 <SelectContent>
-                   <SelectItem value="all">Todas as categorias</SelectItem>
-                   {categories.filter(category => category && category.trim() !== '').map((category) => (
-                     <SelectItem key={category} value={category}>
-                       {category}
-                     </SelectItem>
-                   ))}
-                </SelectContent>
-              </Select>
-            </div>
+        {/* Intelligence Filters */}
+        <div className="bg-[#0f0f0f]/40 backdrop-blur-2xl border border-white/5 rounded-[40px] p-8 mb-12 flex flex-wrap items-end gap-8">
+          <div className="flex-1 min-w-[200px] space-y-4">
+            <Label className="text-[10px] font-bold uppercase tracking-widest text-white/20 flex items-center gap-2"><CalendarIcon className="w-3 h-3" /> Período</Label>
+            <Input type="date" value={dateFilter} onChange={(e) => setDateFilter(e.target.value)} className="bg-black/40 border-white/10 h-14 rounded-2xl text-white outline-none" />
           </div>
-
+          <div className="flex-1 min-w-[200px] space-y-4">
+            <Label className="text-[10px] font-bold uppercase tracking-widest text-white/20 flex items-center gap-2"><Diamond className="w-3 h-3" /> Peça</Label>
+            <Select value={productFilter} onValueChange={(v) => setProductFilter(v === 'all' ? '' : v)}>
+              <SelectTrigger className="bg-black/40 border-white/10 h-14 rounded-2xl text-white">
+                <SelectValue placeholder="Todas as peças" />
+              </SelectTrigger>
+              <SelectContent className="bg-[#0f0f0f] border-white/10 text-white">
+                <SelectItem value="all">Todas as peças</SelectItem>
+                {products.map(p => <SelectItem key={p.id} value={p.id}>{p.name}</SelectItem>)}
+              </SelectContent>
+            </Select>
+          </div>
+          <div className="flex-1 min-w-[200px] space-y-4">
+            <Label className="text-[10px] font-bold uppercase tracking-widest text-white/20 flex items-center gap-2"><Filter className="w-3 h-3" /> Categoria</Label>
+            <Select value={categoryFilter} onValueChange={(v) => setCategoryFilter(v === 'all' ? '' : v)}>
+              <SelectTrigger className="bg-black/40 border-white/10 h-14 rounded-2xl text-white">
+                <SelectValue placeholder="Geral" />
+              </SelectTrigger>
+              <SelectContent className="bg-[#0f0f0f] border-white/10 text-white">
+                <SelectItem value="all">Todas as Categorias</SelectItem>
+                {categories.map(c => <SelectItem key={c} value={c}>{c}</SelectItem>)}
+              </SelectContent>
+            </Select>
+          </div>
           {(dateFilter || productFilter || categoryFilter) && (
-            <div className="flex items-center gap-2 mt-4">
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => {
-                  setDateFilter('');
-                  setProductFilter('');
-                  setCategoryFilter('');
-                }}
-              >
-                Limpar Filtros
-              </Button>
-            </div>
+            <Button variant="ghost" onClick={() => { setDateFilter(''); setProductFilter(''); setCategoryFilter(''); }} className="h-14 px-8 text-[10px] font-black uppercase tracking-widest text-[#d4af37] hover:bg-[#d4af37]/5 rounded-2xl">Resetar</Button>
           )}
-        </CardContent>
-      </Card>
+        </div>
 
-      {/* Sales History */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Histórico de Vendas</CardTitle>
-          <CardDescription>Lista de todas as vendas registradas</CardDescription>
-        </CardHeader>
-        <CardContent>
-          {/* Desktop Table View */}
-          <div className="hidden lg:block overflow-x-auto">
+        {/* Transaction Ledger */}
+        <div className="bg-[#0f0f0f]/40 backdrop-blur-2xl border border-white/5 rounded-[40px] overflow-hidden shadow-2xl">
+          <div className="p-8 border-b border-white/5 bg-black/30 flex items-center justify-between">
+            <div className="flex items-center gap-4">
+              <div className="w-10 h-10 rounded-xl bg-[#d4af37]/10 flex items-center justify-center text-[#d4af37]"><History className="w-5 h-5" /></div>
+              <h3 className="text-xl font-serif font-bold text-white">Livro de Operações</h3>
+            </div>
+            <span className="text-[10px] font-black uppercase tracking-[0.2em] text-white/20">{sales.length} Entradas Registradas</span>
+          </div>
+          <div className="overflow-x-auto">
             <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Data/Hora</TableHead>
-                  <TableHead>Produto</TableHead>
-                  <TableHead>Categoria</TableHead>
-                  <TableHead>Quantidade</TableHead>
-                  <TableHead>Preço Unit.</TableHead>
-                  <TableHead>Custo Unit.</TableHead>
-                  <TableHead>Total</TableHead>
-                  <TableHead>Lucro</TableHead>
-                  <TableHead>Tipo</TableHead>
-                  <TableHead>Observações</TableHead>
-                  <TableHead>Ações</TableHead>
+              <TableHeader className="bg-black/20">
+                <TableRow className="hover:bg-transparent border-none">
+                  <TableHead className="py-6 px-8 text-[10px] font-black uppercase tracking-[0.2em] text-white/30">Timestamp</TableHead>
+                  <TableHead className="py-6 text-[10px] font-black uppercase tracking-[0.2em] text-white/30">Ativo Comercial</TableHead>
+                  <TableHead className="py-6 text-[10px] font-black uppercase tracking-[0.2em] text-white/30 text-center">Volume</TableHead>
+                  <TableHead className="py-6 text-[10px] font-black uppercase tracking-[0.2em] text-white/30 text-right">Preço Unit.</TableHead>
+                  <TableHead className="py-6 text-[10px] font-black uppercase tracking-[0.2em] text-white/30 text-right">Total Bruto</TableHead>
+                  <TableHead className="py-6 text-[10px] font-black uppercase tracking-[0.2em] text-white/30 text-right">Lucro Líquido</TableHead>
+                  <TableHead className="py-6 px-8 text-[10px] font-black uppercase tracking-[0.2em] text-white/30 text-right">Gestão</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -479,39 +291,26 @@ const SalesManagement = () => {
                   const cost = (sale.cost_at_sale ?? sale.product?.cost ?? 0);
                   const profit = (sale.unit_price - cost) * sale.quantity;
                   return (
-                    <TableRow key={sale.id} className="hover:bg-muted/50 transition-colors">
-                      <TableCell className="whitespace-nowrap">
-                        {format(new Date(sale.sale_date), 'dd/MM/yyyy HH:mm', { locale: ptBR })}
+                    <TableRow key={sale.id} className="border-b border-white/5 hover:bg-white/[0.01] transition-colors group">
+                      <TableCell className="py-6 px-8 text-xs font-bold text-white/40 uppercase tracking-tighter">
+                        {format(new Date(sale.sale_date), 'dd/MM HH:mm', { locale: ptBR })}
                       </TableCell>
-                      <TableCell className="font-medium">
-                        {sale.product?.name || 'Produto não encontrado'}
+                      <TableCell className="py-6">
+                        <div className="flex flex-col">
+                          <span className="text-sm font-bold text-white uppercase tracking-tight">{sale.product?.name || 'Item Removido'}</span>
+                          <span className="text-[9px] font-black text-white/20 uppercase tracking-widest">{sale.category || 'Geral'}</span>
+                        </div>
                       </TableCell>
-                      <TableCell>
-                        <Badge variant="secondary" className="font-normal">{sale.category || 'Sem categoria'}</Badge>
+                      <TableCell className="py-6 text-center">
+                        <Badge variant="outline" className="bg-white/5 border-white/10 text-white font-black">{sale.quantity}x</Badge>
                       </TableCell>
-                      <TableCell className="text-center">{sale.quantity}</TableCell>
-                      <TableCell className="whitespace-nowrap">R$ {sale.unit_price.toFixed(2).replace('.', ',')}</TableCell>
-                      <TableCell className="whitespace-nowrap">R$ {cost.toFixed(2).replace('.', ',')}</TableCell>
-                      <TableCell className="font-bold whitespace-nowrap">R$ {sale.total_price.toFixed(2).replace('.', ',')}</TableCell>
-                      <TableCell className={profit >= 0 ? "font-bold text-green-500" : "font-bold text-red-500"}>
-                        R$ {profit.toFixed(2).replace('.', ',')}
+                      <TableCell className="py-6 text-right text-sm font-medium text-white/60">R$ {sale.unit_price.toFixed(2)}</TableCell>
+                      <TableCell className="py-6 text-right text-sm font-serif font-black text-white">R$ {sale.total_price.toFixed(2)}</TableCell>
+                      <TableCell className={`py-6 text-right text-sm font-serif font-black ${profit >= 0 ? "text-green-500" : "text-red-500"}`}>
+                        R$ {profit.toFixed(2)}
                       </TableCell>
-                      <TableCell>
-                        <Badge variant={sale.sale_type === 'manual' ? 'default' : 'outline'} className="font-normal">
-                          {sale.sale_type === 'manual' ? 'Manual' : 'Automática'}
-                        </Badge>
-                      </TableCell>
-                      <TableCell className="max-w-[150px] truncate">
-                        {sale.notes || '-'}
-                      </TableCell>
-                      <TableCell>
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          onClick={() => deleteSale(sale.id)}
-                          disabled={isDeleting}
-                          className="text-muted-foreground hover:text-destructive transition-colors"
-                        >
+                      <TableCell className="py-6 px-8 text-right">
+                        <Button variant="ghost" size="sm" onClick={() => deleteSale(sale.id)} disabled={isDeleting} className="text-white/20 hover:text-red-500 hover:bg-red-500/5 rounded-full p-2 opacity-0 group-hover:opacity-100 transition-all">
                           <Trash2 className="h-4 w-4" />
                         </Button>
                       </TableCell>
@@ -521,70 +320,12 @@ const SalesManagement = () => {
               </TableBody>
             </Table>
           </div>
+        </div>
+      </main>
 
-          {/* Mobile Card View */}
-          <div className="lg:hidden space-y-4">
-            {sales.map((sale) => {
-              const cost = (sale.cost_at_sale ?? sale.product?.cost ?? 0);
-              const profit = (sale.unit_price - cost) * sale.quantity;
-              return (
-                <div key={sale.id} className="border border-border rounded-xl p-4 bg-card/50 space-y-3 shadow-sm">
-                  <div className="flex justify-between items-start">
-                    <div>
-                      <p className="text-xs text-muted-foreground">
-                        {format(new Date(sale.sale_date), 'dd/MM HH:mm', { locale: ptBR })}
-                      </p>
-                      <h4 className="font-bold text-foreground">{sale.product?.name || 'Produto'}</h4>
-                    </div>
-                    <Badge variant={sale.sale_type === 'manual' ? 'default' : 'outline'}>
-                      {sale.sale_type === 'manual' ? 'M' : 'A'}
-                    </Badge>
-                  </div>
-                  
-                  <div className="grid grid-cols-2 gap-2 text-sm">
-                    <div className="flex flex-col">
-                      <span className="text-muted-foreground text-xs uppercase tracking-wider font-semibold">Qtd / Unit</span>
-                      <span>{sale.quantity}x R$ {sale.unit_price.toFixed(2)}</span>
-                    </div>
-                    <div className="flex flex-col items-end">
-                      <span className="text-muted-foreground text-xs uppercase tracking-wider font-semibold">Total / Lucro</span>
-                      <div className="flex flex-col items-end">
-                        <span className="font-bold">R$ {sale.total_price.toFixed(2)}</span>
-                        <span className={profit >= 0 ? "text-green-500 font-medium" : "text-red-500 font-medium"}>
-                          (R$ {profit.toFixed(2)})
-                        </span>
-                      </div>
-                    </div>
-                  </div>
-
-                  <div className="flex justify-between items-center pt-2 border-t border-border">
-                    <Badge variant="secondary" className="text-[10px] uppercase font-bold tracking-tighter">
-                      {sale.category || 'Geral'}
-                    </Badge>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => deleteSale(sale.id)}
-                      disabled={isDeleting}
-                      className="text-destructive h-8 px-2 hover:bg-destructive/10"
-                    >
-                      <Trash2 className="h-3 w-3 mr-1" />
-                      Remover
-                    </Button>
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-
-          {sales.length === 0 && (
-            <div className="text-center py-12 bg-muted/20 rounded-xl border border-dashed border-border">
-              <Package className="h-8 w-8 mx-auto text-muted-foreground mb-3 opacity-20" />
-              <p className="text-muted-foreground font-medium">Nenhuma venda encontrada</p>
-            </div>
-          )}
-        </CardContent>
-      </Card>
+      <footer className="py-12 text-center border-t border-white/5">
+        <p className="text-[10px] font-black uppercase tracking-[0.5em] text-white/10">LUMINA TECH — EXCLUSIVE SALES LEDGER</p>
+      </footer>
     </div>
   );
 };

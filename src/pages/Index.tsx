@@ -1,6 +1,6 @@
 import React, { useEffect, useState, useRef } from 'react';
 import { Link } from 'react-router-dom';
-import { Truck, Shield, Gift, MapPin, Clock, Instagram, ChevronRight, Diamond, Star, MessageCircle, Users, Package, Award, ChevronDown } from 'lucide-react';
+import { Truck, Shield, Gift, MapPin, Clock, Instagram, ChevronRight, Diamond, Star, MessageCircle, Users, Package, Award, ChevronDown, Smartphone, Watch, Headphones, Zap, Plus } from 'lucide-react';
 import { Header } from '@/components/Header';
 import { Footer } from '@/components/Footer';
 import { ProductCard } from '@/components/ProductCard';
@@ -130,23 +130,27 @@ const Index: React.FC = () => {
         </div>
       </section>
 
-      {/* ═══ Quick Nav ═══ */}
-      <section className="bg-background py-6 border-b">
+
+      {/* ─── Categories Nav (Sticky) ─── */}
+      <section className="sticky top-[72px] md:top-[88px] z-40 bg-[#0a0a0a] border-b border-white/5 py-4 overflow-hidden">
         <div className="container mx-auto px-4 overflow-x-auto scrollbar-hide">
-          <div className="flex justify-between md:justify-center gap-6 md:gap-14 min-w-max pb-2">
+          <div className="flex justify-between md:justify-center gap-6 md:gap-16 min-w-max">
             {[
-              { label: 'iPhones', icon: '📱' },
-              { label: 'Watches', icon: '⌚' },
-              { label: 'AirPods', icon: '🎧' },
-              { label: 'Cases', icon: '🛡️' },
-              { label: 'Carregadores', icon: '⚡' },
-              { label: 'Mais', icon: '➕' }
+              { label: 'iPhones', icon: Smartphone, color: 'bg-blue-500/10 text-blue-500' },
+              { label: 'Watches', icon: Watch, color: 'bg-orange-500/10 text-orange-500' },
+              { label: 'AirPods', icon: Headphones, color: 'bg-purple-500/10 text-purple-500' },
+              { label: 'Cases', icon: Shield, color: 'bg-green-500/10 text-green-500' },
+              { label: 'Energia', icon: Zap, color: 'bg-yellow-500/10 text-yellow-500' },
+              { label: 'Mais', icon: Plus, color: 'bg-primary/10 text-primary' }
             ].map((item, i) => (
-              <Link key={i} to="/produtos" className="flex flex-col items-center gap-2 group">
-                <div className="h-14 w-14 rounded-full bg-muted flex items-center justify-center text-2xl transition-all group-hover:bg-primary/20 group-hover:scale-110 shadow-sm border border-border">
-                  {item.icon}
+              <Link key={i} to="/produtos" className="flex flex-col items-center gap-3 group transition-all">
+                <div className={`h-14 w-14 rounded-full ${item.color} flex items-center justify-center transition-all duration-500 shadow-lg border border-white/5 group-hover:border-primary/40 relative overflow-hidden`}>
+                  <div className="absolute inset-0 bg-white/5 opacity-0 group-hover:opacity-100 transition-opacity"></div>
+                  <item.icon className="h-6 w-6 transition-transform duration-500" />
                 </div>
-                <span className="text-[10px] font-bold uppercase tracking-tighter text-muted-foreground group-hover:text-primary">{item.label}</span>
+                <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-white/30 group-hover:text-white transition-all">
+                  {item.label}
+                </span>
               </Link>
             ))}
           </div>
@@ -262,19 +266,28 @@ const Index: React.FC = () => {
           </div>
 
           {isLoading ? (
-            <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
-              {[...Array(4)].map((_, i) => (
-                <div key={i} className="space-y-3">
-                  <div className="aspect-square bg-muted animate-pulse rounded-xl" />
-                  <div className="h-4 bg-muted animate-pulse rounded w-3/4" />
-                  <div className="h-4 bg-muted animate-pulse rounded w-1/2" />
-                </div>
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+              <div className="md:col-span-2 h-[500px] bg-white/5 animate-pulse rounded-3xl border border-white/5" />
+              {[...Array(2)].map((_, i) => (
+                <div key={i} className="h-[500px] bg-white/5 animate-pulse rounded-3xl border border-white/5" />
               ))}
             </div>
           ) : (
-            <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
-              {featuredProducts.map(product => (
-                <ProductCard key={product.id} product={product} />
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+              {/* Bento Grid Featured Item */}
+              {featuredProducts.length > 0 && (
+                <div className="md:col-span-2">
+                  <ProductCard 
+                    product={featuredProducts[0]} 
+                    className="xl:col-span-2 h-full" 
+                  />
+                </div>
+              )}
+              {/* Other Items */}
+              {featuredProducts.slice(1, 3).map(product => (
+                <div key={product.id}>
+                  <ProductCard product={product} className="h-full" />
+                </div>
               ))}
             </div>
           )}

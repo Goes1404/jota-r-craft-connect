@@ -10,6 +10,8 @@ import Products from "./pages/Products";
 import ProductDetails from "./pages/ProductDetails";
 import Contact from "./pages/Contact";
 import AdminLogin from "./pages/AdminLogin";
+import Register from "./pages/Register";
+import Profile from "./pages/Profile";
 import AdminDashboard from "./pages/AdminDashboard";
 import AdminProducts from "./pages/AdminProducts";
 import SalesManagement from "./pages/SalesManagement";
@@ -31,6 +33,10 @@ const App = () => (
               <Route path="/produto/:id" element={<ProductDetails />} />
               <Route path="/contato" element={<Contact />} />
               <Route path="/admin/login" element={<AdminLogin />} />
+              <Route path="/login" element={<AdminLogin />} />
+              <Route path="/entrar" element={<AdminLogin />} />
+              <Route path="/register" element={<Register />} />
+              <Route path="/perfil" element={<Profile />} />
               <Route path="/admin/dashboard" element={<AdminDashboard />} />
               <Route path="/admin/products" element={<AdminProducts />} />
               <Route path="/admin/sales" element={<SalesManagement />} />

@@ -19,7 +19,7 @@ export default {
 		},
 		extend: {
 			fontFamily: {
-				serif: ['Playfair Display', 'serif'],
+				serif: ['Noto Serif', 'serif'],
 				sans: ['Inter', 'sans-serif'],
 			},
 			colors: {
@@ -56,48 +56,30 @@ export default {
 					DEFAULT: 'hsl(var(--card))',
 					foreground: 'hsl(var(--card-foreground))'
 				},
-				// Jota.r Brand Colors - Black & Gold
-				olive: {
-					deep: 'hsl(var(--olive-deep))',
-					light: 'hsl(var(--olive-light))'
-				},
-				charcoal: 'hsl(var(--charcoal))',
-				'soft-white': 'hsl(var(--soft-white))',
-				'warm-gray': 'hsl(var(--warm-gray))',
-			},
-			backgroundImage: {
-				'gradient-hero': 'var(--gradient-hero)',
-				'gradient-card': 'var(--gradient-card)',
 			},
 			boxShadow: {
-				'card': 'var(--shadow-card)',
-				'hover': 'var(--shadow-hover)',
-			},
-			transitionTimingFunction: {
-				'smooth': 'var(--transition-smooth)',
-				'spring': 'var(--transition-spring)',
+				'luxury': 'var(--shadow-luxury)',
+				'luxury-hover': 'var(--shadow-luxury-hover)',
 			},
 			borderRadius: {
 				lg: 'var(--radius)',
 				md: 'calc(var(--radius) - 2px)',
 				sm: 'calc(var(--radius) - 4px)'
 			},
+			spacing: {
+				unit: "8px",
+				"container-max": "1280px",
+				margin: "40px",
+				gutter: "24px"
+			},
 			keyframes: {
 				'accordion-down': {
-					from: {
-						height: '0'
-					},
-					to: {
-						height: 'var(--radix-accordion-content-height)'
-					}
+					from: { height: '0' },
+					to: { height: 'var(--radix-accordion-content-height)' }
 				},
 				'accordion-up': {
-					from: {
-						height: 'var(--radix-accordion-content-height)'
-					},
-					to: {
-						height: '0'
-					}
+					from: { height: 'var(--radix-accordion-content-height)' },
+					to: { height: '0' }
 				}
 			},
 			animation: {
