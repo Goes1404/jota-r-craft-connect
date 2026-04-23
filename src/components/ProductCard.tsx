@@ -5,8 +5,9 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { useCart } from '@/contexts/CartContext';
+import { useWishlist } from '@/contexts/WishlistContext';
 import { useToast } from '@/hooks/use-toast';
-import { ShoppingCart } from 'lucide-react';
+import { ShoppingCart, Heart } from 'lucide-react';
 
 interface ProductCardProps {
   product: Product;
@@ -20,8 +21,16 @@ export const ProductCard: React.FC<ProductCardProps> = ({
   className = ""
 }) => {
   const { addToCart } = useCart();
+  const { toggleWishlist, isInWishlist } = useWishlist();
   const { toast } = useToast();
   const navigate = useNavigate();
+
+  const isFavorite = isInWishlist(product.id);
+
+  const handleToggleWishlist = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    toggleWishlist(product.id);
+  };
 
   const isOutOfStock = product.stock === 0;
 
@@ -66,6 +75,12 @@ export const ProductCard: React.FC<ProductCardProps> = ({
           <div className="absolute top-4 left-4 z-10 bg-background/80 backdrop-blur-sm text-primary px-3 py-1 rounded-md font-serif text-xs uppercase tracking-wider border border-primary">
             Destaque
           </div>
+          <button
+            onClick={handleToggleWishlist}
+            className={`absolute top-4 right-4 z-20 w-10 h-10 rounded-full flex items-center justify-center transition-all duration-300 ${isFavorite ? 'bg-primary text-background' : 'bg-background/80 backdrop-blur-md text-primary hover:scale-110'}`}
+          >
+            <Heart className={`w-5 h-5 ${isFavorite ? 'fill-current' : ''}`} />
+          </button>
           <img 
             className="w-full h-full object-contain mix-blend-lighten group-hover:scale-105 transition-transform duration-700 ease-out" 
             src={product.image || '/placeholder.svg'} 
@@ -107,6 +122,12 @@ export const ProductCard: React.FC<ProductCardProps> = ({
             Oferta
           </div>
         )}
+        <button
+          onClick={handleToggleWishlist}
+          className={`absolute top-4 right-4 z-20 w-8 h-8 rounded-full flex items-center justify-center transition-all duration-300 ${isFavorite ? 'bg-primary text-background' : 'bg-background/80 backdrop-blur-md text-primary hover:scale-110'}`}
+        >
+          <Heart className={`w-4 h-4 ${isFavorite ? 'fill-current' : ''}`} />
+        </button>
         <img 
           className="w-full h-full object-contain mix-blend-lighten group-hover:scale-105 transition-transform duration-700 ease-out" 
           src={product.image || '/placeholder.svg'} 

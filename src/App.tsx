@@ -5,6 +5,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { CartProvider } from "@/contexts/CartContext";
 import { AuthProvider } from "@/contexts/AuthContext";
+import { WishlistProvider } from "@/contexts/WishlistContext";
 import { HelmetProvider } from 'react-helmet-async';
 import Index from "./pages/Index";
 import Products from "./pages/Products";
@@ -16,6 +17,7 @@ import Profile from "./pages/Profile";
 import Orders from "./pages/Orders";
 import Addresses from "./pages/Addresses";
 import Coupons from "./pages/Coupons";
+import Wishlist from "./pages/Wishlist";
 import AdminDashboard from "./pages/AdminDashboard";
 import AdminProducts from "./pages/AdminProducts";
 import SalesManagement from "./pages/SalesManagement";
@@ -27,7 +29,8 @@ const App = () => (
   <HelmetProvider>
     <QueryClientProvider client={queryClient}>
     <AuthProvider>
-      <CartProvider>
+      <WishlistProvider>
+        <CartProvider>
         <TooltipProvider>
           <Toaster />
           <Sonner />
@@ -45,6 +48,7 @@ const App = () => (
               <Route path="/pedidos" element={<Orders />} />
               <Route path="/enderecos" element={<Addresses />} />
               <Route path="/cupons" element={<Coupons />} />
+              <Route path="/favoritos" element={<Wishlist />} />
               <Route path="/admin/dashboard" element={<AdminDashboard />} />
               <Route path="/admin/products" element={<AdminProducts />} />
               <Route path="/admin/sales" element={<SalesManagement />} />
@@ -54,6 +58,7 @@ const App = () => (
           </BrowserRouter>
         </TooltipProvider>
       </CartProvider>
+      </WishlistProvider>
     </AuthProvider>
   </QueryClientProvider>
   </HelmetProvider>
