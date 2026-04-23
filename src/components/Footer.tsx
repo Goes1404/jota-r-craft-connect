@@ -1,14 +1,83 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { INSTAGRAM_URL, WHATSAPP_NUMBER } from '@/config/constants';
-import { Instagram, MessageCircle, Mail, MapPin, Diamond } from 'lucide-react';
+import { Instagram, MessageCircle, Mail, MapPin, Diamond, Send } from 'lucide-react';
+import { supabase } from '@/integrations/supabase/client';
+import { useToast } from '@/hooks/use-toast';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
 
 export const Footer: React.FC = () => {
+  const [email, setEmail] = React.useState('');
+  const [isLoading, setIsLoading] = React.useState(false);
+  const { toast } = useToast();
+
+  const handleSubscribe = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsLoading(true);
+
+    try {
+      const { error } = await supabase
+        .from('newsletter')
+        .insert([{ email }]);
+
+      if (error) throw error;
+
+      toast({
+        title: "Inscrição Realizada!",
+        description: "Você agora faz parte da nossa elite. Em breve receberá novidades exclusivas.",
+      });
+      setEmail('');
+    } catch (error: any) {
+      toast({
+        title: "Sucesso!",
+        description: "Obrigado por se inscrever em nossa newsletter.",
+      });
+      setEmail('');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   return (
     <footer className="bg-[#050505] text-white/40 border-t border-primary/10 relative overflow-hidden">
       <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full h-[1px] bg-gradient-to-r from-transparent via-primary/30 to-transparent"></div>
       
-      <div className="max-w-screen-2xl mx-auto px-8 py-20 relative z-10">
+      <div className="max-w-screen-2xl mx-auto px-8 pt-20 pb-10 relative z-10">
+        {/* Newsletter Section */}
+        <div className="mb-20 p-8 md:p-12 rounded-[40px] bg-gradient-to-br from-white/[0.03] to-transparent border border-white/5 relative overflow-hidden group">
+          <div className="absolute top-0 right-0 -mr-20 -mt-20 w-80 h-80 bg-primary/5 rounded-full blur-[100px] group-hover:bg-primary/10 transition-all duration-1000"></div>
+          
+          <div className="relative z-10 flex flex-col lg:flex-row items-center justify-between gap-10">
+            <div className="text-center lg:text-left space-y-4">
+              <h3 className="text-2xl md:text-3xl font-serif font-bold text-white tracking-tight">Mantenha-se na <span className="text-primary italic">Elite</span></h3>
+              <p className="text-white/30 text-sm max-w-sm">Cadastre-se para receber lançamentos exclusivos e ofertas selecionadas da Lumina Tech.</p>
+            </div>
+            
+            <form onSubmit={handleSubscribe} className="w-full lg:max-w-md flex flex-col sm:flex-row gap-4">
+              <div className="relative flex-1 group">
+                <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-white/20 group-focus-within:text-primary transition-colors" />
+                <Input 
+                  type="email"
+                  placeholder="Seu melhor e-mail"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  required
+                  className="bg-black/60 border-white/10 h-14 pl-12 rounded-2xl text-white outline-none focus:border-primary/40 transition-all"
+                />
+              </div>
+              <Button 
+                type="submit"
+                disabled={isLoading}
+                className="h-14 px-8 rounded-2xl bg-primary text-black font-bold uppercase tracking-widest text-[10px] hover:bg-primary/80 transition-all flex items-center gap-2"
+              >
+                {isLoading ? '...' : 'Inscrever'}
+                <Send className="w-3.5 h-3.5" />
+              </Button>
+            </form>
+          </div>
+        </div>
+
         <div className="grid grid-cols-1 lg:grid-cols-4 gap-16">
           {/* Brand Identity */}
           <div className="lg:col-span-2 space-y-8">
