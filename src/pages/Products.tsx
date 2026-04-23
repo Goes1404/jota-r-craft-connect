@@ -1,6 +1,7 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import { Header } from '@/components/Header';
 import { Footer } from '@/components/Footer';
+import SEO from '@/components/SEO';
 import { ProductCard, ProductCardSkeleton } from '@/components/ProductCard';
 import { ProductFilters, FilterState } from '@/components/ProductFilters';
 import { useProducts } from '@/hooks/useProducts';
@@ -107,6 +108,10 @@ const Products: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-black text-[#e2e2e2] font-sans selection:bg-[#f2ca50]/30 selection:text-[#f2ca50]">
+      <SEO 
+        title="Nossa Coleção" 
+        description="Explore nossa seleção de smartwatches, eletrônicos e acessórios de luxo com os melhores preços de Osasco e região."
+      />
       <Header />
       
       {/* Background Ambient Glow */}

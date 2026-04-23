@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { Truck, Shield, Gift, MapPin, Clock, Instagram, ChevronRight, Diamond, Star, MessageCircle, Users, Package, Award, ChevronDown, Smartphone, Watch, Headphones, Zap, Plus } from 'lucide-react';
 import { Header } from '@/components/Header';
 import { Footer } from '@/components/Footer';
+import SEO from '@/components/SEO';
 import { ProductCard } from '@/components/ProductCard';
 import { Button } from '@/components/ui/button';
 import { useFeaturedProducts, useAppSettings } from '@/hooks/useProducts';
@@ -75,6 +76,7 @@ const Index: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-background">
+      <SEO />
       <Header />
 
       {/* ═══ WhatsApp Floating Button ═══ */}

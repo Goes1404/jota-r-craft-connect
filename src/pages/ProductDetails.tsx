@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from '@/components/ui/carousel';
 import { Header } from '@/components/Header';
 import { Footer } from '@/components/Footer';
+import SEO from '@/components/SEO';
 import { useCart } from '@/contexts/CartContext';
 import { useToast } from '@/hooks/use-toast';
 import { useProduct, useAppSettings } from '@/hooks/useProducts';
@@ -88,6 +89,12 @@ const ProductDetails = () => {
 
   return (
     <div className="min-h-screen bg-black text-[#e2e2e2] font-sans selection:bg-[#f2ca50]/30 selection:text-[#f2ca50]">
+      <SEO 
+        title={product.name}
+        description={product.description}
+        image={product.image}
+        type="product"
+      />
       <Header />
       
       {/* Background Ambient Glow */}
