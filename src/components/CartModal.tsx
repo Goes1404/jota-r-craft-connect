@@ -3,6 +3,9 @@ import { X, Plus, Minus, ShoppingBag, Diamond, Trash2, ArrowRight } from 'lucide
 import { Button } from '@/components/ui/button';
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
 import { useCart } from '@/contexts/CartContext';
+import { useAuth } from '@/contexts/AuthContext';
+import { useToast } from '@/hooks/use-toast';
+import { supabase } from '@/integrations/supabase/client';
 import { WHATSAPP_LINK } from '@/config/constants';
 
 interface CartModalProps {
@@ -12,10 +15,54 @@ interface CartModalProps {
 
 export const CartModal: React.FC<CartModalProps> = ({ isOpen, onClose }) => {
   const { cartItems, updateQuantity, removeFromCart, getTotalPrice } = useCart();
+  const { user } = useAuth();
+  const { toast } = useToast();
 
-  const handleWhatsAppCheckout = () => {
+  const handleWhatsAppCheckout = async () => {
     if (cartItems.length === 0) return;
 
+    // 1. Save order to database if user is logged in
+    if (user) {
+      try {
+        const total = getTotalPrice();
+        
+        // Insert into 'orders' table
+        const { data: order, error: orderError } = await supabase
+          .from('orders')
+          .insert({
+            user_id: user.id,
+            total_amount: total,
+            status: 'Pendente'
+          })
+          .select()
+          .single();
+
+        if (orderError) throw orderError;
+
+        // Insert items into 'sales' table for tracking
+        const salesItems = cartItems.map(item => ({
+          order_id: order.id, // Linking to the order
+          product_id: item.id,
+          quantity: item.quantity,
+          unit_price: item.price,
+          total_price: item.price * item.quantity,
+          status: 'Vendido'
+        }));
+
+        const { error: salesError } = await supabase.from('sales').insert(salesItems);
+        if (salesError) throw salesError;
+
+        toast({
+          title: "Pedido Registrado",
+          description: "Sua solicitação foi salva em seu perfil.",
+        });
+      } catch (error) {
+        console.error('Error saving order:', error);
+        // We still continue to WhatsApp even if DB fails, to not block the sale
+      }
+    }
+
+    // 2. Format and redirect to WhatsApp
     const items = cartItems.map(item => 
       `- ${item.quantity}x ${item.name} - R$ ${(item.price * item.quantity).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`
     ).join('\n');

@@ -18,10 +18,32 @@ import {
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useNavigate } from 'react-router-dom';
+import { useQuery } from '@tanstack/react-query';
+import { supabase } from '@/integrations/supabase/client';
 
 const Profile: React.FC = () => {
   const { user, signOut } = useAuth();
   const navigate = useNavigate();
+
+  const { data: totalSpent = 0 } = useQuery({
+    queryKey: ['user-total-spent', user?.id],
+    queryFn: async () => {
+      if (!user) return 0;
+      const { data, error } = await supabase
+        .from('orders')
+        .select('total_amount')
+        .eq('user_id', user.id);
+      
+      if (error) throw error;
+      return data.reduce((sum, order) => sum + Number(order.total_amount), 0);
+    },
+    enabled: !!user,
+  });
+
+  const points = Math.floor(totalSpent * 10);
+  const nextLevelPoints = 50000;
+  const progress = Math.min((points / nextLevelPoints) * 100, 100);
+  const pointsToNextLevel = Math.max(nextLevelPoints - points, 0);
 
   const handleSignOut = async () => {
     await signOut();
@@ -73,21 +95,28 @@ const Profile: React.FC = () => {
             <div className="flex-1 w-full">
               <h2 className="text-[10px] font-bold text-[#d4af37]/60 uppercase tracking-[0.3em] mb-4 flex items-center gap-2">
                 <Diamond className="w-3 h-3" />
-                Programa Aurum
+                Programa JR Acessórios
               </h2>
               <div className="flex items-baseline gap-3 mb-6">
-                <span className="font-serif text-5xl font-bold text-[#d4af37] drop-shadow-[0_0_15px_rgba(212,175,55,0.3)]">12.540</span>
+                <span className="font-serif text-5xl font-bold text-[#d4af37] drop-shadow-[0_0_15px_rgba(212,175,55,0.3)]">
+                  {points.toLocaleString('pt-BR')}
+                </span>
                 <span className="text-white/40 text-sm font-medium tracking-wide">Pontos Acumulados</span>
               </div>
               <div className="w-full h-1.5 bg-white/5 rounded-full overflow-hidden mb-4 border border-white/5">
                 <div 
                   className="h-full bg-[#d4af37] rounded-full relative shadow-[0_0_15px_rgba(212,175,55,0.5)] transition-all duration-1000" 
-                  style={{ width: '75%' }}
+                  style={{ width: `${progress}%` }}
                 >
                   <div className="absolute inset-0 bg-white/20 blur-[2px] opacity-0 group-hover:opacity-100 transition-opacity"></div>
                 </div>
               </div>
-              <p className="text-white/40 text-xs font-medium italic">Faltam 2.460 pontos para atingir o nível <span className="text-[#d4af37] font-bold">Prestige</span></p>
+              <p className="text-white/40 text-xs font-medium italic">
+                {pointsToNextLevel > 0 
+                  ? <>Faltam <span className="text-[#d4af37] font-bold">{pointsToNextLevel.toLocaleString('pt-BR')}</span> pontos para atingir o nível <span className="text-[#d4af37] font-bold">Prestige</span></>
+                  : <>Você atingiu o nível máximo <span className="text-[#d4af37] font-bold">Prestige</span>!</>
+                }
+              </p>
             </div>
             
             <div className="flex flex-col items-center justify-center p-6 rounded-2xl bg-black/40 border border-white/10 shadow-2xl group-hover:border-[#d4af37]/40 transition-all min-w-[140px]">
@@ -101,38 +130,39 @@ const Profile: React.FC = () => {
         <section className="bg-[#0f0f0f]/40 backdrop-blur-2xl border border-white/5 rounded-3xl overflow-hidden shadow-2xl">
           <nav className="flex flex-col">
             {[
-              { icon: ShoppingBag, label: 'Meus Pedidos', sub: 'Acompanhe suas aquisições', active: false },
+              { icon: ShoppingBag, label: 'Meus Pedidos', sub: 'Acompanhe suas aquisições', path: '/pedidos', active: false },
               { icon: MapPin, label: 'Endereços', sub: 'Gerencie seus locais de entrega', active: false },
               { icon: CreditCard, label: 'Pagamentos', sub: 'Suas formas de pagamento salvas', active: false },
               { icon: Tag, label: 'Benefícios', sub: 'Cupons e ofertas exclusivas', badge: '1 Novo', active: true },
               { icon: ShieldCheck, label: 'Segurança', sub: 'Privacidade e acesso à conta', active: false },
               { icon: Settings, label: 'Preferências', sub: 'Configurações do aplicativo', active: false },
             ].map((item, idx) => (
-              <button 
-                key={idx}
-                className="flex items-center justify-between p-6 transition-all duration-300 hover:bg-white/5 border-b border-white/5 last:border-0 group relative overflow-hidden"
-              >
-                <div className="flex items-center gap-5 relative z-10">
-                  <div className="w-12 h-12 rounded-xl bg-black/50 border border-white/5 flex items-center justify-center text-white/40 group-hover:text-[#d4af37] group-hover:border-[#d4af37]/30 group-hover:shadow-[0_0_15px_rgba(212,175,55,0.1)] transition-all">
-                    <item.icon className="w-5 h-5" />
+                <div 
+                  key={idx}
+                  onClick={() => item.path && navigate(item.path)}
+                  className="flex items-center justify-between p-6 transition-all duration-300 hover:bg-white/5 border-b border-white/5 last:border-0 group relative overflow-hidden cursor-pointer"
+                >
+                  <div className="flex items-center gap-5 relative z-10">
+                    <div className="w-12 h-12 rounded-xl bg-black/50 border border-white/5 flex items-center justify-center text-white/40 group-hover:text-[#d4af37] group-hover:border-[#d4af37]/30 group-hover:shadow-[0_0_15px_rgba(212,175,55,0.1)] transition-all">
+                      <item.icon className="w-5 h-5" />
+                    </div>
+                    <div className="flex flex-col text-left">
+                      <span className="font-serif text-lg font-medium text-white/80 group-hover:text-white transition-colors flex items-center gap-3">
+                        {item.label}
+                        {item.badge && (
+                          <span className="bg-[#d4af37] text-black text-[8px] font-black px-2 py-0.5 rounded uppercase tracking-tighter shadow-[0_0_10px_rgba(212,175,55,0.5)]">
+                            {item.badge}
+                          </span>
+                        )}
+                      </span>
+                      <span className="text-white/30 text-xs">{item.sub}</span>
+                    </div>
                   </div>
-                  <div className="flex flex-col text-left">
-                    <span className="font-serif text-lg font-medium text-white/80 group-hover:text-white transition-colors flex items-center gap-3">
-                      {item.label}
-                      {item.badge && (
-                        <span className="bg-[#d4af37] text-black text-[8px] font-black px-2 py-0.5 rounded uppercase tracking-tighter shadow-[0_0_10px_rgba(212,175,55,0.5)]">
-                          {item.badge}
-                        </span>
-                      )}
-                    </span>
-                    <span className="text-white/30 text-xs">{item.sub}</span>
-                  </div>
+                  <ChevronRight className="w-5 h-5 text-white/10 group-hover:text-[#d4af37] group-hover:translate-x-1 transition-all" />
+                  
+                  {/* Hover Indicator */}
+                  <div className="absolute left-0 top-0 w-1 h-full bg-[#d4af37] scale-y-0 group-hover:scale-y-100 transition-transform origin-top duration-300"></div>
                 </div>
-                <ChevronRight className="w-5 h-5 text-white/10 group-hover:text-[#d4af37] group-hover:translate-x-1 transition-all" />
-                
-                {/* Hover Indicator */}
-                <div className="absolute left-0 top-0 w-1 h-full bg-[#d4af37] scale-y-0 group-hover:scale-y-100 transition-transform origin-top duration-300"></div>
-              </button>
             ))}
           </nav>
         </section>
