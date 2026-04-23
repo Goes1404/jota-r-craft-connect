@@ -6,7 +6,8 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
 import { 
   Users, 
@@ -34,12 +35,42 @@ import { DashboardCharts } from '@/components/DashboardCharts';
 
 const AdminDashboard = () => {
   const { user, signOut, loading } = useAuth();
+  const queryClient = useQueryClient();
   const [profitStartDate, setProfitStartDate] = useState('');
   const [profitEndDate, setProfitEndDate] = useState('');
   const navigate = useNavigate();
 
   const { data: settingsSettings } = useAppSettings();
   const { data: allSales = [] } = useSales();
+
+  React.useEffect(() => {
+    // 1. Subscribe to new orders
+    const ordersSubscription = supabase
+      .channel('admin-orders-channel')
+      .on(
+        'postgres_changes',
+        { event: 'INSERT', schema: 'public', table: 'orders' },
+        (payload) => {
+          // Trigger a notification
+          toast.success('Novo Pedido Recebido! 🛍️', {
+            description: `Um novo pedido de R$ ${Number(payload.new.total_amount).toLocaleString('pt-BR', { minimumFractionDigits: 2 })} foi realizado.`,
+            action: {
+              label: 'Ver Detalhes',
+              onClick: () => navigate('/admin/sales')
+            },
+            duration: 10000,
+          });
+
+          // Invalidate analytics query to update numbers in real-time
+          queryClient.invalidateQueries({ queryKey: ['admin-analytics'] });
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(ordersSubscription);
+    };
+  }, [queryClient, navigate]);
 
   const { data: analytics, isLoading: analyticsLoading } = useQuery({
     queryKey: ['admin-analytics'],
