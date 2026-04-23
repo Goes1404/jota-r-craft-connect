@@ -213,7 +213,7 @@ const Profile: React.FC = () => {
               { icon: ShoppingBag, label: 'Meus Pedidos', sub: 'Acompanhe suas aquisições', path: '/pedidos', active: false },
               { icon: Heart, label: 'Meus Favoritos', sub: 'Sua seleção pessoal', path: '/favoritos', active: false },
               { icon: MapPin, label: 'Endereços', sub: 'Gerencie seus locais de entrega', path: '/enderecos', active: false },
-              { icon: CreditCard, label: 'Pagamentos', sub: 'Suas formas de pagamento salvas', active: false },
+              { icon: CreditCard, label: 'Pagamentos', sub: 'Suas formas de pagamento salvas', path: '/pagamentos', active: false },
               { icon: Tag, label: 'Benefícios', sub: 'Cupons e ofertas exclusivas', path: '/cupons', badge: '1 Novo', active: true },
               { icon: ShieldCheck, label: 'Segurança', sub: 'Privacidade e acesso à conta', active: false },
               { icon: Settings, label: 'Preferências', sub: 'Configurações do aplicativo', active: false },

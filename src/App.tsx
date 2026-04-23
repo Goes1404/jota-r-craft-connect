@@ -19,6 +19,7 @@ import Profile from "./pages/Profile";
 import Orders from "./pages/Orders";
 import Addresses from "./pages/Addresses";
 import Coupons from "./pages/Coupons";
+import Payments from "./pages/Payments";
 import Wishlist from "./pages/Wishlist";
 import AdminDashboard from "./pages/AdminDashboard";
 import AdminProducts from "./pages/AdminProducts";
@@ -53,6 +54,7 @@ const App = () => (
               <Route path="/pedidos" element={<Orders />} />
               <Route path="/enderecos" element={<Addresses />} />
               <Route path="/cupons" element={<Coupons />} />
+              <Route path="/pagamentos" element={<Payments />} />
               <Route path="/favoritos" element={<Wishlist />} />
               <Route path="/admin/dashboard" element={<AdminDashboard />} />
               <Route path="/admin/products" element={<AdminProducts />} />
