@@ -55,8 +55,8 @@ const AdminDashboard = () => {
           toast.success('Novo Pedido Recebido! 🛍️', {
             description: `Um novo pedido de R$ ${Number(payload.new.total_amount).toLocaleString('pt-BR', { minimumFractionDigits: 2 })} foi realizado.`,
             action: {
-              label: 'Ver Detalhes',
-              onClick: () => navigate('/admin/sales')
+              label: 'Ver Pedido',
+              onClick: () => navigate('/admin/orders')
             },
             duration: 10000,
           });
@@ -181,6 +181,9 @@ const AdminDashboard = () => {
           <div className="flex gap-4">
             <Button onClick={() => navigate('/admin/products')} className="bg-white/5 border border-white/10 hover:border-[#d4af37]/40 hover:bg-[#d4af37]/5 text-white font-bold text-[10px] uppercase tracking-widest px-8 h-14 rounded-2xl transition-all">
               <Package className="w-4 h-4 mr-3 text-[#d4af37]" /> Coleção
+            </Button>
+            <Button onClick={() => navigate('/admin/orders')} className="bg-white/5 border border-white/10 hover:border-[#d4af37]/40 hover:bg-[#d4af37]/5 text-white font-bold text-[10px] uppercase tracking-widest px-8 h-14 rounded-2xl transition-all">
+              <ShoppingBag className="w-4 h-4 mr-3 text-[#d4af37]" /> Pedidos
             </Button>
             <Button onClick={() => navigate('/admin/sales')} className="bg-[#d4af37] text-black font-black text-[10px] uppercase tracking-widest px-8 h-14 rounded-2xl transition-all hover:bg-[#f2ca50] shadow-xl shadow-[#d4af37]/10 group">
               <DollarSign className="w-4 h-4 mr-3" /> Vendas <ArrowRight className="ml-2 w-3 h-3 transition-transform group-hover:translate-x-1" />

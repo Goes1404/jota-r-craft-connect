@@ -154,6 +154,35 @@ const Orders: React.FC = () => {
                           {new Date(order.created_at).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}
                         </span>
                       </div>
+                      
+                      {order.tracking_code && (
+                        <div className="pt-3 flex items-center gap-3">
+                          <div className="px-3 py-1.5 rounded-xl bg-white/5 border border-white/10 flex items-center gap-3 group/track">
+                            <span className="text-[9px] font-bold text-white/20 uppercase tracking-widest">Rastreio:</span>
+                            <span className="text-[10px] font-mono font-bold text-[#d4af37] tracking-wider">{order.tracking_code}</span>
+                            <button 
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                navigator.clipboard.writeText(order.tracking_code);
+                                // Toast is handled by context but I'll add a local simple feedback if needed
+                              }}
+                              className="p-1 hover:bg-white/10 rounded-md transition-colors"
+                              title="Copiar Código"
+                            >
+                              <ExternalLink className="w-3 h-3 text-white/20 group-hover/track:text-[#d4af37]" />
+                            </button>
+                          </div>
+                          <a 
+                            href={`https://www.linkcorreios.com.br/?id=${order.tracking_code}`}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            onClick={(e) => e.stopPropagation()}
+                            className="text-[9px] font-black uppercase tracking-widest text-[#d4af37]/60 hover:text-[#d4af37] transition-colors"
+                          >
+                            Rastrear Agora
+                          </a>
+                        </div>
+                      )}
                     </div>
                   </div>
                   

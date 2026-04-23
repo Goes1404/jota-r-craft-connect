@@ -1,0 +1,258 @@
+import React, { useState } from 'react';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { supabase } from '@/integrations/supabase/client';
+import { useAuth } from '@/contexts/AuthContext';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { Badge } from '@/components/ui/badge';
+import { toast } from 'sonner';
+import { format } from 'date-fns';
+import { ptBR } from 'date-fns/locale';
+import { 
+  ShoppingBag, 
+  Search, 
+  Package, 
+  Truck, 
+  ArrowLeft,
+  CheckCircle2,
+  Clock,
+  ExternalLink,
+  Trash2,
+  Save,
+  User
+} from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
+
+const AdminOrders = () => {
+  const { user } = useAuth();
+  const navigate = useNavigate();
+  const queryClient = useQueryClient();
+  const [searchTerm, setSearchTerm] = useState('');
+  const [editingOrderId, setEditingOrderId] = useState<string | null>(null);
+  const [editTrackingCode, setEditTrackingCode] = useState('');
+  const [editStatus, setEditStatus] = useState('');
+
+  const { data: orders = [], isLoading } = useQuery({
+    queryKey: ['admin-all-orders'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('orders')
+        .select('*, user:profiles(full_name, email)')
+        .order('created_at', { ascending: false });
+      
+      if (error) throw error;
+      return data;
+    },
+  });
+
+  const updateOrderMutation = useMutation({
+    mutationFn: async ({ id, status, tracking_code }: { id: string, status: string, tracking_code: string }) => {
+      const { error } = await supabase
+        .from('orders')
+        .update({ status, tracking_code })
+        .eq('id', id);
+      
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['admin-all-orders'] });
+      toast.success('Pedido atualizado com sucesso!');
+      setEditingOrderId(null);
+    },
+    onError: (error: any) => {
+      toast.error('Erro ao atualizar pedido: ' + error.message);
+    }
+  });
+
+  const deleteOrderMutation = useMutation({
+    mutationFn: async (id: string) => {
+      const { error } = await supabase
+        .from('orders')
+        .delete()
+        .eq('id', id);
+      
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['admin-all-orders'] });
+      toast.success('Pedido removido.');
+    }
+  });
+
+  const startEditing = (order: any) => {
+    setEditingOrderId(order.id);
+    setEditTrackingCode(order.tracking_code || '');
+    setEditStatus(order.status || 'Pendente');
+  };
+
+  const filteredOrders = orders.filter(o => 
+    o.id.toLowerCase().includes(searchTerm.toLowerCase()) || 
+    o.user?.full_name?.toLowerCase().includes(searchTerm.toLowerCase())
+  );
+
+  const getStatusBadge = (status: string) => {
+    switch (status?.toLowerCase()) {
+      case 'entregue':
+      case 'completed':
+        return <Badge className="bg-green-500/10 text-green-500 border-green-500/20 uppercase text-[9px] font-black tracking-widest">Entregue</Badge>;
+      case 'enviado':
+      case 'shipped':
+        return <Badge className="bg-blue-500/10 text-blue-500 border-blue-500/20 uppercase text-[9px] font-black tracking-widest">Enviado</Badge>;
+      case 'pendente':
+      case 'pending':
+        return <Badge className="bg-yellow-500/10 text-yellow-500 border-yellow-500/20 uppercase text-[9px] font-black tracking-widest">Pendente</Badge>;
+      default:
+        return <Badge className="bg-white/5 text-white/40 border-white/10 uppercase text-[9px] font-black tracking-widest">{status || 'Processando'}</Badge>;
+    }
+  };
+
+  if (!user) return <div className="min-h-screen bg-black flex items-center justify-center"><p className="text-white/40 uppercase tracking-widest font-black">Acesso Restrito</p></div>;
+
+  return (
+    <div className="min-h-screen bg-[#050505] text-[#e2e2e2] font-sans selection:bg-[#f2ca50]/30 selection:text-[#f2ca50]">
+      <header className="sticky top-0 z-50 bg-black/60 backdrop-blur-2xl border-b border-white/5 py-4">
+        <div className="max-w-screen-2xl mx-auto px-8 flex items-center justify-between">
+          <div className="flex items-center gap-6">
+            <Button variant="ghost" onClick={() => navigate('/admin/dashboard')} className="text-white/40 hover:text-[#d4af37] transition-colors p-0">
+              <ArrowLeft className="h-5 w-5 mr-2" />
+              <span className="text-[10px] font-bold uppercase tracking-widest">Painel</span>
+            </Button>
+            <div className="h-6 w-[1px] bg-white/10"></div>
+            <h1 className="text-xl font-serif font-black text-white uppercase tracking-[0.2em]">Gestão de <span className="text-[#d4af37]">Pedidos</span></h1>
+          </div>
+          
+          <div className="relative w-full max-w-xs">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-white/20" />
+            <Input 
+              placeholder="Buscar por ID ou Nome..." 
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="bg-white/5 border-white/10 pl-10 rounded-full h-10 text-xs focus:border-[#d4af37]/40 transition-all"
+            />
+          </div>
+        </div>
+      </header>
+
+      <main className="max-w-screen-2xl mx-auto px-8 py-12">
+        <div className="bg-[#0f0f0f]/40 backdrop-blur-2xl border border-white/5 rounded-[40px] overflow-hidden shadow-2xl">
+          <div className="p-8 border-b border-white/5 bg-black/30 flex items-center justify-between">
+            <div className="flex items-center gap-4">
+              <div className="w-10 h-10 rounded-xl bg-[#d4af37]/10 flex items-center justify-center text-[#d4af37]"><Package className="w-5 h-5" /></div>
+              <h3 className="text-xl font-serif font-bold text-white">Pedidos da Loja Online</h3>
+            </div>
+            <span className="text-[10px] font-black uppercase tracking-[0.2em] text-white/20">{filteredOrders.length} Pedidos Ativos</span>
+          </div>
+
+          <div className="overflow-x-auto">
+            <Table>
+              <TableHeader className="bg-black/20">
+                <TableRow className="hover:bg-transparent border-none">
+                  <TableHead className="py-6 px-8 text-[10px] font-black uppercase tracking-[0.2em] text-white/30">Data</TableHead>
+                  <TableHead className="py-6 text-[10px] font-black uppercase tracking-[0.2em] text-white/30">Cliente</TableHead>
+                  <TableHead className="py-6 text-[10px] font-black uppercase tracking-[0.2em] text-white/30">Valor</TableHead>
+                  <TableHead className="py-6 text-[10px] font-black uppercase tracking-[0.2em] text-white/30 text-center">Status</TableHead>
+                  <TableHead className="py-6 text-[10px] font-black uppercase tracking-[0.2em] text-white/30">Código de Rastreio</TableHead>
+                  <TableHead className="py-6 px-8 text-[10px] font-black uppercase tracking-[0.2em] text-white/30 text-right">Ações</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {isLoading ? (
+                  [1, 2, 3].map(i => (
+                    <TableRow key={i}>
+                      <TableCell colSpan={6} className="h-20 animate-pulse bg-white/5"></TableCell>
+                    </TableRow>
+                  ))
+                ) : filteredOrders.map((order) => (
+                  <TableRow key={order.id} className="border-b border-white/5 hover:bg-white/[0.01] transition-colors group">
+                    <TableCell className="py-6 px-8 text-xs font-bold text-white/40">
+                      {format(new Date(order.created_at), 'dd/MM/yyyy HH:mm')}
+                    </TableCell>
+                    <TableCell className="py-6">
+                      <div className="flex flex-col">
+                        <span className="text-sm font-bold text-white uppercase tracking-tight">{order.user?.full_name || 'Anônimo'}</span>
+                        <span className="text-[9px] font-black text-white/20 uppercase tracking-widest">{order.user?.email || 'N/A'}</span>
+                      </div>
+                    </TableCell>
+                    <TableCell className="py-6 text-sm font-serif font-black text-[#d4af37]">
+                      R$ {Number(order.total_amount).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                    </TableCell>
+                    <TableCell className="py-6 text-center">
+                      {editingOrderId === order.id ? (
+                        <Select value={editStatus} onValueChange={setEditStatus}>
+                          <SelectTrigger className="h-8 bg-black border-white/10 text-[10px]">
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent className="bg-black border-white/10 text-white">
+                            <SelectItem value="Pendente">Pendente</SelectItem>
+                            <SelectItem value="Enviado">Enviado</SelectItem>
+                            <SelectItem value="Entregue">Entregue</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      ) : (
+                        getStatusBadge(order.status)
+                      )}
+                    </TableCell>
+                    <TableCell className="py-6">
+                      {editingOrderId === order.id ? (
+                        <Input 
+                          value={editTrackingCode}
+                          onChange={(e) => setEditTrackingCode(e.target.value)}
+                          placeholder="Ex: BR123456789"
+                          className="h-8 bg-black border-white/10 text-xs"
+                        />
+                      ) : (
+                        <span className="text-xs font-mono text-white/40">
+                          {order.tracking_code || 'Não informado'}
+                        </span>
+                      )}
+                    </TableCell>
+                    <TableCell className="py-6 px-8 text-right">
+                      <div className="flex justify-end gap-2">
+                        {editingOrderId === order.id ? (
+                          <Button 
+                            onClick={() => updateOrderMutation.mutate({ id: order.id, status: editStatus, tracking_code: editTrackingCode })}
+                            size="sm"
+                            className="bg-[#d4af37] text-black h-8 rounded-lg"
+                          >
+                            <Save className="h-3.5 w-3.5 mr-1" /> Salvar
+                          </Button>
+                        ) : (
+                          <Button 
+                            onClick={() => startEditing(order)}
+                            variant="ghost"
+                            size="sm"
+                            className="text-white/20 hover:text-[#d4af37] hover:bg-[#d4af37]/5 h-8 rounded-lg"
+                          >
+                            Editar
+                          </Button>
+                        )}
+                        <Button 
+                          onClick={() => { if(window.confirm('Excluir este pedido?')) deleteOrderMutation.mutate(order.id) }}
+                          variant="ghost"
+                          size="sm"
+                          className="text-white/10 hover:text-red-500 hover:bg-red-500/5 h-8 rounded-lg"
+                        >
+                          <Trash2 className="h-3.5 w-3.5" />
+                        </Button>
+                      </div>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </div>
+        </div>
+      </main>
+
+      <footer className="py-12 text-center border-t border-white/5">
+        <p className="text-[10px] font-black uppercase tracking-[0.5em] text-white/10">LUMINA TECH — ORDER FULFILLMENT SYSTEMS</p>
+      </footer>
+    </div>
+  );
+};
+
+export default AdminOrders;
