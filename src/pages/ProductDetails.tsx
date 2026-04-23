@@ -6,6 +6,7 @@ import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious
 import { Header } from '@/components/Header';
 import { Footer } from '@/components/Footer';
 import SEO from '@/components/SEO';
+import { ProductReviews } from '@/components/ProductReviews';
 import { useCart } from '@/contexts/CartContext';
 import { useToast } from '@/hooks/use-toast';
 import { useProduct, useAppSettings } from '@/hooks/useProducts';
@@ -254,6 +255,8 @@ const ProductDetails = () => {
             </div>
           </div>
         </div>
+
+        <ProductReviews productId={product.id} />
       </main>
 
       {/* Suggested Products or Bottom CTA could go here */}
