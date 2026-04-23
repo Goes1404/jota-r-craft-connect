@@ -21,10 +21,15 @@ const ProductDetails = () => {
   const { usePageVisit } = useAnalytics();
   const [activeImage, setActiveImage] = useState(0);
 
-  usePageVisit('product-details');
-
+  const { trackProductView } = useAnalytics();
   const { data: product, isLoading } = useProduct(id!);
   const { data: settings } = useAppSettings();
+
+  React.useEffect(() => {
+    if (product?.id) {
+      trackProductView(product.id);
+    }
+  }, [product?.id]);
 
   const handleWhatsAppContact = () => {
     if (!product || !settings?.whatsapp_number) return;

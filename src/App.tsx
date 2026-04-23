@@ -26,6 +26,7 @@ import AdminProducts from "./pages/AdminProducts";
 import AdminOrders from "./pages/AdminOrders";
 import SalesManagement from "./pages/SalesManagement";
 import NotFound from "./pages/NotFound";
+import { ExitIntentPopup } from "./components/ExitIntentPopup";
 
 const queryClient = new QueryClient();
 
@@ -38,6 +39,7 @@ const App = () => (
         <TooltipProvider>
           <Toaster />
           <Sonner />
+          <ExitIntentPopup />
           <BrowserRouter>
             <Routes>
               <Route path="/" element={<Index />} />

@@ -93,8 +93,14 @@ const AdminDashboard = () => {
         return acc;
       }, {} as Record<string, any>) || {};
 
-      const topSelling = Object.values(allProductQuantities).sort((a, b) => b.quantity - a.quantity)[0];
-      const mostProfitable = Object.values(allProductQuantities).sort((a, b) => b.profit - a.profit)[0];
+      const { data: viewsData } = await supabase.from('product_views').select('product_id');
+      const productViewsCount = viewsData?.reduce((acc, view) => {
+        acc[view.product_id] = (acc[view.product_id] || 0) + 1;
+        return acc;
+      }, {} as Record<string, number>) || {};
+
+      const topViewedId = Object.entries(productViewsCount).sort((a, b) => b[1] - a[1])[0]?.[0];
+      const topViewedProduct = productsData?.find(p => p.id === topViewedId);
 
       return {
         totalVisits: visitsData?.length || 0,
@@ -105,6 +111,7 @@ const AdminDashboard = () => {
         totalItemsSold,
         topSellingProduct: topSelling || null,
         mostProfitableProduct: mostProfitable || null,
+        topViewedProduct: topViewedProduct ? { ...topViewedProduct, views: productViewsCount[topViewedId] } : null,
         lowStockProducts,
       };
     },
@@ -301,6 +308,19 @@ const AdminDashboard = () => {
                     </div>
                     <div className="h-1 w-full bg-white/5 rounded-full overflow-hidden">
                       <div className="h-full bg-green-400 w-[65%] rounded-full shadow-[0_0_10px_rgba(74,222,128,0.4)]"></div>
+                    </div>
+                  </div>
+                )}
+                
+                {analytics?.topViewedProduct && (
+                  <div className="space-y-4">
+                    <p className="text-[10px] font-bold text-white/20 uppercase tracking-[0.2em]">Maior Interesse (Cliques)</p>
+                    <div className="flex items-center justify-between">
+                      <span className="text-lg font-bold text-white line-clamp-1 flex-1 mr-4">{analytics.topViewedProduct.name}</span>
+                      <span className="text-xl font-serif font-bold text-blue-400">{analytics.topViewedProduct.views} <span className="text-[10px] uppercase tracking-widest font-bold">views</span></span>
+                    </div>
+                    <div className="h-1 w-full bg-white/5 rounded-full overflow-hidden">
+                      <div className="h-full bg-blue-400 w-[75%] rounded-full shadow-[0_0_10px_rgba(96,165,250,0.4)]"></div>
                     </div>
                   </div>
                 )}

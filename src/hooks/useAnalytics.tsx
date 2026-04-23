@@ -18,11 +18,17 @@ export const useAnalytics = () => {
     }
   };
 
-  const usePageVisit = (pageName: string) => {
-    useEffect(() => {
-      trackVisit(pageName);
-    }, [pageName]);
+  const trackProductView = async (productId: string) => {
+    try {
+      await supabase
+        .from('product_views')
+        .insert({
+          product_id: productId,
+        });
+    } catch (error) {
+      console.error('Error tracking product view:', error);
+    }
   };
 
-  return { trackVisit, usePageVisit };
+  return { trackVisit, usePageVisit, trackProductView };
 };
