@@ -15,6 +15,7 @@ import Register from "./pages/Register";
 import Profile from "./pages/Profile";
 import Orders from "./pages/Orders";
 import Addresses from "./pages/Addresses";
+import Coupons from "./pages/Coupons";
 import AdminDashboard from "./pages/AdminDashboard";
 import AdminProducts from "./pages/AdminProducts";
 import SalesManagement from "./pages/SalesManagement";
@@ -43,6 +44,7 @@ const App = () => (
               <Route path="/perfil" element={<Profile />} />
               <Route path="/pedidos" element={<Orders />} />
               <Route path="/enderecos" element={<Addresses />} />
+              <Route path="/cupons" element={<Coupons />} />
               <Route path="/admin/dashboard" element={<AdminDashboard />} />
               <Route path="/admin/products" element={<AdminProducts />} />
               <Route path="/admin/sales" element={<SalesManagement />} />
