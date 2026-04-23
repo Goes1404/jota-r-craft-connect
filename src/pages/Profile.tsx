@@ -54,6 +54,38 @@ const Profile: React.FC = () => {
   const userEmail = user?.email || 'contato@luxo.com.br';
   const joinDate = user?.created_at ? new Date(user.created_at).getFullYear() : '2024';
 
+  const [isEditing, setIsEditing] = useState(false);
+  const [editName, setEditName] = useState(userName);
+  const [editEmail, setEditEmail] = useState(userEmail);
+  const [isSaving, setIsSaving] = useState(false);
+
+  const handleUpdateProfile = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsSaving(true);
+    try {
+      const { error } = await supabase.auth.updateUser({
+        email: editEmail !== userEmail ? editEmail : undefined,
+        data: { full_name: editName }
+      });
+
+      if (error) throw error;
+      
+      toast({
+        title: "Perfil Atualizado",
+        description: "Suas informações foram salvas com sucesso.",
+      });
+      setIsEditing(false);
+    } catch (error: any) {
+      toast({
+        variant: "destructive",
+        title: "Erro ao atualizar",
+        description: error.message,
+      });
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
   return (
     <div className="min-h-screen bg-black text-[#e2e2e2] font-sans selection:bg-[#f2ca50]/30 selection:text-[#f2ca50]">
       <Header />
@@ -75,15 +107,63 @@ const Profile: React.FC = () => {
             <div className="absolute inset-0 rounded-3xl bg-[#d4af37]/20 blur-2xl scale-110 opacity-30 group-hover:opacity-60 transition-opacity duration-500 z-0"></div>
           </div>
           
-          <div className="flex flex-col justify-center pt-4">
-            <h1 className="font-serif text-4xl font-bold text-white mb-3 tracking-tight">{userName}</h1>
-            <div className="flex flex-wrap items-center justify-center md:justify-start gap-3">
-              <span className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full border border-[#d4af37]/30 bg-[#d4af37]/10 font-bold text-[10px] uppercase tracking-widest text-[#d4af37] shadow-[0_0_15px_rgba(212,175,55,0.1)]">
-                <Star className="w-3 h-3 fill-[#d4af37]" />
-                Luxury Member
-              </span>
-              <span className="text-white/30 text-xs font-medium tracking-wider">Membro desde {joinDate}</span>
-            </div>
+          <div className="flex-1 space-y-4 pt-4">
+            {!isEditing ? (
+              <>
+                <h1 className="font-serif text-4xl font-bold text-white mb-3 tracking-tight">{userName}</h1>
+                <div className="flex flex-wrap items-center justify-center md:justify-start gap-3">
+                  <span className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full border border-[#d4af37]/30 bg-[#d4af37]/10 font-bold text-[10px] uppercase tracking-widest text-[#d4af37] shadow-[0_0_15px_rgba(212,175,55,0.1)]">
+                    <Star className="w-3 h-3 fill-[#d4af37]" />
+                    Luxury Member
+                  </span>
+                  <span className="text-white/30 text-xs font-medium tracking-wider">Membro desde {joinDate} • {userEmail}</span>
+                </div>
+                <Button 
+                  onClick={() => setIsEditing(true)}
+                  className="bg-white/5 hover:bg-white/10 text-white border border-white/10 px-8 py-2 rounded-xl text-[10px] font-bold uppercase tracking-widest transition-all mt-4"
+                >
+                  Editar Perfil
+                </Button>
+              </>
+            ) : (
+              <form onSubmit={handleUpdateProfile} className="space-y-6 w-full max-w-md mx-auto md:mx-0 animate-luxury-in">
+                <div className="space-y-4">
+                  <div className="space-y-2 text-left">
+                    <Label className="text-[10px] font-bold text-[#d4af37] uppercase tracking-widest ml-1">Nome Completo</Label>
+                    <Input 
+                      value={editName}
+                      onChange={(e) => setEditName(e.target.value)}
+                      className="bg-black/40 border-white/10 h-12 rounded-xl text-white outline-none focus:border-[#d4af37]/40"
+                    />
+                  </div>
+                  <div className="space-y-2 text-left">
+                    <Label className="text-[10px] font-bold text-[#d4af37] uppercase tracking-widest ml-1">E-mail</Label>
+                    <Input 
+                      value={editEmail}
+                      onChange={(e) => setEditEmail(e.target.value)}
+                      className="bg-black/40 border-white/10 h-12 rounded-xl text-white outline-none focus:border-[#d4af37]/40"
+                    />
+                  </div>
+                </div>
+                <div className="flex gap-4">
+                  <Button 
+                    type="submit"
+                    disabled={isSaving}
+                    className="flex-1 bg-[#d4af37] text-black font-bold text-[10px] uppercase tracking-widest h-12 rounded-xl hover:bg-[#f2ca50] transition-all"
+                  >
+                    {isSaving ? 'Salvando...' : 'Salvar'}
+                  </Button>
+                  <Button 
+                    type="button"
+                    onClick={() => setIsEditing(false)}
+                    variant="ghost"
+                    className="bg-white/5 border border-white/10 text-white font-bold text-[10px] uppercase tracking-widest h-12 rounded-xl"
+                  >
+                    Cancelar
+                  </Button>
+                </div>
+              </form>
+            )}
           </div>
         </section>
 
