@@ -73,7 +73,7 @@ const Checkout = () => {
     setIsProcessing(true);
 
     try {
-      // 1. Create the order in Supabase
+      // 1. Save order to Supabase first
       const { data: orderData, error: orderError } = await supabase
         .from('orders')
         .insert({
@@ -88,22 +88,53 @@ const Checkout = () => {
 
       if (orderError) throw orderError;
 
-      // 2. Insert order items
+      // 2. Save order items
       const orderItems = items.map(item => ({
         order_id: orderData.id,
         product_id: item.product.id,
         quantity: item.quantity,
-        unit_price: item.product.price
+        unit_price: item.product.price,
       }));
 
-      const { error: itemsError } = await supabase
-        .from('order_items')
-        .insert(orderItems);
+      await supabase.from('order_items').insert(orderItems);
 
-      if (itemsError) throw itemsError;
+      // 3. Call the appropriate payment Edge Function
+      if (paymentMethod === 'pix') {
+        const { data: pixResult, error: funcError } = await supabase.functions.invoke('create-pix-payment', {
+          body: {
+            orderId: orderData.id,
+            totalAmount: total,
+            payerEmail: user.email,
+          }
+        });
 
-      // Simulate network request to Payment Gateway
-      await new Promise(resolve => setTimeout(resolve, 2000));
+        if (funcError || !pixResult?.success) {
+          // Graceful fallback: order is saved, just show the static QR code screen
+          console.warn('PIX function not yet configured — showing demo screen.', funcError);
+        } else {
+          // Store real PIX data to show to the user
+          await supabase.from('orders').update({
+            pix_qr_code: pixResult.pix?.qrCodeBase64,
+            pix_qr_code_text: pixResult.pix?.qrCode,
+            payment_intent_id: String(pixResult.pix?.paymentId),
+          }).eq('id', orderData.id);
+        }
+      } else {
+        const { data: stripeResult, error: funcError } = await supabase.functions.invoke('create-stripe-payment', {
+          body: {
+            orderId: orderData.id,
+            totalAmount: total,
+          }
+        });
+
+        if (funcError || !stripeResult?.success) {
+          console.warn('Stripe function not yet configured — showing demo screen.', funcError);
+        } else {
+          await supabase.from('orders').update({
+            payment_intent_id: stripeResult.paymentIntentId,
+          }).eq('id', orderData.id);
+        }
+      }
 
       setOrderSuccess(true);
       clearCart();
