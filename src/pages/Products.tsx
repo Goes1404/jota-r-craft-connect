@@ -12,22 +12,22 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useCart } from '@/contexts/CartContext';
 import { useToast } from '@/hooks/use-toast';
-import { 
-  ShoppingCart, 
-  MessageCircle, 
-  Home, 
-  Search, 
-  ShoppingBag, 
-  User, 
-  ChevronLeft, 
-  ChevronRight, 
-  Filter as FilterIcon, 
-  Phone, 
-  Watch, 
-  Headphones, 
-  Shield, 
-  Zap, 
-  Laptop, 
+import {
+  ShoppingCart,
+  MessageCircle,
+  Home,
+  Search,
+  ShoppingBag,
+  User,
+  ChevronLeft,
+  ChevronRight,
+  Filter as FilterIcon,
+  Phone,
+  Watch,
+  Headphones,
+  Shield,
+  Zap,
+  Laptop,
   PlusCircle,
   Diamond,
   LayoutGrid,
@@ -85,7 +85,7 @@ const Products: React.FC = () => {
     filtered = filtered.filter(p => Number(p.price) >= filters.priceRange[0] && Number(p.price) <= filters.priceRange[1]);
     if (filters.inStockOnly) filtered = filtered.filter(p => p.stock && p.stock > 0);
     if (filters.featuredOnly) filtered = filtered.filter(p => p.is_featured);
-    
+
     switch (filters.sortBy) {
       case 'price_asc': filtered.sort((a, b) => Number(a.price) - Number(b.price)); break;
       case 'price_desc': filtered.sort((a, b) => Number(b.price) - Number(a.price)); break;
@@ -108,12 +108,12 @@ const Products: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-black text-[#e2e2e2] font-sans selection:bg-[#f2ca50]/30 selection:text-[#f2ca50]">
-      <SEO 
-        title="Nossa Coleção" 
+      <SEO
+        title="Nossa Coleção"
         description="Explore nossa seleção de smartwatches, eletrônicos e acessórios de luxo com os melhores preços de Osasco e região."
       />
       <Header />
-      
+
       {/* Background Ambient Glow */}
       <div className="fixed inset-0 pointer-events-none z-0">
         <div className="absolute top-[20%] -left-[10%] w-[50%] h-[50%] rounded-full bg-[#f2ca50] opacity-[0.03] blur-[120px]"></div>
@@ -123,9 +123,9 @@ const Products: React.FC = () => {
         {/* Cinematic Hero Header */}
         <section className="relative w-full h-[350px] md:h-[450px] overflow-hidden pt-20">
           <div className="absolute inset-0 bg-[#050505]">
-            <img 
-              className="w-full h-full object-cover opacity-30 grayscale mix-blend-overlay scale-110 animate-pulse-slow" 
-              src="https://lh3.googleusercontent.com/aida-public/AB6AXuBWlKr7oMbDA123Frddr-m5AvItRFCbHavt7W3YUGAzvwzqHjMTqyQxn6aqKVcUbL7S8DpCf5lhEcQronwB2Hbx76PV8Osbdkqklphct_COEjwFWVQUAmcSX2R1lPkvXsqvSk_PCdAM4Z2S5W73FsLqbFYxKTTz4pbh-YYFQJXHPOMuU4Nd1xSn9Z5p0_Vv0X7E8ySnMtgBLAcA7jk7TxTuHLWS9HRdXGnZN93qRqeWRW4lpDgO8svx-NWJQyNm10hvx5_5BgTtTUI" 
+            <img
+              className="w-full h-full object-cover opacity-30 grayscale mix-blend-overlay scale-110 animate-pulse-slow"
+              src="https://lh3.googleusercontent.com/aida-public/AB6AXuBWlKr7oMbDA123Frddr-m5AvItRFCbHavt7W3YUGAzvwzqHjMTqyQxn6aqKVcUbL7S8DpCf5lhEcQronwB2Hbx76PV8Osbdkqklphct_COEjwFWVQUAmcSX2R1lPkvXsqvSk_PCdAM4Z2S5W73FsLqbFYxKTTz4pbh-YYFQJXHPOMuU4Nd1xSn9Z5p0_Vv0X7E8ySnMtgBLAcA7jk7TxTuHLWS9HRdXGnZN93qRqeWRW4lpDgO8svx-NWJQyNm10hvx5_5BgTtTUI"
               alt="Luxury Tech Banner"
             />
             <div className="absolute inset-0 bg-gradient-to-t from-black via-black/20 to-transparent"></div>
@@ -136,16 +136,16 @@ const Products: React.FC = () => {
               Catálogo Exclusivo
             </div>
             <h1 className="text-5xl md:text-8xl font-serif font-bold text-white mb-6 animate-in fade-in slide-in-from-bottom-6 duration-1000 delay-100 tracking-tight">
-               JR <span className="text-[#d4af37] italic">acessórios</span>
+              JR <span className="text-[#d4af37] italic">acessórios</span>
             </h1>
             <p className="text-white/40 max-w-md font-medium text-sm md:text-base animate-in fade-in slide-in-from-bottom-8 duration-1000 delay-200">
-               A curadoria definitiva das marcas mais prestigiadas do mundo tech, selecionadas para quem não aceita nada menos que a perfeição.
+              A curadoria definitiva das marcas mais prestigiadas do mundo tech, selecionadas para quem não aceita nada menos que a perfeição.
             </p>
           </div>
         </section>
 
         {/* Dynamic Category Selector */}
-        <div className="bg-[#0a0a0a] border-y border-white/5 py-6 sticky top-[72px] md:top-[88px] z-40">
+        <div className="bg-[#0a0a0a] border-y border-white/5 py-6 z-40">
           <div className="container mx-auto px-8 overflow-x-auto scrollbar-hide">
             <div className="flex justify-between md:justify-center gap-6 md:gap-16 min-w-max">
               {categoryIcons.map((cat) => (
@@ -169,7 +169,7 @@ const Products: React.FC = () => {
 
         <div className="max-w-7xl mx-auto px-8 mt-16">
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 pb-32">
-            
+
             {/* Desktop Filters Sidebar */}
             <aside className="hidden lg:block lg:col-span-3">
               <div className="sticky top-[220px] bg-[#0f0f0f]/40 backdrop-blur-2xl p-8 rounded-[32px] border border-white/5 shadow-2xl space-y-10">
@@ -188,14 +188,14 @@ const Products: React.FC = () => {
 
             {/* Products Listing Area */}
             <div className="lg:col-span-9 space-y-10">
-              
+
               {/* Toolbar Section */}
               <div className="bg-[#0f0f0f]/30 backdrop-blur-xl p-4 md:p-8 rounded-[40px] border border-white/5 shadow-2xl space-y-8">
                 <div className="flex flex-col md:flex-row gap-6 justify-between items-center">
                   {/* Luxury Search Bar */}
                   <div className="relative w-full md:max-w-md group">
                     <Search className="absolute left-6 top-1/2 -translate-y-1/2 h-4 w-4 text-[#d4af37]/40 group-focus-within:text-[#d4af37] transition-colors" />
-                    <input 
+                    <input
                       placeholder="Pesquisar na coleção..."
                       className="w-full bg-white/5 border border-white/5 focus:border-[#d4af37]/40 pl-14 h-14 rounded-full text-white placeholder:text-white/10 outline-none transition-all font-medium text-sm"
                       value={filters.search}
@@ -227,7 +227,7 @@ const Products: React.FC = () => {
                     </Sheet>
 
                     <div className="relative flex-1 md:flex-none">
-                      <select 
+                      <select
                         className="w-full md:w-48 appearance-none bg-white/5 text-white/60 px-8 py-2 rounded-full border border-white/10 h-14 outline-none cursor-pointer text-[10px] font-black uppercase tracking-widest focus:border-[#d4af37]/40 transition-all"
                         value={filters.sortBy}
                         onChange={(e) => setFilters(prev => ({ ...prev, sortBy: e.target.value }))}
@@ -256,9 +256,9 @@ const Products: React.FC = () => {
               ) : filteredProducts.length > 0 ? (
                 <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-8">
                   {filteredProducts.map((product, index) => (
-                    <ProductCard 
-                      key={product.id} 
-                      product={product} 
+                    <ProductCard
+                      key={product.id}
+                      product={product}
                       onViewDetails={setQuickViewProduct}
                       className={index === 0 && !filters.search && !filters.category ? "md:col-span-2" : ""}
                     />
@@ -312,7 +312,7 @@ const Products: React.FC = () => {
                   <span className="text-[10px] font-black text-[#d4af37] uppercase tracking-[0.4em] mb-4 block">{quickViewProduct.category || 'EXCLUSIVA'}</span>
                   <h2 className="text-5xl font-serif font-bold text-white leading-tight tracking-tight">{quickViewProduct.name}</h2>
                 </div>
-                
+
                 <div className="mb-10">
                   <div className="text-4xl font-serif font-bold text-[#d4af37] mb-1">R$ {quickViewProduct.price.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</div>
                   <span className="text-[10px] text-white/20 uppercase tracking-widest font-bold">Autenticidade Garantida</span>
@@ -323,7 +323,7 @@ const Products: React.FC = () => {
                 </div>
 
                 <div className="space-y-4 mt-12 pt-10 border-t border-white/5">
-                  <Button className="w-full h-16 bg-[#d4af37] text-black font-black text-xs rounded-full shadow-[0_0_30px_rgba(212,175,55,0.3)] hover:bg-[#f2ca50] transition-all uppercase tracking-[0.2em]" onClick={() => { addToCart(quickViewProduct as any); setQuickViewProduct(null); toast({title: "Peça Selecionada", description: "O item foi adicionado ao seu vault."}); }}>
+                  <Button className="w-full h-16 bg-[#d4af37] text-black font-black text-xs rounded-full shadow-[0_0_30px_rgba(212,175,55,0.3)] hover:bg-[#f2ca50] transition-all uppercase tracking-[0.2em]" onClick={() => { addToCart(quickViewProduct as any); setQuickViewProduct(null); toast({ title: "Peça Selecionada", description: "O item foi adicionado ao seu vault." }); }}>
                     <ShoppingBag className="mr-3 h-5 w-5" /> Adicionar ao Vault
                   </Button>
                   <Button variant="outline" className="w-full h-16 border-white/10 bg-white/5 text-white/60 hover:text-[#25D366] hover:border-[#25D366]/40 rounded-full flex items-center justify-center gap-3 transition-all text-[10px] font-black uppercase tracking-widest" onClick={() => window.open(`https://wa.me/${WHATSAPP_NUMBER}?text=Ol%C3%A1%2C+tenho+interesse+no+item+exclusivo+${quickViewProduct.name}`, '_blank')}>
@@ -362,4 +362,4 @@ const Products: React.FC = () => {
   );
 };
 
-export default Products;
+export default Products;²

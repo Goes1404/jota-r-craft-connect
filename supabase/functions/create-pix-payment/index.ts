@@ -11,42 +11,53 @@ serve(async (req) => {
   }
 
   try {
-    const { orderId, totalAmount, description, payerEmail } = await req.json();
+    const { orderId, totalAmount, payerEmail } = await req.json();
 
     const MERCADOPAGO_ACCESS_TOKEN = Deno.env.get("MERCADOPAGO_ACCESS_TOKEN");
 
     if (!MERCADOPAGO_ACCESS_TOKEN) {
-      throw new Error("MERCADOPAGO_ACCESS_TOKEN not configured in Supabase secrets.");
+      throw new Error("MERCADOPAGO_ACCESS_TOKEN not configured.");
     }
 
-    // Create a PIX payment via Mercado Pago API
+    console.log("Creating PIX payment for order:", orderId, "amount:", totalAmount);
+
+    const paymentBody = {
+      transaction_amount: Number(totalAmount),
+      description: `Pedido JR Acessórios #${orderId?.slice(0, 8) || 'N/A'}`,
+      payment_method_id: "pix",
+      external_reference: orderId, // CRITICAL: Links the MP payment back to our order for webhook confirmation
+      payer: {
+        email: payerEmail || "test_user@testuser.com",
+      },
+    };
+
+    console.log("Request body:", JSON.stringify(paymentBody));
+
     const mpResponse = await fetch("https://api.mercadopago.com/v1/payments", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
         "Authorization": `Bearer ${MERCADOPAGO_ACCESS_TOKEN}`,
-        "X-Idempotency-Key": orderId,
+        "X-Idempotency-Key": `${orderId}-${Date.now()}`,
       },
-      body: JSON.stringify({
-        transaction_amount: totalAmount,
-        description: description || "Compra JR Acessórios - Lumina Tech",
-        payment_method_id: "pix",
-        payer: {
-          email: payerEmail || "cliente@jracessorios.com.br",
-        },
-        external_reference: orderId,
-        notification_url: `${Deno.env.get("SUPABASE_URL")}/functions/v1/mp-webhook`,
-      }),
+      body: JSON.stringify(paymentBody),
     });
-
-    if (!mpResponse.ok) {
-      const errorBody = await mpResponse.json();
-      throw new Error(`MercadoPago API error: ${JSON.stringify(errorBody)}`);
-    }
 
     const mpData = await mpResponse.json();
 
-    // Extract PIX data from response
+    if (!mpResponse.ok) {
+      console.error("MercadoPago API error:", JSON.stringify(mpData));
+      return new Response(
+        JSON.stringify({ 
+          success: false, 
+          error: `MP API ${mpResponse.status}: ${mpData.message || JSON.stringify(mpData)}` 
+        }),
+        { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
+    console.log("PIX payment created successfully. ID:", mpData.id, "external_reference:", orderId);
+
     const pixData = {
       paymentId: mpData.id,
       status: mpData.status,
@@ -61,10 +72,10 @@ serve(async (req) => {
     });
 
   } catch (error) {
-    console.error("PIX generation error:", error);
+    console.error("PIX function error:", error.message, error.stack);
     return new Response(
       JSON.stringify({ success: false, error: error.message }),
-      { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
   }
 });

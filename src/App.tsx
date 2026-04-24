@@ -40,8 +40,8 @@ const App = () => (
         <TooltipProvider>
           <Toaster />
           <Sonner />
-          <ExitIntentPopup />
           <BrowserRouter>
+            <ExitIntentPopup />
             <Routes>
               <Route path="/" element={<Index />} />
               <Route path="/produtos" element={<Products />} />

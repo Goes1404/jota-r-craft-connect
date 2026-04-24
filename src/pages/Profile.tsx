@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { Header } from '@/components/Header';
 import { Footer } from '@/components/Footer';
@@ -14,12 +14,16 @@ import {
   Star, 
   Diamond, 
   Bell,
-  User
+  User,
+  Heart
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 import { useNavigate } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
+import { toast } from 'sonner';
 
 const Profile: React.FC = () => {
   const { user, signOut } = useAuth();
@@ -70,17 +74,10 @@ const Profile: React.FC = () => {
 
       if (error) throw error;
       
-      toast({
-        title: "Perfil Atualizado",
-        description: "Suas informações foram salvas com sucesso.",
-      });
+      toast.success("Perfil Atualizado: Suas informações foram salvas.");
       setIsEditing(false);
     } catch (error: any) {
-      toast({
-        variant: "destructive",
-        title: "Erro ao atualizar",
-        description: error.message,
-      });
+      toast.error("Erro ao atualizar: " + error.message);
     } finally {
       setIsSaving(false);
     }

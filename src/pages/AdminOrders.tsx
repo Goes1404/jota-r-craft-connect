@@ -95,15 +95,18 @@ const AdminOrders = () => {
   );
 
   const getStatusBadge = (status: string) => {
-    switch (status?.toLowerCase()) {
-      case 'entregue':
-      case 'completed':
+    switch (status) {
+      case 'Entregue':
         return <Badge className="bg-green-500/10 text-green-500 border-green-500/20 uppercase text-[9px] font-black tracking-widest">Entregue</Badge>;
-      case 'enviado':
-      case 'shipped':
-        return <Badge className="bg-blue-500/10 text-blue-500 border-blue-500/20 uppercase text-[9px] font-black tracking-widest">Enviado</Badge>;
-      case 'pendente':
-      case 'pending':
+      case 'Enviado':
+        return <Badge className="bg-purple-500/10 text-purple-400 border-purple-500/20 uppercase text-[9px] font-black tracking-widest">Enviado</Badge>;
+      case 'Pago':
+        return <Badge className="bg-emerald-500/10 text-emerald-400 border-emerald-500/20 uppercase text-[9px] font-black tracking-widest">✓ Pago</Badge>;
+      case 'Aguardando Pagamento':
+        return <Badge className="bg-yellow-500/10 text-yellow-500 border-yellow-500/20 uppercase text-[9px] font-black tracking-widest animate-pulse">Aguardando Pgto</Badge>;
+      case 'Cancelado':
+        return <Badge className="bg-red-500/10 text-red-400 border-red-500/20 uppercase text-[9px] font-black tracking-widest">Cancelado</Badge>;
+      case 'Pendente':
         return <Badge className="bg-yellow-500/10 text-yellow-500 border-yellow-500/20 uppercase text-[9px] font-black tracking-widest">Pendente</Badge>;
       default:
         return <Badge className="bg-white/5 text-white/40 border-white/10 uppercase text-[9px] font-black tracking-widest">{status || 'Processando'}</Badge>;
@@ -187,9 +190,12 @@ const AdminOrders = () => {
                             <SelectValue />
                           </SelectTrigger>
                           <SelectContent className="bg-black border-white/10 text-white">
-                            <SelectItem value="Pendente">Pendente</SelectItem>
-                            <SelectItem value="Enviado">Enviado</SelectItem>
-                            <SelectItem value="Entregue">Entregue</SelectItem>
+                            <SelectItem value="Aguardando Pagamento">⏳ Aguardando Pagamento</SelectItem>
+                            <SelectItem value="Pago">✅ Pago</SelectItem>
+                            <SelectItem value="Pendente">📦 Pendente (Preparando)</SelectItem>
+                            <SelectItem value="Enviado">🚚 Enviado</SelectItem>
+                            <SelectItem value="Entregue">✓ Entregue</SelectItem>
+                            <SelectItem value="Cancelado">❌ Cancelado</SelectItem>
                           </SelectContent>
                         </Select>
                       ) : (

@@ -24,6 +24,7 @@ serve(async (req) => {
     });
 
     const payment = await mpResponse.json();
+    console.log(`MP Webhook — Payment ${data.id}: status=${payment.status}, external_reference=${payment.external_reference}`);
 
     if (payment.status === "approved") {
       // Use service role key to bypass RLS and update the order
@@ -31,13 +32,42 @@ serve(async (req) => {
 
       const orderId = payment.external_reference;
 
-      await supabase
+      if (!orderId) {
+        console.error("MP Webhook: No external_reference found on payment", data.id);
+        return new Response("Missing external_reference", { status: 200 });
+      }
+
+      // 1. Mark order as "Pago"
+      const { error: updateError } = await supabase
         .from("orders")
         .update({
           status: "Pago",
           payment_intent_id: String(payment.id),
         })
         .eq("id", orderId);
+
+      if (updateError) {
+        console.error("Error updating order:", updateError.message);
+        return new Response("DB error", { status: 500 });
+      }
+
+      // 2. Deduct stock for each item in the order
+      const { data: orderItems, error: itemsError } = await supabase
+        .from("order_items")
+        .select("product_id, quantity")
+        .eq("order_id", orderId);
+
+      if (!itemsError && orderItems) {
+        for (const item of orderItems) {
+          await supabase.rpc("decrement_stock", {
+            p_product_id: item.product_id,
+            p_quantity: item.quantity,
+          });
+        }
+        console.log(`Stock decremented for order ${orderId} — ${orderItems.length} items`);
+      }
+
+      console.log(`Order ${orderId} marked as Pago via MP webhook`);
     }
 
     return new Response("Webhook received", { status: 200 });

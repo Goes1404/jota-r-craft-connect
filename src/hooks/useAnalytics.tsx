@@ -30,5 +30,11 @@ export const useAnalytics = () => {
     }
   };
 
+  const usePageVisit = (pageName: string) => {
+    useEffect(() => {
+      trackVisit(pageName);
+    }, [pageName]);
+  };
+
   return { trackVisit, usePageVisit, trackProductView };
 };

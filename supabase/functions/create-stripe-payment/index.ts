@@ -20,20 +20,21 @@ serve(async (req) => {
     }
 
     // Create a Stripe Payment Intent for credit card processing
+    // IMPORTANT: metadata fields must be sent as separate key-value pairs, not JSON-stringified
+    const params = new URLSearchParams();
+    params.append("amount", Math.round(totalAmount * 100).toString()); // Stripe uses cents
+    params.append("currency", "brl");
+    params.append("description", description || "Compra JR Acessórios - Lumina Tech");
+    params.append("metadata[orderId]", orderId); // Correct format for Stripe metadata
+    params.append("payment_method_types[]", "card");
+
     const stripeResponse = await fetch("https://api.stripe.com/v1/payment_intents", {
       method: "POST",
       headers: {
         "Authorization": `Bearer ${STRIPE_SECRET_KEY}`,
         "Content-Type": "application/x-www-form-urlencoded",
       },
-      body: new URLSearchParams({
-        amount: Math.round(totalAmount * 100).toString(), // Stripe uses cents
-        currency: "brl",
-        description: description || "Compra JR Acessórios - Lumina Tech",
-        metadata: JSON.stringify({ orderId }),
-        "payment_method_types[]": "card",
-        automatic_payment_methods: "false",
-      }),
+      body: params,
     });
 
     if (!stripeResponse.ok) {
@@ -42,6 +43,8 @@ serve(async (req) => {
     }
 
     const stripeData = await stripeResponse.json();
+
+    console.log(`Stripe PaymentIntent created: ${stripeData.id} for order: ${orderId}`);
 
     return new Response(
       JSON.stringify({

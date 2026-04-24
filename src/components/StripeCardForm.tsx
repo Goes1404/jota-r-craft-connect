@@ -13,8 +13,8 @@ import { Label } from '@/components/ui/label';
 import { Lock, CreditCard } from 'lucide-react';
 
 // Stripe publishable key — safe to expose in frontend
-const STRIPE_PUBLISHABLE_KEY = import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY || 'pk_test_placeholder';
-const stripePromise = loadStripe(STRIPE_PUBLISHABLE_KEY);
+const STRIPE_PUBLISHABLE_KEY = import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY || '';
+const stripePromise = STRIPE_PUBLISHABLE_KEY ? loadStripe(STRIPE_PUBLISHABLE_KEY) : null;
 
 const stripeElementStyle = {
   base: {
@@ -131,6 +131,16 @@ const StripeCardFormInner: React.FC<StripeCardFormProps> = ({
 
 // Exported wrapper — includes the Elements provider
 export const StripeCardForm: React.FC<StripeCardFormProps & { onSubmit: () => void }> = (props) => {
+  if (!stripePromise) {
+    return (
+      <div className="bg-white/5 border border-white/10 rounded-2xl p-6 text-center space-y-3">
+        <CreditCard className="w-8 h-8 text-[#d4af37] mx-auto" />
+        <p className="text-white/60 text-sm font-medium">Pagamento via cartão em breve</p>
+        <p className="text-white/30 text-xs">Configure a chave do Stripe para ativar esta opção.</p>
+      </div>
+    );
+  }
+
   return (
     <Elements stripe={stripePromise}>
       <StripeCardFormInner {...props} />

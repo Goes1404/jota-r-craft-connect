@@ -7,8 +7,8 @@ import { Diamond, ShoppingBag, Gift, X } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
 export const ExitIntentPopup = () => {
-  const { items } = useCart();
-  const hasItems = items.length > 0;
+  const { cartItems } = useCart();
+  const hasItems = cartItems.length > 0;
   const { showPopup, setShowPopup } = useExitIntent(hasItems);
   const navigate = useNavigate();
 
