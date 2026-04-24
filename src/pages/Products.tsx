@@ -362,4 +362,4 @@ const Products: React.FC = () => {
   );
 };
 
-export default Products;²
+export default Products;
