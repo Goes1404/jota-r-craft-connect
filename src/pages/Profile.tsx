@@ -61,6 +61,7 @@ const Profile: React.FC = () => {
   const [isEditing, setIsEditing] = useState(false);
   const [editName, setEditName] = useState(userName);
   const [editEmail, setEditEmail] = useState(userEmail);
+  const [editWhatsApp, setEditWhatsApp] = useState(user?.user_metadata?.whatsapp || '');
   const [isSaving, setIsSaving] = useState(false);
 
   const handleUpdateProfile = async (e: React.FormEvent) => {
@@ -125,6 +126,32 @@ const Profile: React.FC = () => {
             ) : (
               <form onSubmit={handleUpdateProfile} className="space-y-6 w-full max-w-md mx-auto md:mx-0 animate-luxury-in">
                 <div className="space-y-4">
+                  <div className="space-y-2 text-left">
+                    <Label className="text-[10px] font-bold text-[#d4af37] uppercase tracking-widest ml-1">Nome Completo</Label>
+                    <Input 
+                      value={editName}
+                      onChange={(e) => setEditName(e.target.value)}
+                      className="bg-black/40 border-white/10 h-12 rounded-xl text-white outline-none focus:border-[#d4af37]/40"
+                    />
+                  </div>
+                  <div className="space-y-2 text-left">
+                    <Label className="text-[10px] font-bold text-[#d4af37] uppercase tracking-widest ml-1">E-mail</Label>
+                    <Input 
+                      value={editEmail}
+                      onChange={(e) => setEditEmail(e.target.value)}
+                      className="bg-black/40 border-white/10 h-12 rounded-xl text-white outline-none focus:border-[#d4af37]/40"
+                    />
+                  </div>
+                  <div className="space-y-2 text-left">
+                    <Label className="text-[10px] font-bold text-[#d4af37] uppercase tracking-widest ml-1">WhatsApp</Label>
+                    <Input 
+                      value={editWhatsApp}
+                      onChange={(e) => setEditWhatsApp(e.target.value)}
+                      placeholder="+55 11 91234-5678"
+                      className="bg-black/40 border-white/10 h-12 rounded-xl text-white outline-none focus:border-[#d4af37]/40"
+                    />
+                  </div>
+                </div>
                   <div className="space-y-2 text-left">
                     <Label className="text-[10px] font-bold text-[#d4af37] uppercase tracking-widest ml-1">Nome Completo</Label>
                     <Input 

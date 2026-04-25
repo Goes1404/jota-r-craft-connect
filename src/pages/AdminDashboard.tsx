@@ -222,13 +222,25 @@ const AdminDashboard = () => {
           </div>
           
           <div className="flex flex-wrap gap-4">
-            <Button onClick={() => navigate('/admin/products')} className="bg-white/5 border border-white/10 hover:border-[#d4af37]/40 hover:bg-[#d4af37]/5 text-white font-bold text-[10px] uppercase tracking-widest px-8 h-14 rounded-2xl transition-all">
-              <Package className="w-4 h-4 mr-3 text-[#d4af37]" /> Coleção
+            <Button onClick={() => navigate('/admin/products')} className="bg-white/5 border border-white/10 hover:border-[#d4af37]/40 hover:bg-[#d4af37]/5 text-white font-bold text-[10px] uppercase tracking-widest px-6 h-12 rounded-xl transition-all">
+              <Package className="w-4 h-4 mr-2 text-[#d4af37]" /> Coleção
             </Button>
-            <Button onClick={() => navigate('/admin/orders')} className="bg-white/5 border border-white/10 hover:border-[#d4af37]/40 hover:bg-[#d4af37]/5 text-white font-bold text-[10px] uppercase tracking-widest px-8 h-14 rounded-2xl transition-all">
-              <ShoppingBag className="w-4 h-4 mr-3 text-[#d4af37]" /> Pedidos
+            <Button onClick={() => navigate('/admin/orders')} className="bg-white/5 border border-white/10 hover:border-[#d4af37]/40 hover:bg-[#d4af37]/5 text-white font-bold text-[10px] uppercase tracking-widest px-6 h-12 rounded-xl transition-all">
+              <ShoppingBag className="w-4 h-4 mr-2 text-[#d4af37]" /> Pedidos
             </Button>
-            <Button onClick={() => navigate('/admin/sales')} className="bg-[#d4af37] text-black font-black text-[10px] uppercase tracking-widest px-8 h-14 rounded-2xl transition-all hover:bg-[#f2ca50] shadow-xl shadow-[#d4af37]/10 group">
+            <Button onClick={() => navigate('/admin/coupons')} className="bg-white/5 border border-white/10 hover:border-[#d4af37]/40 hover:bg-[#d4af37]/5 text-white font-bold text-[10px] uppercase tracking-widest px-6 h-12 rounded-xl transition-all">
+              Cupons
+            </Button>
+            <Button onClick={() => navigate('/admin/customers')} className="bg-white/5 border border-white/10 hover:border-[#d4af37]/40 hover:bg-[#d4af37]/5 text-white font-bold text-[10px] uppercase tracking-widest px-6 h-12 rounded-xl transition-all">
+              Leads
+            </Button>
+            <Button onClick={() => navigate('/admin/reviews')} className="bg-white/5 border border-white/10 hover:border-[#d4af37]/40 hover:bg-[#d4af37]/5 text-white font-bold text-[10px] uppercase tracking-widest px-6 h-12 rounded-xl transition-all">
+              Reviews
+            </Button>
+            <Button onClick={() => navigate('/admin/settings')} className="bg-white/5 border border-white/10 hover:border-[#d4af37]/40 hover:bg-[#d4af37]/5 text-white font-bold text-[10px] uppercase tracking-widest px-6 h-12 rounded-xl transition-all">
+              Config
+            </Button>
+            <Button onClick={() => navigate('/admin/sales')} className="bg-[#d4af37] text-black font-black text-[10px] uppercase tracking-widest px-8 h-12 rounded-xl transition-all hover:bg-[#f2ca50] shadow-xl shadow-[#d4af37]/10 group">
               <DollarSign className="w-4 h-4 mr-3" /> Vendas <ArrowRight className="ml-2 w-3 h-3 transition-transform group-hover:translate-x-1" />
             </Button>
           </div>

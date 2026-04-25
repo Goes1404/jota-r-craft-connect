@@ -26,6 +26,10 @@ import AdminDashboard from "./pages/AdminDashboard";
 import AdminProducts from "./pages/AdminProducts";
 import AdminOrders from "./pages/AdminOrders";
 import SalesManagement from "./pages/SalesManagement";
+import AdminCoupons from "./pages/AdminCoupons";
+import AdminCustomers from "./pages/AdminCustomers";
+import AdminReviews from "./pages/AdminReviews";
+import AdminSettings from "./pages/AdminSettings";
 import NotFound from "./pages/NotFound";
 import { ExitIntentPopup } from "./components/ExitIntentPopup";
 
@@ -64,6 +68,10 @@ const App = () => (
               <Route path="/admin/products" element={<AdminProducts />} />
               <Route path="/admin/orders" element={<AdminOrders />} />
               <Route path="/admin/sales" element={<SalesManagement />} />
+              <Route path="/admin/coupons" element={<AdminCoupons />} />
+              <Route path="/admin/customers" element={<AdminCustomers />} />
+              <Route path="/admin/reviews" element={<AdminReviews />} />
+              <Route path="/admin/settings" element={<AdminSettings />} />
               {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
               <Route path="*" element={<NotFound />} />
             </Routes>
