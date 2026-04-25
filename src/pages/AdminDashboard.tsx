@@ -406,6 +406,15 @@ const AdminDashboard = () => {
                 R$ {analytics?.totalOrders ? (analytics.totalRevenue / analytics.totalOrders).toLocaleString('pt-BR', { minimumFractionDigits: 2 }) : '0,00'}
               </div>
             </div>
+
+            <div className="bg-[#0f0f0f]/40 backdrop-blur-2xl border border-white/5 rounded-[40px] p-8 md:p-12 shadow-2xl group hover:border-green-400/30 transition-all cursor-pointer">
+              <TrendingUp className="w-8 h-8 text-green-400 mb-8" />
+              <h3 className="text-xl font-serif font-bold text-white mb-2">Margem Real</h3>
+              <p className="text-white/40 text-sm font-medium mb-8">Eficiência de rentabilidade líquida</p>
+              <div className="text-4xl font-serif font-black text-green-400">
+                {analytics?.totalRevenue && profitData ? ((profitData / analytics.totalRevenue) * 100).toLocaleString('pt-BR', { maximumFractionDigits: 1 }) : '0,0'}%
+              </div>
+            </div>
           </div>
         </div>
 
