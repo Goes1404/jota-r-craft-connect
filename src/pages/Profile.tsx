@@ -152,23 +152,6 @@ const Profile: React.FC = () => {
                     />
                   </div>
                 </div>
-                  <div className="space-y-2 text-left">
-                    <Label className="text-[10px] font-bold text-[#d4af37] uppercase tracking-widest ml-1">Nome Completo</Label>
-                    <Input 
-                      value={editName}
-                      onChange={(e) => setEditName(e.target.value)}
-                      className="bg-black/40 border-white/10 h-12 rounded-xl text-white outline-none focus:border-[#d4af37]/40"
-                    />
-                  </div>
-                  <div className="space-y-2 text-left">
-                    <Label className="text-[10px] font-bold text-[#d4af37] uppercase tracking-widest ml-1">E-mail</Label>
-                    <Input 
-                      value={editEmail}
-                      onChange={(e) => setEditEmail(e.target.value)}
-                      className="bg-black/40 border-white/10 h-12 rounded-xl text-white outline-none focus:border-[#d4af37]/40"
-                    />
-                  </div>
-                </div>
                 <div className="flex gap-4">
                   <Button 
                     type="submit"
