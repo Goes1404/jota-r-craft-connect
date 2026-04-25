@@ -73,14 +73,34 @@ const AdminDashboard = () => {
   }, [queryClient, navigate]);
 
   const { data: analytics, isLoading: analyticsLoading } = useQuery({
-    queryKey: ['admin-analytics'],
+    queryKey: ['admin-analytics', profitStartDate, profitEndDate],
     queryFn: async () => {
-      const { data: visitsData } = await supabase.from('site_visits').select('id');
+      let ordersQuery = supabase.from('orders').select('id, total_amount, created_at');
+      let salesQuery = supabase.from('sales').select('*, product:products(name, cost)');
+      let visitsQuery = supabase.from('site_visits').select('id, created_at');
+
+      if (profitStartDate) {
+        const start = new Date(profitStartDate).toISOString();
+        ordersQuery = ordersQuery.gte('created_at', start);
+        salesQuery = salesQuery.gte('created_at', start);
+        visitsQuery = visitsQuery.gte('created_at', start);
+      }
+
+      if (profitEndDate) {
+        const end = new Date(profitEndDate);
+        end.setHours(23, 59, 59, 999);
+        const endIso = end.toISOString();
+        ordersQuery = ordersQuery.lte('created_at', endIso);
+        salesQuery = salesQuery.lte('created_at', endIso);
+        visitsQuery = visitsQuery.lte('created_at', endIso);
+      }
+
+      const { data: visitsData } = await visitsQuery;
       const { data: productsData } = await supabase.from('products').select('id, name, stock');
       const lowStockProducts = productsData?.filter(p => p.stock < 5) || [];
-      const { data: ordersData } = await supabase.from('orders').select('id, total_amount');
+      const { data: ordersData } = await ordersQuery;
       const totalRevenue = ordersData?.reduce((sum, order) => sum + Number(order.total_amount), 0) || 0;
-      const { data: salesData } = await supabase.from('sales').select('*, product:products(name, cost)');
+      const { data: salesData } = await salesQuery;
       const totalSalesRevenue = salesData?.reduce((sum, sale) => sum + Number(sale.total_price), 0) || 0;
       const totalItemsSold = salesData?.reduce((sum, sale) => sum + sale.quantity, 0) || 0;
 
@@ -93,7 +113,23 @@ const AdminDashboard = () => {
         return acc;
       }, {} as Record<string, any>) || {};
 
-      const { data: viewsData } = await supabase.from('product_views').select('product_id');
+      let topSelling: any = null;
+      let mostProfitable: any = null;
+      
+      Object.values(allProductQuantities).forEach((p: any) => {
+        if (!topSelling || p.quantity > topSelling.quantity) topSelling = p;
+        if (!mostProfitable || p.profit > mostProfitable.profit) mostProfitable = p;
+      });
+
+      let viewsQuery = supabase.from('product_views').select('product_id, created_at');
+      if (profitStartDate) viewsQuery = viewsQuery.gte('created_at', new Date(profitStartDate).toISOString());
+      if (profitEndDate) {
+        const end = new Date(profitEndDate);
+        end.setHours(23, 59, 59, 999);
+        viewsQuery = viewsQuery.lte('created_at', end.toISOString());
+      }
+
+      const { data: viewsData } = await viewsQuery;
       const productViewsCount = viewsData?.reduce((acc, view) => {
         acc[view.product_id] = (acc[view.product_id] || 0) + 1;
         return acc;
@@ -109,8 +145,8 @@ const AdminDashboard = () => {
         totalRevenue: totalRevenue + totalSalesRevenue,
         totalSalesRevenue,
         totalItemsSold,
-        topSellingProduct: topSelling || null,
-        mostProfitableProduct: mostProfitable || null,
+        topSellingProduct: topSelling,
+        mostProfitableProduct: mostProfitable,
         topViewedProduct: topViewedProduct ? { ...topViewedProduct, views: productViewsCount[topViewedId] } : null,
         lowStockProducts,
       };
@@ -185,7 +221,7 @@ const AdminDashboard = () => {
             <p className="text-white/40 text-sm font-medium">Bem-vindo, {user.email?.split('@')[0]}. Aqui está o status atual do seu império.</p>
           </div>
           
-          <div className="flex gap-4">
+          <div className="flex flex-wrap gap-4">
             <Button onClick={() => navigate('/admin/products')} className="bg-white/5 border border-white/10 hover:border-[#d4af37]/40 hover:bg-[#d4af37]/5 text-white font-bold text-[10px] uppercase tracking-widest px-8 h-14 rounded-2xl transition-all">
               <Package className="w-4 h-4 mr-3 text-[#d4af37]" /> Coleção
             </Button>
@@ -199,6 +235,41 @@ const AdminDashboard = () => {
         </div>
 
         {/* Cinematic Stats Grid */}
+        <div className="flex flex-col md:flex-row justify-between items-center gap-4 mb-6">
+          <h2 className="text-xl font-serif font-bold text-white">Métricas Financeiras e Operacionais</h2>
+          <div className="flex flex-wrap items-center gap-3">
+            <div className="flex items-center bg-[#0f0f0f]/40 backdrop-blur-2xl border border-white/5 rounded-xl px-4 h-12">
+              <span className="text-[10px] text-[#d4af37] uppercase tracking-widest font-bold mr-3">De:</span>
+              <input 
+                type="date" 
+                value={profitStartDate} 
+                onChange={(e) => setProfitStartDate(e.target.value)}
+                className="bg-transparent border-none text-white text-sm outline-none w-full cursor-pointer"
+                style={{ colorScheme: 'dark' }}
+              />
+            </div>
+            <div className="flex items-center bg-[#0f0f0f]/40 backdrop-blur-2xl border border-white/5 rounded-xl px-4 h-12">
+              <span className="text-[10px] text-[#d4af37] uppercase tracking-widest font-bold mr-3">Até:</span>
+              <input 
+                type="date" 
+                value={profitEndDate} 
+                onChange={(e) => setProfitEndDate(e.target.value)}
+                className="bg-transparent border-none text-white text-sm outline-none w-full cursor-pointer"
+                style={{ colorScheme: 'dark' }}
+              />
+            </div>
+            {(profitStartDate || profitEndDate) && (
+              <Button 
+                variant="ghost" 
+                size="sm" 
+                onClick={() => { setProfitStartDate(''); setProfitEndDate(''); }}
+                className="text-[10px] text-white/40 hover:text-red-400 uppercase tracking-widest font-bold h-12 px-4"
+              >
+                Limpar
+              </Button>
+            )}
+          </div>
+        </div>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 xl:grid-cols-5 gap-6 mb-16">
           {[
             { label: 'Visitas', value: analytics?.totalVisits || 0, icon: Eye, color: 'text-blue-400' },
