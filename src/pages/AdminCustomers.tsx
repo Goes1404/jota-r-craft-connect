@@ -1,10 +1,10 @@
 import React, { useState } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { Header } from '@/components/Header';
 import { Footer } from '@/components/Footer';
-import { Users, Mail, ArrowLeft, Search, Phone, ExternalLink, Star } from 'lucide-react';
+import { Users, Mail, ArrowLeft, Search, Phone, ExternalLink, Star, User } from 'lucide-react';
 import { useNavigate, Navigate } from 'react-router-dom';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
