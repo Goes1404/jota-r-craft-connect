@@ -41,7 +41,6 @@ const AdminOrders = () => {
   const { data: orders = [], isLoading } = useQuery({
     queryKey: ['admin-all-orders'],
     queryFn: async () => {
-    queryFn: async () => {
       const { data, error } = await supabase
         .from('orders')
         .select('*, user:profiles(full_name, email, phone), items:order_items(quantity, total_price, unit_price, product:products(name))')
