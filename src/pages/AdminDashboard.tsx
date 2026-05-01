@@ -29,6 +29,7 @@ import {
   LayoutGrid,
   Target,
   ChevronRight
+} from 'lucide-react';
 import ImageUpload from '@/components/ImageUpload';
 import { useAppSettings } from '@/hooks/useProducts';
 import { useSales } from '@/hooks/useSales';
