@@ -47,6 +47,47 @@ const Checkout = () => {
   const [pixTimeLeft, setPixTimeLeft] = useState(PIX_EXPIRATION_MINUTES * 60); // seconds
   const pollingRef = useRef<NodeJS.Timeout | null>(null);
   const timerRef = useRef<NodeJS.Timeout | null>(null);
+  
+  // Track abandoned cart ID
+  const [abandonedCartId, setAbandonedCartId] = useState<string | null>(null);
+
+  // Abandoned cart tracking
+  useEffect(() => {
+    if (cartItems.length === 0 || orderSuccess) return;
+    
+    const saveAbandonedCart = async () => {
+      try {
+        if (abandonedCartId) {
+          await supabase.from('abandoned_carts').update({
+            email: user?.email || 'anon@checkout.com',
+            phone: formData.phone,
+            name: formData.fullName,
+            cart_items: cartItems,
+            total_amount: total,
+            last_active_at: new Date().toISOString()
+          }).eq('id', abandonedCartId);
+        } else if (user?.email) {
+          const { data } = await supabase.from('abandoned_carts').insert({
+            user_id: user.id,
+            email: user.email,
+            phone: formData.phone,
+            name: formData.fullName,
+            cart_items: cartItems,
+            total_amount: total
+          }).select('id').single();
+          
+          if (data?.id) {
+            setAbandonedCartId(data.id);
+          }
+        }
+      } catch (err) {
+        console.log('Abandoned cart tracking: table might not exist yet', err);
+      }
+    };
+
+    const timeout = setTimeout(saveAbandonedCart, 2000);
+    return () => clearTimeout(timeout);
+  }, [cartItems, formData.phone, formData.fullName, user, total, abandonedCartId, orderSuccess]);
 
   // PIX expiration countdown
   useEffect(() => {
@@ -240,6 +281,10 @@ const Checkout = () => {
             payment_intent_id: stripeResult.paymentIntentId,
           }).eq('id', orderId);
         }
+      }
+
+      if (abandonedCartId) {
+        supabase.from('abandoned_carts').update({ status: 'purchased' }).eq('id', abandonedCartId).then();
       }
 
       clearCart();

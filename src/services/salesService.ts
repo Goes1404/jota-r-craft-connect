@@ -5,6 +5,7 @@ export interface SaleFilter {
   date?: string;
   productId?: string;
   category?: string;
+  saleType?: 'all' | 'manual' | 'automatic';
 }
 
 export const salesService = {
@@ -32,6 +33,10 @@ export const salesService = {
       query = query.eq('category', filter.category);
     }
 
+    if (filter.saleType && filter.saleType !== 'all') {
+      query = query.eq('sale_type', filter.saleType);
+    }
+
     const { data, error } = await query;
     if (error) throw error;
     return data as Sale[];
@@ -43,6 +48,7 @@ export const salesService = {
       end_date: filter.date ? new Date(new Date(filter.date).setHours(23, 59, 59, 999)).toISOString() : null,
       product_filter: filter.productId || null,
       category_filter: filter.category || null,
+      sale_type_filter: filter.saleType && filter.saleType !== 'all' ? filter.saleType : null,
     });
     
     if (error) throw error;

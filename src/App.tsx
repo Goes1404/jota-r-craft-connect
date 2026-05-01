@@ -30,6 +30,7 @@ import AdminCoupons from "./pages/AdminCoupons";
 import AdminCustomers from "./pages/AdminCustomers";
 import AdminReviews from "./pages/AdminReviews";
 import AdminSettings from "./pages/AdminSettings";
+import AdminAbandonedCarts from "./pages/AdminAbandonedCarts";
 import NotFound from "./pages/NotFound";
 import { ExitIntentPopup } from "./components/ExitIntentPopup";
 
@@ -72,6 +73,7 @@ const App = () => (
               <Route path="/admin/customers" element={<AdminCustomers />} />
               <Route path="/admin/reviews" element={<AdminReviews />} />
               <Route path="/admin/settings" element={<AdminSettings />} />
+              <Route path="/admin/abandoned-carts" element={<AdminAbandonedCarts />} />
               {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
               <Route path="*" element={<NotFound />} />
             </Routes>

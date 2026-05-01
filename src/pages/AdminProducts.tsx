@@ -26,7 +26,9 @@ import {
   Search,
   Filter,
   CheckCircle2,
-  Star
+  Star,
+  TrendingDown,
+  PieChart
 } from 'lucide-react';
 import {
   Dialog,
@@ -87,6 +89,10 @@ const AdminProducts = () => {
   });
 
   const categories = [...new Set(allProducts.map(p => p.category).filter(Boolean))];
+
+  const totalInventoryCost = allProducts.reduce((sum, p) => sum + (p.stock * (p.cost || 0)), 0);
+  const totalInventoryRetail = allProducts.reduce((sum, p) => sum + (p.stock * p.price), 0);
+  const highStockProducts = allProducts.filter(p => p.stock >= 20);
 
   const resetForm = () => {
     setFormData({
@@ -254,6 +260,45 @@ const AdminProducts = () => {
       </header>
 
       <main className="max-w-screen-2xl mx-auto px-8 py-12">
+        {/* Intelligence Cards */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12">
+          <div className="bg-[#0f0f0f]/40 backdrop-blur-2xl border border-white/5 rounded-[32px] p-8 relative overflow-hidden group">
+            <div className="absolute top-0 right-0 w-32 h-32 bg-blue-500/5 rounded-full blur-3xl"></div>
+            <div className="flex justify-between items-start mb-6 relative z-10">
+              <div className="w-10 h-10 rounded-xl bg-blue-500/10 flex items-center justify-center text-blue-400">
+                <PieChart className="w-5 h-5" />
+              </div>
+            </div>
+            <p className="text-[10px] font-bold text-white/20 uppercase tracking-[0.2em] relative z-10">Custo Total de Estoque</p>
+            <h3 className="text-2xl font-serif font-black text-white mt-1 relative z-10">R$ {totalInventoryCost.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</h3>
+            <p className="text-xs text-white/40 mt-2 font-medium relative z-10">Capital imobilizado</p>
+          </div>
+
+          <div className="bg-[#0f0f0f]/40 backdrop-blur-2xl border border-white/5 rounded-[32px] p-8 relative overflow-hidden group">
+            <div className="absolute top-0 right-0 w-32 h-32 bg-green-500/5 rounded-full blur-3xl"></div>
+            <div className="flex justify-between items-start mb-6 relative z-10">
+              <div className="w-10 h-10 rounded-xl bg-green-500/10 flex items-center justify-center text-green-400">
+                <DollarSign className="w-5 h-5" />
+              </div>
+            </div>
+            <p className="text-[10px] font-bold text-white/20 uppercase tracking-[0.2em] relative z-10">Valor de Venda (VGV)</p>
+            <h3 className="text-2xl font-serif font-black text-green-400 mt-1 relative z-10">R$ {totalInventoryRetail.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</h3>
+            <p className="text-xs text-white/40 mt-2 font-medium relative z-10">Lucro projetado: R$ {(totalInventoryRetail - totalInventoryCost).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</p>
+          </div>
+
+          <div className="bg-[#0f0f0f]/40 backdrop-blur-2xl border border-white/5 rounded-[32px] p-8 relative overflow-hidden group">
+            <div className="absolute top-0 right-0 w-32 h-32 bg-orange-500/5 rounded-full blur-3xl"></div>
+            <div className="flex justify-between items-start mb-6 relative z-10">
+              <div className="w-10 h-10 rounded-xl bg-orange-500/10 flex items-center justify-center text-orange-400">
+                <TrendingDown className="w-5 h-5" />
+              </div>
+            </div>
+            <p className="text-[10px] font-bold text-white/20 uppercase tracking-[0.2em] relative z-10">Estoque Encalhado / Alto</p>
+            <h3 className="text-2xl font-serif font-black text-orange-400 mt-1 relative z-10">{highStockProducts.length} Peças</h3>
+            <p className="text-xs text-white/40 mt-2 font-medium relative z-10">Acima de 20 unidades paradas</p>
+          </div>
+        </div>
+
         <div className="grid grid-cols-1 md:grid-cols-12 gap-8">
           {/* Filters Sidebar */}
           <div className="md:col-span-3 space-y-8">

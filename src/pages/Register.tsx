@@ -7,6 +7,7 @@ import { ArrowLeft } from 'lucide-react';
 const Register: React.FC = () => {
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
+  const [phone, setPhone] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
@@ -30,7 +31,7 @@ const Register: React.FC = () => {
     setIsLoading(true);
 
     try {
-      const { error } = await signUp(email, password, { full_name: name, role: 'client' });
+      const { error } = await signUp(email, password, { full_name: name, role: 'client', phone: phone });
       
       if (error) {
         toast({
@@ -124,6 +125,23 @@ const Register: React.FC = () => {
                   type="email"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
+                  required
+                />
+              </div>
+            </div>
+
+            {/* Phone Field */}
+            <div className="space-y-2">
+              <label className="text-[10px] font-bold text-[#d4af37] uppercase tracking-widest" htmlFor="phone">WhatsApp / Telefone</label>
+              <div className="bg-[#1b1b1b]/50 border border-[#d4af37]/20 focus-within:border-[#d4af37] focus-within:shadow-[0_0_15px_rgba(212,175,55,0.2)] transition-all duration-300 rounded-lg overflow-hidden">
+                <input 
+                  className="w-full bg-transparent border-none focus:ring-0 text-white placeholder-white/10 py-3 px-4 outline-none" 
+                  id="phone" 
+                  name="phone" 
+                  placeholder="(11) 99999-9999" 
+                  type="tel"
+                  value={phone}
+                  onChange={(e) => setPhone(e.target.value)}
                   required
                 />
               </div>

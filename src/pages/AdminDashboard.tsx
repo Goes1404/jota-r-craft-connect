@@ -26,8 +26,9 @@ import {
   Eye,
   ShoppingBag,
   MessageCircle,
-  LayoutGrid
-} from 'lucide-react';
+  LayoutGrid,
+  Target,
+  ChevronRight
 import ImageUpload from '@/components/ImageUpload';
 import { useAppSettings } from '@/hooks/useProducts';
 import { useSales } from '@/hooks/useSales';
@@ -38,10 +39,11 @@ const AdminDashboard = () => {
   const queryClient = useQueryClient();
   const [profitStartDate, setProfitStartDate] = useState('');
   const [profitEndDate, setProfitEndDate] = useState('');
+  const [saleTypeFilter, setSaleTypeFilter] = useState<'all' | 'manual' | 'automatic'>('all');
   const navigate = useNavigate();
 
   const { data: settingsSettings } = useAppSettings();
-  const { data: allSales = [] } = useSales();
+  const { data: allSales = [] } = useSales({ saleType: saleTypeFilter === 'all' ? undefined : saleTypeFilter });
 
   React.useEffect(() => {
     // 1. Subscribe to new orders
@@ -73,7 +75,7 @@ const AdminDashboard = () => {
   }, [queryClient, navigate]);
 
   const { data: analytics, isLoading: analyticsLoading } = useQuery({
-    queryKey: ['admin-analytics', profitStartDate, profitEndDate],
+    queryKey: ['admin-analytics', profitStartDate, profitEndDate, saleTypeFilter],
     queryFn: async () => {
       let ordersQuery = supabase.from('orders').select('id, total_amount, created_at');
       let salesQuery = supabase.from('sales').select('*, product:products(name, cost)');
@@ -99,9 +101,33 @@ const AdminDashboard = () => {
       const { data: productsData } = await supabase.from('products').select('id, name, stock');
       const lowStockProducts = productsData?.filter(p => p.stock < 5) || [];
       const { data: ordersData } = await ordersQuery;
-      const totalRevenue = ordersData?.reduce((sum, order) => sum + Number(order.total_amount), 0) || 0;
-      const { data: salesData } = await salesQuery;
-      const totalSalesRevenue = salesData?.reduce((sum, sale) => sum + Number(sale.total_price), 0) || 0;
+      let { data: salesData } = await salesQuery;
+      
+      salesData = salesData || [];
+      
+      if (saleTypeFilter !== 'all') {
+        salesData = salesData.filter(s => s.sale_type === saleTypeFilter);
+      }
+
+      const manualSales = (salesData || []).filter(s => s.sale_type === 'manual');
+      
+      const manualRevenue = manualSales.reduce((sum, sale) => sum + Number(sale.total_price), 0);
+      const ordersRevenue = ordersData?.reduce((sum, order) => sum + Number(order.total_amount), 0) || 0;
+      
+      let totalRevenue = 0;
+      let totalOrders = 0;
+      
+      if (saleTypeFilter === 'all') {
+         totalRevenue = manualRevenue + ordersRevenue;
+         totalOrders = (ordersData?.length || 0) + manualSales.length;
+      } else if (saleTypeFilter === 'automatic') {
+         totalRevenue = ordersRevenue;
+         totalOrders = ordersData?.length || 0;
+      } else {
+         totalRevenue = manualRevenue;
+         totalOrders = manualSales.length;
+      }
+
       const totalItemsSold = salesData?.reduce((sum, sale) => sum + sale.quantity, 0) || 0;
 
       const allProductQuantities = salesData?.reduce((acc, sale) => {
@@ -141,9 +167,8 @@ const AdminDashboard = () => {
       return {
         totalVisits: visitsData?.length || 0,
         totalProducts: productsData?.length || 0,
-        totalOrders: ordersData?.length || 0,
-        totalRevenue: totalRevenue + totalSalesRevenue,
-        totalSalesRevenue,
+        totalOrders: totalOrders,
+        totalRevenue: totalRevenue,
         totalItemsSold,
         topSellingProduct: topSelling,
         mostProfitableProduct: mostProfitable,
@@ -154,11 +179,12 @@ const AdminDashboard = () => {
   });
 
   const { data: profitData } = useQuery({
-    queryKey: ['total-profit', profitStartDate, profitEndDate],
+    queryKey: ['total-profit', profitStartDate, profitEndDate, saleTypeFilter],
     queryFn: async () => {
       const { data, error } = await supabase.rpc('get_total_profit', {
         start_date: profitStartDate ? new Date(profitStartDate).toISOString() : null,
         end_date: profitEndDate ? new Date(profitEndDate).toISOString() : null,
+        sale_type_filter: saleTypeFilter === 'all' ? null : saleTypeFilter,
       });
       if (error) throw error;
       return data as number;
@@ -213,6 +239,61 @@ const AdminDashboard = () => {
       </header>
 
       <main className="relative z-10 max-w-screen-2xl mx-auto px-8 py-12">
+        {/* Monthly Goal Gamification */}
+        <div className="bg-[#0f0f0f]/40 backdrop-blur-2xl border border-white/5 rounded-[32px] p-8 mb-16 relative overflow-hidden group">
+          <div className="absolute top-0 left-0 w-64 h-64 bg-[#d4af37]/5 rounded-full blur-3xl"></div>
+          <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-6 relative z-10">
+            <div className="flex items-center gap-6">
+              <div className="w-16 h-16 rounded-2xl bg-[#d4af37]/10 flex items-center justify-center text-[#d4af37] border border-[#d4af37]/20">
+                <Target className="w-8 h-8" />
+              </div>
+              <div>
+                <h2 className="text-2xl font-serif font-black text-white">Meta Mensal</h2>
+                <div className="flex items-center gap-2 mt-1">
+                  <span className="text-xs font-bold text-white/40 uppercase tracking-widest">Alvo:</span>
+                  <div className="flex items-center gap-2">
+                    <span className="text-sm font-black text-white">R$ </span>
+                    <Input 
+                      type="number"
+                      defaultValue={settingsSettings?.monthly_goal || '10000'}
+                      onBlur={(e) => updateSetting('monthly_goal', e.target.value)}
+                      className="bg-transparent border-none text-white p-0 h-auto w-24 text-sm font-black focus-visible:ring-0 shadow-none border-b border-white/20 rounded-none focus:border-[#d4af37]"
+                    />
+                  </div>
+                </div>
+              </div>
+            </div>
+            
+            <div className="w-full md:w-[60%] space-y-3">
+              <div className="flex justify-between items-end">
+                <div>
+                  <span className="text-[10px] font-bold text-[#d4af37] uppercase tracking-[0.2em]">Atingido</span>
+                  <div className="text-3xl font-serif font-black text-white">
+                    R$ {(analytics?.totalRevenue || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                  </div>
+                </div>
+                <div className="text-right">
+                  <span className="text-[10px] font-bold text-white/40 uppercase tracking-[0.2em]">Faltam</span>
+                  <div className="text-lg font-bold text-white/60">
+                    R$ {Math.max(0, Number(settingsSettings?.monthly_goal || 10000) - (analytics?.totalRevenue || 0)).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                  </div>
+                </div>
+              </div>
+              <div className="h-3 w-full bg-black/50 rounded-full overflow-hidden border border-white/5 relative">
+                <div 
+                  className="h-full bg-gradient-to-r from-[#d4af37] to-[#f2ca50] rounded-full shadow-[0_0_15px_rgba(212,175,55,0.5)] transition-all duration-1000"
+                  style={{ width: `${Math.min(100, ((analytics?.totalRevenue || 0) / Number(settingsSettings?.monthly_goal || 10000)) * 100)}%` }}
+                ></div>
+              </div>
+              <div className="flex justify-between items-center text-[9px] font-black uppercase tracking-widest text-white/30">
+                <span>0%</span>
+                <span>{(((analytics?.totalRevenue || 0) / Number(settingsSettings?.monthly_goal || 10000)) * 100).toFixed(1)}%</span>
+                <span>100%</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
         {/* Welcome Section */}
         <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-8 mb-16">
           <div className="space-y-2">
@@ -232,7 +313,10 @@ const AdminDashboard = () => {
               Cupons
             </Button>
             <Button onClick={() => navigate('/admin/customers')} className="bg-white/5 border border-white/10 hover:border-[#d4af37]/40 hover:bg-[#d4af37]/5 text-white font-bold text-[10px] uppercase tracking-widest px-6 h-12 rounded-xl transition-all">
-              Leads
+              CRM 360
+            </Button>
+            <Button onClick={() => navigate('/admin/abandoned-carts')} className="bg-orange-500/10 border border-orange-500/20 hover:bg-orange-500/20 text-orange-400 font-bold text-[10px] uppercase tracking-widest px-6 h-12 rounded-xl transition-all shadow-[0_0_15px_rgba(249,115,22,0.1)]">
+              Recuperar Vendas
             </Button>
             <Button onClick={() => navigate('/admin/reviews')} className="bg-white/5 border border-white/10 hover:border-[#d4af37]/40 hover:bg-[#d4af37]/5 text-white font-bold text-[10px] uppercase tracking-widest px-6 h-12 rounded-xl transition-all">
               Reviews
@@ -248,7 +332,29 @@ const AdminDashboard = () => {
 
         {/* Cinematic Stats Grid */}
         <div className="flex flex-col md:flex-row justify-between items-center gap-4 mb-6">
-          <h2 className="text-xl font-serif font-bold text-white">Métricas Financeiras e Operacionais</h2>
+          <div className="flex items-center gap-4">
+            <h2 className="text-xl font-serif font-bold text-white">Métricas Financeiras e Operacionais</h2>
+            <div className="flex bg-[#0f0f0f]/40 backdrop-blur-2xl border border-white/5 rounded-xl p-1">
+              <button 
+                onClick={() => setSaleTypeFilter('all')}
+                className={`px-4 py-1.5 rounded-lg text-xs font-bold uppercase tracking-widest transition-all ${saleTypeFilter === 'all' ? 'bg-[#d4af37] text-black shadow-lg shadow-[#d4af37]/20' : 'text-white/40 hover:text-white'}`}
+              >
+                União
+              </button>
+              <button 
+                onClick={() => setSaleTypeFilter('automatic')}
+                className={`px-4 py-1.5 rounded-lg text-xs font-bold uppercase tracking-widest transition-all ${saleTypeFilter === 'automatic' ? 'bg-blue-500 text-white shadow-lg shadow-blue-500/20' : 'text-white/40 hover:text-white'}`}
+              >
+                Online
+              </button>
+              <button 
+                onClick={() => setSaleTypeFilter('manual')}
+                className={`px-4 py-1.5 rounded-lg text-xs font-bold uppercase tracking-widest transition-all ${saleTypeFilter === 'manual' ? 'bg-purple-500 text-white shadow-lg shadow-purple-500/20' : 'text-white/40 hover:text-white'}`}
+              >
+                Físico
+              </button>
+            </div>
+          </div>
           <div className="flex flex-wrap items-center gap-3">
             <div className="flex items-center bg-[#0f0f0f]/40 backdrop-blur-2xl border border-white/5 rounded-xl px-4 h-12">
               <span className="text-[10px] text-[#d4af37] uppercase tracking-widest font-bold mr-3">De:</span>

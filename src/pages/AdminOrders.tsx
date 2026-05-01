@@ -23,8 +23,10 @@ import {
   ExternalLink,
   Trash2,
   Save,
-  User
-} from 'lucide-react';
+  Save,
+  User,
+  Phone,
+  Printer
 import { useNavigate } from 'react-router-dom';
 
 const AdminOrders = () => {
@@ -39,9 +41,10 @@ const AdminOrders = () => {
   const { data: orders = [], isLoading } = useQuery({
     queryKey: ['admin-all-orders'],
     queryFn: async () => {
+    queryFn: async () => {
       const { data, error } = await supabase
         .from('orders')
-        .select('*, user:profiles(full_name, email)')
+        .select('*, user:profiles(full_name, email, phone), items:order_items(quantity, total_price, unit_price, product:products(name))')
         .order('created_at', { ascending: false });
       
       if (error) throw error;
@@ -58,9 +61,26 @@ const AdminOrders = () => {
       
       if (error) throw error;
     },
-    onSuccess: () => {
+    onSuccess: (_, variables) => {
       queryClient.invalidateQueries({ queryKey: ['admin-all-orders'] });
-      toast.success('Pedido atualizado com sucesso!');
+      
+      const orderUser = orders.find(o => o.id === variables.id)?.user;
+      
+      if (variables.status === 'Enviado' && variables.tracking_code && orderUser?.phone) {
+        toast.success('Pedido atualizado! Deseja avisar o cliente?', {
+          action: {
+            label: 'Avisar no WhatsApp',
+            onClick: () => {
+              const text = `Olá ${orderUser.full_name?.split(' ')[0]}! O seu pedido da JR Acessórios foi enviado. 🚚\n\nSeu código de rastreio é: *${variables.tracking_code}*`;
+              window.open(`https://wa.me/${orderUser.phone.replace(/\D/g, '')}?text=${encodeURIComponent(text)}`, '_blank');
+            }
+          },
+          duration: 10000
+        });
+      } else {
+        toast.success('Pedido atualizado com sucesso!');
+      }
+      
       setEditingOrderId(null);
     },
     onError: (error: any) => {
@@ -87,6 +107,88 @@ const AdminOrders = () => {
     setEditingOrderId(order.id);
     setEditTrackingCode(order.tracking_code || '');
     setEditStatus(order.status || 'Pendente');
+  };
+
+  const handlePrint = (order: any) => {
+    const printWindow = window.open('', '_blank');
+    if (!printWindow) return;
+
+    const itemsHtml = order.items?.map((item: any) => `
+      <tr style="border-bottom: 1px solid #eee;">
+        <td style="padding: 12px 0;">${item.product?.name || 'Produto Removido'}</td>
+        <td style="padding: 12px 0; text-align: center;">${item.quantity}</td>
+        <td style="padding: 12px 0; text-align: right;">R$ ${Number(item.total_price).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</td>
+      </tr>
+    `).join('') || '';
+
+    printWindow.document.write(`
+      <html>
+        <head>
+          <title>Pedido #${order.id.slice(0, 8)}</title>
+          <style>
+            body { font-family: 'Inter', sans-serif; padding: 40px; color: #000; max-width: 800px; margin: 0 auto; }
+            .header { text-align: center; margin-bottom: 40px; border-bottom: 2px solid #000; padding-bottom: 20px; }
+            .title { font-size: 24px; font-weight: bold; text-transform: uppercase; letter-spacing: 2px; }
+            .subtitle { font-size: 12px; color: #666; letter-spacing: 1px; margin-top: 5px; }
+            .info-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 40px; }
+            .box { border: 1px solid #ccc; padding: 20px; border-radius: 8px; }
+            h3 { font-size: 10px; text-transform: uppercase; letter-spacing: 1px; color: #666; margin-top: 0; }
+            p { margin: 5px 0; font-size: 14px; }
+            table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+            th { text-align: left; padding: 12px 0; border-bottom: 2px solid #000; font-size: 12px; text-transform: uppercase; }
+            .total { margin-top: 30px; text-align: right; font-size: 20px; font-weight: bold; }
+          </style>
+        </head>
+        <body>
+          <div class="header">
+            <div class="title">JR Acessórios</div>
+            <div class="subtitle">Romaneio de Envio / Pedido #${order.id.slice(0, 8)}</div>
+          </div>
+          
+          <div class="info-grid">
+            <div class="box">
+              <h3>Dados do Cliente</h3>
+              <p><strong>Nome:</strong> ${order.user?.full_name || 'N/A'}</p>
+              <p><strong>E-mail:</strong> ${order.user?.email || 'N/A'}</p>
+              <p><strong>Telefone:</strong> ${order.user?.phone || 'N/A'}</p>
+            </div>
+            <div class="box">
+              <h3>Detalhes do Pedido</h3>
+              <p><strong>Data:</strong> ${format(new Date(order.created_at), 'dd/MM/yyyy HH:mm')}</p>
+              <p><strong>Status:</strong> ${order.status}</p>
+              <p><strong>Rastreio:</strong> ${order.tracking_code || 'Pendente'}</p>
+            </div>
+          </div>
+
+          <table>
+            <thead>
+              <tr>
+                <th>Produto</th>
+                <th style="text-align: center;">Qtd</th>
+                <th style="text-align: right;">Total</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${itemsHtml}
+            </tbody>
+          </table>
+
+          <div class="total">
+            Total do Pedido: R$ ${Number(order.total_amount).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+          </div>
+          
+          <div style="margin-top: 60px; text-align: center; font-size: 12px; color: #666; border-top: 1px dashed #ccc; padding-top: 20px;">
+            Obrigado por comprar na JR Acessórios!
+          </div>
+        </body>
+      </html>
+    `);
+    
+    printWindow.document.close();
+    printWindow.focus();
+    setTimeout(() => {
+      printWindow.print();
+    }, 500);
   };
 
   const filteredOrders = orders.filter(o => 
@@ -217,7 +319,19 @@ const AdminOrders = () => {
                       )}
                     </TableCell>
                     <TableCell className="py-6 px-8 text-right">
-                      <div className="flex justify-end gap-2">
+                      <div className="flex justify-end gap-2 items-center">
+                        {order.user?.phone && (
+                          <a 
+                            href={`https://wa.me/${order.user.phone.replace(/\D/g, '')}?text=Olá ${order.user.full_name?.split(' ')[0]}, vi o seu pedido #${order.id.slice(0,6)} na loja.`} 
+                            target="_blank" 
+                            rel="noopener noreferrer"
+                            className="mr-2"
+                          >
+                            <Button size="sm" variant="ghost" className="text-[#25D366] hover:bg-[#25D366]/10 h-8 rounded-lg p-2">
+                              <Phone className="h-4 w-4" />
+                            </Button>
+                          </a>
+                        )}
                         {editingOrderId === order.id ? (
                           <Button 
                             onClick={() => updateOrderMutation.mutate({ id: order.id, status: editStatus, tracking_code: editTrackingCode })}
@@ -236,6 +350,15 @@ const AdminOrders = () => {
                             Editar
                           </Button>
                         )}
+                        <Button 
+                          onClick={() => handlePrint(order)}
+                          variant="ghost"
+                          size="sm"
+                          className="text-white/40 hover:text-white hover:bg-white/5 h-8 rounded-lg"
+                          title="Imprimir Romaneio"
+                        >
+                          <Printer className="h-4 w-4" />
+                        </Button>
                         <Button 
                           onClick={() => { if(window.confirm('Excluir este pedido?')) deleteOrderMutation.mutate(order.id) }}
                           variant="ghost"
