@@ -23,10 +23,10 @@ import {
   ExternalLink,
   Trash2,
   Save,
-  Save,
   User,
   Phone,
   Printer
+} from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
 const AdminOrders = () => {
