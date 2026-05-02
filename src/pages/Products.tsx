@@ -29,6 +29,8 @@ import {
 import { WHATSAPP_NUMBER } from '@/config/constants';
 import { Product } from '@/types/database';
 import { Link } from 'react-router-dom';
+import { MaskReveal } from '@/components/animations/MaskReveal';
+import { TrackingInText } from '@/components/animations/TrackingIn';
 
 const Products: React.FC = () => {
   const { usePageVisit } = useAnalytics();
@@ -156,11 +158,15 @@ const Products: React.FC = () => {
           <div className="absolute inset-0 bg-gradient-to-b from-[#d4af37]/10 to-transparent"></div>
           <div className="relative h-full max-w-7xl mx-auto px-8 flex flex-col justify-center items-center text-center">
             <h1 className="text-4xl md:text-7xl font-serif font-bold text-white mb-4 tracking-tight">
-              JR <span className="text-[#d4af37] italic font-light">selection</span>
+              <TrackingInText text="JR" className="text-[#d4af37]" stagger={0.12} />
+              {' '}
+              <TrackingInText text="selection" className="text-[#d4af37] italic font-light" stagger={0.07} delay={0.3} />
             </h1>
-            <p className="text-white/40 max-w-md font-medium text-xs md:text-sm uppercase tracking-[0.2em]">
-              Curadoria Digital com Inteligência Artificial
-            </p>
+            <MaskReveal delay={0.7}>
+              <p className="text-white/40 max-w-md font-medium text-xs md:text-sm uppercase tracking-[0.2em]">
+                Curadoria Digital com Inteligência Artificial
+              </p>
+            </MaskReveal>
           </div>
         </section>
 

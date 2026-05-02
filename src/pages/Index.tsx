@@ -6,10 +6,12 @@ import { Footer } from '@/components/Footer';
 import SEO from '@/components/SEO';
 import { Button } from '@/components/ui/button';
 import { useAnalytics } from '@/hooks/useAnalytics';
-import { BackgroundPaths } from '@/components/ui/background-paths';
+import { GlassHero } from '@/components/GlassHero';
 import { Testimonials } from '@/components/ui/twitter-testimonial-cards';
 import { WHATSAPP_LINK } from '@/config/constants';
 import { SmartShowcase } from '@/components/SmartShowcase';
+import { TrackingInText } from '@/components/animations/TrackingIn';
+import { MaskReveal } from '@/components/animations/MaskReveal';
 
 /* ─── Countdown Hook ─── */
 function useCountdown(targetHours: number) {
@@ -66,7 +68,7 @@ const Index: React.FC = () => {
       </a>
 
       {/* ═══ Hero ═══ */}
-      <BackgroundPaths title="JR acessorios" />
+      <GlassHero />
 
       {/* ═══ Flash Sale Countdown ═══ */}
       <section className="bg-zinc-950 border-y border-primary/30 py-5">
@@ -139,6 +141,7 @@ const Index: React.FC = () => {
             subtitle="Nossa inteligência identificou estas peças como as mais desejadas da semana."
             mode="trending"
             limit={4}
+            TitleComponent={TrackingInText}
           />
         </div>
       </section>
@@ -251,7 +254,8 @@ const Index: React.FC = () => {
                 <Star className="h-3 w-3 fill-primary" /> Avaliações Reais
               </div>
               <h2 className="text-2xl md:text-4xl font-serif font-black text-foreground leading-tight">
-                O que nossos <span className="text-primary italic">clientes dizem</span>
+                <TrackingInText text="O que nossos" className="block" stagger={0.05} />
+                <TrackingInText text="clientes dizem" className="block text-primary italic" stagger={0.05} delay={0.4} />
               </h2>
               <div className="flex items-center gap-2 justify-center lg:justify-start">
                 {[...Array(5)].map((_, i) => <Star key={i} className="h-5 w-5 fill-primary text-primary" />)}
