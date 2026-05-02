@@ -35,6 +35,17 @@ import { WHATSAPP_NUMBER } from '@/config/constants';
 
 const PIX_EXPIRATION_MINUTES = 30;
 
+const isValidCPF = (cpf: string): boolean => {
+  const digits = cpf.replace(/\D/g, '');
+  if (digits.length !== 11 || /^(\d)\1{10}$/.test(digits)) return false;
+  const calc = (len: number) => {
+    const sum = digits.slice(0, len).split('').reduce((acc, d, i) => acc + Number(d) * (len + 1 - i), 0);
+    const rem = (sum * 10) % 11;
+    return rem === 10 || rem === 11 ? 0 : rem;
+  };
+  return calc(9) === Number(digits[9]) && calc(10) === Number(digits[10]);
+};
+
 const Checkout = () => {
   const { cartItems, getTotalPrice, clearCart, addToCart } = useCart();
   const total = getTotalPrice();
@@ -90,8 +101,10 @@ const Checkout = () => {
     
     const saveAbandonedCart = async () => {
       try {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const db = supabase as any;
         if (abandonedCartId) {
-          await supabase.from('abandoned_carts').update({
+          await db.from('abandoned_carts').update({
             email: user?.email || 'anon@checkout.com',
             phone: formData.phone,
             name: formData.fullName,
@@ -100,7 +113,7 @@ const Checkout = () => {
             last_active_at: new Date().toISOString()
           }).eq('id', abandonedCartId);
         } else if (user?.email) {
-          const { data } = await supabase.from('abandoned_carts').insert({
+          const { data } = await db.from('abandoned_carts').insert({
             user_id: user.id,
             email: user.email,
             phone: formData.phone,
@@ -108,7 +121,7 @@ const Checkout = () => {
             cart_items: cartItems,
             total_amount: total
           }).select('id').single();
-          
+
           if (data?.id) {
             setAbandonedCartId(data.id);
           }
@@ -179,12 +192,17 @@ const Checkout = () => {
     if (value.replace(/\D/g, '').length === 8) {
       try {
         const response = await fetch(`https://viacep.com.br/ws/${value.replace(/\D/g, '')}/json/`);
+        if (!response.ok) throw new Error('CEP não encontrado');
         const data = await response.json();
-        if (!data.erro) {
+        if (data.erro) {
+          toast.error('CEP não encontrado. Verifique o número digitado.');
+        } else {
           setFormData(prev => ({ ...prev, address: data.logradouro || prev.address, city: data.localidade || prev.city, state: data.uf || prev.state }));
           toast.success('Endereço autocompletado!');
         }
-      } catch (error) { console.error(error); }
+      } catch (error) {
+        toast.error('Não foi possível buscar o CEP. Preencha o endereço manualmente.');
+      }
     }
   };
 
@@ -192,6 +210,12 @@ const Checkout = () => {
     e.preventDefault();
     if (cartItems.length === 0) return;
     if (!user) { navigate('/login?redirect=/checkout'); return; }
+
+    if (!isValidCPF(formData.cpf)) {
+      toast.error('CPF inválido. Verifique os números digitados.');
+      return;
+    }
+
     setIsProcessing(true);
 
     try {
@@ -237,7 +261,8 @@ const Checkout = () => {
       }
 
       if (abandonedCartId) {
-        supabase.from('abandoned_carts').update({ status: 'purchased' }).eq('id', abandonedCartId).then();
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        await (supabase as any).from('abandoned_carts').update({ status: 'purchased' }).eq('id', abandonedCartId);
       }
 
       clearCart();

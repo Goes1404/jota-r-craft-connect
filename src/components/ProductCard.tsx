@@ -38,14 +38,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({
     e.stopPropagation();
     if (isOutOfStock) return;
     
-    addToCart({
-      id: product.id,
-      name: product.name,
-      price: product.price,
-      image: product.image,
-      description: product.description || '',
-      images: product.images
-    } as any);
+    addToCart(product);
 
     toast({
       title: "Adicionado ao Carrinho",
@@ -77,14 +70,16 @@ export const ProductCard: React.FC<ProductCardProps> = ({
           </div>
           <button
             onClick={handleToggleWishlist}
+            aria-label={isFavorite ? `Remover ${product.name} dos favoritos` : `Adicionar ${product.name} aos favoritos`}
             className={`absolute top-4 right-4 z-20 w-10 h-10 rounded-full flex items-center justify-center transition-all duration-300 ${isFavorite ? 'bg-primary text-background' : 'bg-background/80 backdrop-blur-md text-primary hover:scale-110'}`}
           >
             <Heart className={`w-5 h-5 ${isFavorite ? 'fill-current' : ''}`} />
           </button>
-          <img 
-            className="w-full h-full object-contain mix-blend-lighten group-hover:scale-105 transition-transform duration-700 ease-out" 
-            src={product.image || '/placeholder.svg'} 
-            alt={product.name}
+          <img
+            className="w-full h-full object-contain mix-blend-lighten group-hover:scale-105 transition-transform duration-700 ease-out"
+            src={product.image || '/placeholder.svg'}
+            alt={`${product.name} — ${product.category || 'Acessório'}`}
+            loading="lazy"
           />
         </div>
         <div className="sm:w-1/2 p-6 md:p-8 flex flex-col justify-center bg-background">
@@ -124,14 +119,16 @@ export const ProductCard: React.FC<ProductCardProps> = ({
         )}
         <button
           onClick={handleToggleWishlist}
+          aria-label={isFavorite ? `Remover ${product.name} dos favoritos` : `Adicionar ${product.name} aos favoritos`}
           className={`absolute top-4 right-4 z-20 w-8 h-8 rounded-full flex items-center justify-center transition-all duration-300 ${isFavorite ? 'bg-primary text-background' : 'bg-background/80 backdrop-blur-md text-primary hover:scale-110'}`}
         >
           <Heart className={`w-4 h-4 ${isFavorite ? 'fill-current' : ''}`} />
         </button>
-        <img 
-          className="w-full h-full object-contain mix-blend-lighten group-hover:scale-105 transition-transform duration-700 ease-out" 
-          src={product.image || '/placeholder.svg'} 
-          alt={product.name}
+        <img
+          className="w-full h-full object-contain mix-blend-lighten group-hover:scale-105 transition-transform duration-700 ease-out"
+          src={product.image || '/placeholder.svg'}
+          alt={`${product.name} — ${product.category || 'Acessório'}`}
+          loading="lazy"
         />
       </div>
       <div className="p-6 flex flex-col flex-grow bg-background">

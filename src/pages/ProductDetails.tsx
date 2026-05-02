@@ -96,11 +96,18 @@ const ProductDetails = () => {
 
   return (
     <div className="min-h-screen bg-black text-[#e2e2e2] font-sans selection:bg-[#f2ca50]/30 selection:text-[#f2ca50]">
-      <SEO 
+      <SEO
         title={product.name}
         description={product.description}
         image={product.image}
         type="product"
+        product={{
+          name: product.name,
+          description: product.description,
+          image: product.image,
+          price: product.price,
+          availability: product.stock > 0 ? 'InStock' : 'OutOfStock',
+        }}
       />
       <Header />
       

@@ -17,7 +17,8 @@ export const Footer: React.FC = () => {
     setIsLoading(true);
 
     try {
-      const { error } = await supabase
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const { error } = await (supabase as any)
         .from('newsletter')
         .insert([{ email }]);
 
@@ -29,11 +30,14 @@ export const Footer: React.FC = () => {
       });
       setEmail('');
     } catch (error: any) {
+      const isDuplicate = error?.code === '23505';
       toast({
-        title: "Sucesso!",
-        description: "Obrigado por se inscrever em nossa newsletter.",
+        title: isDuplicate ? "E-mail já cadastrado" : "Erro ao inscrever",
+        description: isDuplicate
+          ? "Este e-mail já está na nossa lista VIP."
+          : "Tente novamente em alguns instantes.",
+        variant: "destructive",
       });
-      setEmail('');
     } finally {
       setIsLoading(false);
     }
@@ -144,8 +148,8 @@ export const Footer: React.FC = () => {
             © 2025 JR ACESSÓRIOS — LUMINA TECH EXPERIENCE
           </p>
           <div className="flex gap-8">
-            <span className="text-[10px] uppercase tracking-[0.2em] font-bold text-white/10 hover:text-white/20 cursor-pointer">Privacidade</span>
-            <span className="text-[10px] uppercase tracking-[0.2em] font-bold text-white/10 hover:text-white/20 cursor-pointer">Segurança</span>
+            <Link to="/contato" className="text-[10px] uppercase tracking-[0.2em] font-bold text-white/10 hover:text-white/20 transition-colors">Privacidade</Link>
+            <Link to="/contato" className="text-[10px] uppercase tracking-[0.2em] font-bold text-white/10 hover:text-white/20 transition-colors">Segurança</Link>
           </div>
         </div>
       </div>

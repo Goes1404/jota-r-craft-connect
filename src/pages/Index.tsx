@@ -1,16 +1,14 @@
 import React, { useEffect, useState, useRef } from 'react';
 import { Link } from 'react-router-dom';
-import { Truck, Shield, Gift, MapPin, Clock, Instagram, ChevronRight, Diamond, Star, MessageCircle, Users, Package, Award, ChevronDown, Smartphone, Watch, Headphones, Zap, Plus } from 'lucide-react';
+import { Shield, Diamond, Star, MessageCircle, Users, Package, Award, Smartphone, Watch, Headphones, Zap, Plus, Truck, RefreshCw, FileText, Lock } from 'lucide-react';
 import { Header } from '@/components/Header';
 import { Footer } from '@/components/Footer';
 import SEO from '@/components/SEO';
 import { Button } from '@/components/ui/button';
-import { useAppSettings } from '@/hooks/useProducts';
 import { useAnalytics } from '@/hooks/useAnalytics';
 import { BackgroundPaths } from '@/components/ui/background-paths';
-import { GlowCard } from '@/components/ui/spotlight-card';
 import { Testimonials } from '@/components/ui/twitter-testimonial-cards';
-import { INSTAGRAM_URL, WHATSAPP_LINK } from '@/config/constants';
+import { WHATSAPP_LINK } from '@/config/constants';
 import { SmartShowcase } from '@/components/SmartShowcase';
 
 /* ─── Countdown Hook ─── */
@@ -38,33 +36,8 @@ const Index: React.FC = () => {
   usePageVisit('home');
 
   const countdown = useCountdown(23);
-  const [openFaq, setOpenFaq] = useState<number | null>(null);
 
   const WHATSAPP = `${WHATSAPP_LINK}?text=Ol%C3%A1%2C%20vim%20pelo%20site%20e%20gostaria%20de%20mais%20informa%C3%A7%C3%B5es!`;
-
-  const testimonials = [
-    { name: 'Rafaela M.', city: 'Osasco', stars: 5, text: 'Comprei meu iPhone aqui e chegou no mesmo dia, embalado com muito cuidado. Atendimento impecável pelo WhatsApp!' },
-    { name: 'Carlos S.', city: 'São Paulo', stars: 5, text: 'Melhor loja de acessórios da região! Case e película de qualidade, preço justo e entrega rápida. Super recomendo.' },
-    { name: 'Juliana P.', city: 'Barueri', stars: 5, text: 'Atendimento personalizado incrível! Me ajudaram a escolher o smartwatch ideal. Produto 100% original e com nota fiscal.' },
-    { name: 'Marcos T.', city: 'Carapicuíba', stars: 5, text: 'Já é a terceira vez que compro aqui. Sempre entrega no prazo, produto original e suporte pós-venda excelente!' },
-  ];
-
-  const faqs = [
-    { q: 'Os produtos são originais?', a: 'Sim! Todos os nossos produtos são 100% originais, com nota fiscal e garantia do fabricante. Trabalhamos apenas com marcas certificadas.' },
-    { q: 'Como funciona a retirada em mãos?', a: 'Após confirmar seu pedido pelo WhatsApp, você agenda a retirada em nossa loja em Osasco (Rua Martim Afonso, 431) no mesmo dia ou no dia seguinte.' },
-    { q: 'Vocês fazem entrega?', a: 'Sim! Entregamos para todo o Brasil via Correios e transportadoras. Para a região de Osasco e adjacências, oferecemos entrega expressa no mesmo dia.' },
-    { q: 'Qual o prazo de garantia?', a: 'Produtos eletrônicos possuem garantia mínima de 90 dias. Smartphones e smartwatches têm garantia de 12 meses do fabricante mais 3 meses adicionais da nossa loja.' },
-    { q: 'Posso trocar se o produto não servir?', a: 'Com certeza! Aceitamos trocas em até 7 dias após a compra, conforme o Código de Defesa do Consumidor, desde que o produto esteja em perfeito estado.' },
-  ];
-
-  const brands = [
-    { name: 'Apple', logo: '🍎' },
-    { name: 'Samsung', logo: '📲' },
-    { name: 'Xiaomi', logo: '⚡' },
-    { name: 'JBL', logo: '🎵' },
-    { name: 'Motorola', logo: '📡' },
-    { name: 'Anker', logo: '🔋' },
-  ];
 
   const stats = [
     { icon: Users, value: '500+', label: 'Clientes Satisfeitos' },
@@ -110,10 +83,9 @@ const Index: React.FC = () => {
               <p className="text-white/60 text-xs uppercase tracking-wider mr-2">Termina em:</p>
               {[
                 { val: String(countdown.h).padStart(2, '0'), label: 'h' },
-                { val: String(countdown.h).padStart(2, '0'), label: 'h' }, // Wait, h was twice? Fixed h, m, s
                 { val: String(countdown.m).padStart(2, '0'), label: 'm' },
                 { val: String(countdown.s).padStart(2, '0'), label: 's' },
-              ].slice(1).map((t, i) => ( // Fixed map logic
+              ].map((t, i) => (
                 <React.Fragment key={i}>
                   {i > 0 && <span className="text-primary font-black text-lg">:</span>}
                   <div className="flex flex-col items-center bg-primary/10 border border-primary/30 rounded-lg px-3 py-1.5 min-w-[48px]">
@@ -261,6 +233,30 @@ const Index: React.FC = () => {
                 Chamar no WhatsApp
               </Button>
             </a>
+          </div>
+        </div>
+      </section>
+
+      {/* ═══ Trust Signals ═══ */}
+      <section className="py-10 bg-zinc-950 border-t border-white/5">
+        <div className="container mx-auto px-4">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
+            {[
+              { icon: Lock, title: 'Pagamento Seguro', desc: 'PIX e Cartão criptografados' },
+              { icon: RefreshCw, title: 'Troca em 7 dias', desc: 'Garantia pelo CDC' },
+              { icon: FileText, title: 'Nota Fiscal', desc: 'Todos os produtos com NF' },
+              { icon: Truck, title: 'Entrega Rápida', desc: 'Mesmo dia em Osasco' },
+            ].map((item, i) => (
+              <div key={i} className="flex items-center gap-3 p-4 rounded-2xl bg-white/[0.02] border border-white/5">
+                <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center shrink-0">
+                  <item.icon className="h-5 w-5 text-primary" aria-hidden="true" />
+                </div>
+                <div>
+                  <p className="text-white text-xs font-bold">{item.title}</p>
+                  <p className="text-white/30 text-[10px]">{item.desc}</p>
+                </div>
+              </div>
+            ))}
           </div>
         </div>
       </section>

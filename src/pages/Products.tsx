@@ -106,9 +106,10 @@ const Products: React.FC = () => {
         description: p.description
       }));
 
+      const sanitizedSearch = filters.search.replace(/[\"\\]/g, '').slice(0, 100);
       const { data, error } = await supabase.functions.invoke('ai-assistant', {
-        body: { 
-          message: `Busca Semântica Automática: O usuário está digitando "${filters.search}". Retorne APENAS um array JSON de IDs dos produtos (máximo 8) que mais combinam com a INTENÇÃO da busca. Lista: ${JSON.stringify(productContext.slice(0, 40))}. Responda apenas o array de IDs.`,
+        body: {
+          message: `Busca Semântica Automática: O usuário está buscando por: ${sanitizedSearch}. Retorne APENAS um array JSON de IDs dos produtos (máximo 8) que mais combinam com a INTENÇÃO da busca. Lista: ${JSON.stringify(productContext.slice(0, 40))}. Responda apenas o array de IDs.`,
           context: "Lumina Semantic Engine. Foco em intenção e contexto."
         }
       });
