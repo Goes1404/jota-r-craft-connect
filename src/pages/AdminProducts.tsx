@@ -28,7 +28,9 @@ import {
   CheckCircle2,
   Star,
   TrendingDown,
-  PieChart
+  PieChart,
+  Sparkles,
+  Loader2
 } from 'lucide-react';
 import {
   Dialog,
@@ -57,6 +59,7 @@ const AdminProducts = () => {
   
   const [editingProduct, setEditingProduct] = useState<Product | null>(null);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [isGeneratingDescription, setIsGeneratingDescription] = useState(false);
   const [formData, setFormData] = useState({
     name: '',
     price: '',
@@ -156,6 +159,33 @@ const AdminProducts = () => {
     setIsDialogOpen(false);
   };
 
+  const handleGenerateDescription = async () => {
+    if (!formData.name) {
+      toast.error('Informe o nome do produto primeiro');
+      return;
+    }
+    
+    setIsGeneratingDescription(true);
+    try {
+      const { data, error } = await supabase.functions.invoke('ai-assistant', {
+        body: { 
+          task: 'generate_description',
+          productName: formData.name,
+          category: formData.category
+        }
+      });
+      
+      if (error) throw error;
+      setFormData({ ...formData, description: data.description });
+      toast.success('Descrição gerada pela Lumina AI!');
+    } catch (err) {
+      console.error(err);
+      toast.error('Erro ao conectar com a IA');
+    } finally {
+      setIsGeneratingDescription(false);
+    }
+  };
+
   const handleDelete = async (id: string) => {
     if (confirm('Deseja remover este item da coleção definitiva?')) {
       await deleteProduct(id);
@@ -237,7 +267,19 @@ const AdminProducts = () => {
                 </div>
 
                 <div className="space-y-4">
-                  <Label className="text-[10px] font-bold uppercase tracking-widest text-white/30">Breve Descrição</Label>
+                  <div className="flex justify-between items-center">
+                    <Label className="text-[10px] font-bold uppercase tracking-widest text-white/30">Breve Descrição</Label>
+                    <Button 
+                      type="button" 
+                      variant="ghost" 
+                      onClick={handleGenerateDescription}
+                      disabled={isGeneratingDescription}
+                      className="h-8 px-3 text-[9px] font-black uppercase tracking-widest text-[#d4af37] hover:bg-[#d4af37]/10 rounded-lg"
+                    >
+                      {isGeneratingDescription ? <Loader2 className="w-3 h-3 animate-spin mr-1.5" /> : <Sparkles className="w-3 h-3 mr-1.5" />}
+                      Sugerir com IA
+                    </Button>
+                  </div>
                   <Textarea value={formData.description} onChange={(e) => setFormData({...formData, description: e.target.value})} className="bg-white/5 border-white/10 focus:border-[#d4af37]/40 rounded-2xl min-h-[100px]" />
                 </div>
 

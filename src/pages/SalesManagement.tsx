@@ -158,48 +158,141 @@ const SalesManagement = () => {
                   </DialogHeader>
                 </div>
                 <form onSubmit={handleSubmit} className="p-8 space-y-6">
+                  {/* Seleção de Produto */}
                   <div className="space-y-4">
-                    <Label className="text-[10px] font-bold uppercase tracking-widest text-white/30">Peça Exclusiva</Label>
+                    <div className="flex items-center gap-2">
+                      <div className="w-6 h-6 rounded-lg bg-[#d4af37]/10 flex items-center justify-center text-[#d4af37]">
+                        <Diamond className="w-3.5 h-3.5" />
+                      </div>
+                      <Label className="text-[10px] font-bold uppercase tracking-widest text-white/50">Peça Exclusiva</Label>
+                    </div>
                     <Select value={selectedProduct} onValueChange={handleProductChange}>
-                      <SelectTrigger className="bg-white/5 border-white/10 h-14 rounded-xl">
+                      <SelectTrigger className="bg-white/5 border-white/10 h-14 rounded-2xl focus:ring-[#d4af37]/20 transition-all">
                         <SelectValue placeholder="Selecione uma peça" />
                       </SelectTrigger>
-                      <SelectContent className="bg-[#0f0f0f] border-white/10 text-white">
+                      <SelectContent className="bg-[#0f0f0f] border-white/10 text-white rounded-2xl">
                         {products.map(p => (
-                          <SelectItem key={p.id} value={p.id} className="hover:bg-white/5 focus:bg-white/5">
-                            {p.name} — R$ {p.price.toFixed(2)}
+                          <SelectItem key={p.id} value={p.id} className="hover:bg-white/5 focus:bg-white/5 rounded-xl cursor-pointer">
+                            <div className="flex justify-between w-full items-center gap-12">
+                              <span>{p.name}</span>
+                              <span className="text-[#d4af37] font-serif font-black">R$ {p.price.toFixed(2)}</span>
+                            </div>
                           </SelectItem>
                         ))}
                       </SelectContent>
                     </Select>
                   </div>
+
+                  {/* Quantidade e Preço */}
                   <div className="grid grid-cols-2 gap-6">
                     <div className="space-y-4">
-                      <Label className="text-[10px] font-bold uppercase tracking-widest text-white/30">Quantidade</Label>
-                      <Input type="number" min="1" value={quantity} onChange={(e) => setQuantity(e.target.value)} className="bg-white/5 border-white/10 h-12 rounded-xl" placeholder="1" />
+                      <div className="flex items-center gap-2">
+                        <div className="w-6 h-6 rounded-lg bg-blue-500/10 flex items-center justify-center text-blue-400">
+                          <Package className="w-3.5 h-3.5" />
+                        </div>
+                        <Label className="text-[10px] font-bold uppercase tracking-widest text-white/50">Quantidade</Label>
+                      </div>
+                      <Input 
+                        type="number" 
+                        min="1" 
+                        value={quantity} 
+                        onChange={(e) => setQuantity(e.target.value)} 
+                        className="bg-white/5 border-white/10 h-12 rounded-2xl focus:ring-blue-500/20" 
+                        placeholder="1" 
+                      />
                     </div>
                     <div className="space-y-4">
-                      <Label className="text-[10px] font-bold uppercase tracking-widest text-white/30">Preço Venda (un)</Label>
-                      <Input type="number" step="0.01" value={unitPrice} onChange={(e) => setUnitPrice(e.target.value)} className="bg-white/5 border-white/10 h-12 rounded-xl" />
+                      <div className="flex items-center gap-2">
+                        <div className="w-6 h-6 rounded-lg bg-green-500/10 flex items-center justify-center text-green-400">
+                          <DollarSign className="w-3.5 h-3.5" />
+                        </div>
+                        <Label className="text-[10px] font-bold uppercase tracking-widest text-white/50">Preço Venda</Label>
+                      </div>
+                      <Input 
+                        type="number" 
+                        step="0.01" 
+                        value={unitPrice} 
+                        onChange={(e) => setUnitPrice(e.target.value)} 
+                        className="bg-white/5 border-white/10 h-12 rounded-2xl focus:ring-green-500/20" 
+                        placeholder="0.00"
+                      />
                     </div>
                   </div>
+
+                  {/* Custo Operacional */}
                   <div className="space-y-4">
-                    <Label className="text-[10px] font-bold uppercase tracking-widest text-white/30">Custo Operacional (un)</Label>
-                    <Input type="number" step="0.01" value={costAtSale} onChange={(e) => setCostAtSale(e.target.value)} className="bg-white/5 border-white/10 h-12 rounded-xl" placeholder="0.00" />
+                    <div className="flex items-center gap-2">
+                      <div className="w-6 h-6 rounded-lg bg-red-500/10 flex items-center justify-center text-red-400">
+                        <History className="w-3.5 h-3.5" />
+                      </div>
+                      <Label className="text-[10px] font-bold uppercase tracking-widest text-white/50">Custo Operacional (un)</Label>
+                    </div>
+                    <Input 
+                      type="number" 
+                      step="0.01" 
+                      value={costAtSale} 
+                      onChange={(e) => setCostAtSale(e.target.value)} 
+                      className="bg-white/5 border-white/10 h-12 rounded-2xl focus:ring-red-500/20" 
+                      placeholder="0.00" 
+                    />
                   </div>
+
+                  {/* Notas Internas */}
                   <div className="space-y-4">
-                    <Label className="text-[10px] font-bold uppercase tracking-widest text-white/30">Notas Internas</Label>
-                    <Textarea value={notes} onChange={(e) => setNotes(e.target.value)} className="bg-white/5 border-white/10 rounded-xl min-h-[80px]" placeholder="Opcional..." />
+                    <div className="flex items-center gap-2">
+                      <div className="w-6 h-6 rounded-lg bg-purple-500/10 flex items-center justify-center text-purple-400">
+                        <Filter className="w-3.5 h-3.5" />
+                      </div>
+                      <Label className="text-[10px] font-bold uppercase tracking-widest text-white/50">Notas Internas</Label>
+                    </div>
+                    <Textarea 
+                      value={notes} 
+                      onChange={(e) => setNotes(e.target.value)} 
+                      className="bg-white/5 border-white/10 rounded-2xl min-h-[80px] focus:ring-purple-500/20 resize-none" 
+                      placeholder="Opcional: detalhes da transação..." 
+                    />
                   </div>
+
+                  {/* Resumo de Profitability */}
                   {quantity && unitPrice && (
-                    <div className="p-6 bg-[#d4af37]/10 rounded-2xl border border-[#d4af37]/20 flex items-center justify-between">
-                      <span className="text-[10px] font-black uppercase tracking-widest text-[#d4af37]">VPT (Valor Total):</span>
-                      <span className="text-xl font-serif font-black text-white">R$ {(parseInt(quantity) * parseFloat(unitPrice)).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</span>
+                    <div className="grid grid-cols-2 gap-4">
+                      <div className="p-5 bg-white/[0.02] border border-white/5 rounded-2xl">
+                        <span className="text-[8px] font-black uppercase tracking-widest text-white/20 block mb-1">Volume Total</span>
+                        <span className="text-lg font-serif font-black text-white">R$ {(parseInt(quantity) * parseFloat(unitPrice)).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</span>
+                      </div>
+                      <div className={`p-5 rounded-2xl border ${
+                        (parseFloat(unitPrice) - parseFloat(costAtSale || '0')) > 0 
+                          ? "bg-green-500/5 border-green-500/20" 
+                          : "bg-red-500/5 border-red-500/20"
+                      }`}>
+                        <span className="text-[8px] font-black uppercase tracking-widest text-white/20 block mb-1">Lucro Estimado</span>
+                        <span className={`text-lg font-serif font-black ${
+                          (parseFloat(unitPrice) - parseFloat(costAtSale || '0')) > 0 
+                            ? "text-green-400" 
+                            : "text-red-400"
+                        }`}>
+                          R$ {(parseInt(quantity) * (parseFloat(unitPrice) - parseFloat(costAtSale || '0'))).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                        </span>
+                      </div>
                     </div>
                   )}
+
                   <div className="flex justify-end gap-4 pt-4">
-                    <Button type="button" variant="ghost" onClick={() => setIsDialogOpen(false)} className="text-white/40 hover:text-white font-bold uppercase tracking-widest text-[10px]">Cancelar</Button>
-                    <Button type="submit" disabled={isCreating} className="bg-[#d4af37] text-black font-black uppercase tracking-widest text-[10px] px-10 h-12 rounded-full hover:bg-[#f2ca50] transition-all">Confirmar Registro</Button>
+                    <Button 
+                      type="button" 
+                      variant="ghost" 
+                      onClick={() => setIsDialogOpen(false)} 
+                      className="text-white/40 hover:text-white font-bold uppercase tracking-widest text-[10px] h-12 px-6 rounded-xl transition-all"
+                    >
+                      Cancelar
+                    </Button>
+                    <Button 
+                      type="submit" 
+                      disabled={isCreating} 
+                      className="bg-[#d4af37] text-black font-black uppercase tracking-widest text-[10px] px-10 h-12 rounded-full hover:bg-[#f2ca50] transition-all shadow-xl shadow-[#d4af37]/10"
+                    >
+                      {isCreating ? "Registrando..." : "Confirmar Registro"}
+                    </Button>
                   </div>
                 </form>
               </DialogContent>

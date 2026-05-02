@@ -24,6 +24,7 @@ import { useNavigate } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
+import { LuminaClub } from '@/components/LuminaClub';
 
 const Profile: React.FC = () => {
   const { user, signOut } = useAuth();
@@ -174,44 +175,8 @@ const Profile: React.FC = () => {
           </div>
         </section>
 
-        {/* Loyalty Card */}
-        <section className="bg-[#0f0f0f]/60 backdrop-blur-2xl border border-white/5 rounded-3xl p-8 relative overflow-hidden group cursor-pointer transition-all duration-500 hover:border-[#d4af37]/30 shadow-2xl">
-          <div className="absolute top-0 right-0 -mr-20 -mt-20 w-64 h-64 bg-[#d4af37]/5 rounded-full blur-[100px] group-hover:bg-[#d4af37]/10 transition-all duration-700"></div>
-          
-          <div className="relative z-10 flex flex-col md:flex-row justify-between items-start md:items-center gap-8">
-            <div className="flex-1 w-full">
-              <h2 className="text-[10px] font-bold text-[#d4af37]/60 uppercase tracking-[0.3em] mb-4 flex items-center gap-2">
-                <Diamond className="w-3 h-3" />
-                Programa JR Acessórios
-              </h2>
-              <div className="flex items-baseline gap-3 mb-6">
-                <span className="font-serif text-5xl font-bold text-[#d4af37] drop-shadow-[0_0_15px_rgba(212,175,55,0.3)]">
-                  {points.toLocaleString('pt-BR')}
-                </span>
-                <span className="text-white/40 text-sm font-medium tracking-wide">Pontos Acumulados</span>
-              </div>
-              <div className="w-full h-1.5 bg-white/5 rounded-full overflow-hidden mb-4 border border-white/5">
-                <div 
-                  className="h-full bg-[#d4af37] rounded-full relative shadow-[0_0_15px_rgba(212,175,55,0.5)] transition-all duration-1000" 
-                  style={{ width: `${progress}%` }}
-                >
-                  <div className="absolute inset-0 bg-white/20 blur-[2px] opacity-0 group-hover:opacity-100 transition-opacity"></div>
-                </div>
-              </div>
-              <p className="text-white/40 text-xs font-medium italic">
-                {pointsToNextLevel > 0 
-                  ? <>Faltam <span className="text-[#d4af37] font-bold">{pointsToNextLevel.toLocaleString('pt-BR')}</span> pontos para atingir o nível <span className="text-[#d4af37] font-bold">Prestige</span></>
-                  : <>Você atingiu o nível máximo <span className="text-[#d4af37] font-bold">Prestige</span>!</>
-                }
-              </p>
-            </div>
-            
-            <div className="flex flex-col items-center justify-center p-6 rounded-2xl bg-black/40 border border-white/10 shadow-2xl group-hover:border-[#d4af37]/40 transition-all min-w-[140px]">
-              <Diamond className="w-10 h-10 text-[#d4af37] mb-3 drop-shadow-[0_0_10px_rgba(212,175,55,0.4)]" />
-              <span className="text-[10px] font-bold text-white uppercase tracking-[0.2em]">Black Tier</span>
-            </div>
-          </div>
-        </section>
+        {/* Lumina Club VIP Experience */}
+        <LuminaClub totalSpent={totalSpent} />
 
         {/* Navigation Menu */}
         <section className="bg-[#0f0f0f]/40 backdrop-blur-2xl border border-white/5 rounded-3xl overflow-hidden shadow-2xl">

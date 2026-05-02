@@ -4,7 +4,21 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { Header } from '@/components/Header';
 import { Footer } from '@/components/Footer';
-import { Users, Mail, ArrowLeft, Search, Phone, ExternalLink, Star, User } from 'lucide-react';
+import { 
+  Users, 
+  Mail, 
+  ArrowLeft, 
+  Search, 
+  Phone, 
+  ExternalLink, 
+  Star, 
+  User,
+  Sparkles,
+  Bot,
+  MessageCircle,
+  Copy,
+  Zap
+} from 'lucide-react';
 import { useNavigate, Navigate } from 'react-router-dom';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
@@ -26,6 +40,8 @@ const AdminCustomers = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCustomer, setSelectedCustomer] = useState<any>(null);
   const [notes, setNotes] = useState('');
+  const [isGeneratingApproach, setIsGeneratingApproach] = useState(false);
+  const [aiApproach, setAiApproach] = useState<string | null>(null);
   const queryClient = useQueryClient();
 
   const { data: customers, isLoading } = useQuery({
@@ -72,6 +88,42 @@ const AdminCustomers = () => {
     }
   });
 
+  const generateAIApproach = async (customer: any) => {
+    setIsGeneratingApproach(true);
+    setAiApproach(null);
+    try {
+      const context = {
+        name: customer.full_name,
+        ltv: customer.ltv,
+        totalOrders: customer.totalOrders,
+        tags: customer.tags.map((t: any) => t.label),
+        lastOrder: customer.lastOrderDate,
+        notes: customer.admin_notes
+      };
+
+      const { data, error } = await supabase.functions.invoke('ai-assistant', {
+        body: { 
+          message: `Gere uma abordagem de vendas personalizada e luxuosa para o WhatsApp deste cliente: ${JSON.stringify(context)}. O tom deve ser exclusivo, chamando pelo primeiro nome, mencionando sutilmente seu histórico (se for VIP ou recorrente) e oferecendo uma curadoria personalizada. Responda APENAS o texto da mensagem.`,
+          context: "Você é o Lumina Concierge, um especialista em vendas de luxo para a JR Acessórios."
+        }
+      });
+
+      if (error) throw error;
+      setAiApproach(data.reply);
+      toast.success('Abordagem gerada pela Lumina AI! ✨');
+    } catch (error) {
+      console.error(error);
+      toast.error('Erro ao gerar abordagem com IA.');
+    } finally {
+      setIsGeneratingApproach(false);
+    }
+  };
+
+  const copyToClipboard = (text: string) => {
+    navigator.clipboard.writeText(text);
+    toast.success('Mensagem copiada para a área de transferência!');
+  };
+
   const updateNotesMutation = useMutation({
     mutationFn: async ({ id, notes }: { id: string, notes: string }) => {
       const { error } = await supabase.from('profiles').update({ admin_notes: notes }).eq('id', id);
@@ -86,6 +138,7 @@ const AdminCustomers = () => {
   const openCustomerProfile = (customer: any) => {
     setSelectedCustomer(customer);
     setNotes(customer.admin_notes || '');
+    setAiApproach(null);
   };
 
   const { data: newsletters, isLoading: newsLoading } = useQuery({
@@ -133,41 +186,113 @@ const AdminCustomers = () => {
 
       {/* Customer Profile Modal */}
       <Dialog open={!!selectedCustomer} onOpenChange={(open) => !open && setSelectedCustomer(null)}>
-        <DialogContent className="max-w-4xl bg-[#0a0a0a] border-white/10 text-white rounded-[32px] overflow-hidden p-0">
-          <div className="p-8 border-b border-white/5 bg-black/50 flex items-center gap-6">
-            <div className="w-16 h-16 rounded-2xl bg-[#d4af37]/10 flex items-center justify-center text-[#d4af37]">
-              <User className="w-8 h-8" />
-            </div>
-            <div>
-              <DialogTitle className="text-2xl font-serif font-bold text-white flex items-center gap-3">
-                {selectedCustomer?.full_name || 'Cliente'}
-                {selectedCustomer?.tags?.some((t: any) => t.label === 'VIP') && <Star className="w-4 h-4 text-[#d4af37] fill-[#d4af37]" />}
-              </DialogTitle>
-              <DialogDescription className="text-white/40 text-xs font-bold mt-1">
-                {selectedCustomer?.email} {selectedCustomer?.phone && `• ${selectedCustomer.phone}`}
-              </DialogDescription>
-            </div>
-          </div>
-          
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-0">
-            <div className="p-8 border-r border-white/5 bg-[#0f0f0f]">
-              <h4 className="text-[10px] font-black uppercase tracking-[0.2em] text-white/30 mb-6">Anotações Internas Privadas</h4>
-              <Textarea 
-                value={notes}
-                onChange={(e) => setNotes(e.target.value)}
-                placeholder="Ex: Cliente prefere embalagem para presente. Filha se chama Maria..."
-                className="min-h-[200px] bg-black/40 border-white/10 text-white resize-none rounded-2xl focus:border-[#d4af37]/40 text-sm p-4"
-              />
-              <Button 
-                onClick={() => updateNotesMutation.mutate({ id: selectedCustomer.id, notes })}
-                disabled={updateNotesMutation.isPending}
-                className="w-full mt-4 bg-[#d4af37] text-black font-black uppercase tracking-widest text-[10px] h-12 rounded-xl hover:bg-[#f2ca50] transition-all"
-              >
-                {updateNotesMutation.isPending ? 'Salvando...' : 'Salvar Anotações'}
-              </Button>
+        <DialogContent className="max-w-5xl bg-[#0a0a0a] border-white/10 text-white rounded-[32px] overflow-hidden p-0">
+          <div className="p-8 border-b border-white/5 bg-black/50 flex flex-col md:flex-row items-center justify-between gap-6">
+            <div className="flex items-center gap-6">
+              <div className="w-16 h-16 rounded-2xl bg-[#d4af37]/10 flex items-center justify-center text-[#d4af37]">
+                <User className="w-8 h-8" />
+              </div>
+              <div>
+                <DialogTitle className="text-2xl font-serif font-bold text-white flex items-center gap-3">
+                  {selectedCustomer?.full_name || 'Cliente'}
+                  {selectedCustomer?.tags?.some((t: any) => t.label === 'VIP') && <Star className="w-4 h-4 text-[#d4af37] fill-[#d4af37]" />}
+                </DialogTitle>
+                <DialogDescription className="text-white/40 text-xs font-bold mt-1 uppercase tracking-widest">
+                  {selectedCustomer?.email} {selectedCustomer?.phone && `• ${selectedCustomer.phone}`}
+                </DialogDescription>
+              </div>
             </div>
             
-            <div className="p-8 bg-[#0a0a0a] overflow-y-auto max-h-[500px] custom-scrollbar">
+            <Button 
+              onClick={() => generateAIApproach(selectedCustomer)}
+              disabled={isGeneratingApproach}
+              className="bg-gradient-to-r from-[#d4af37] to-[#f2ca50] text-black font-black text-[10px] uppercase tracking-widest h-12 px-8 rounded-full shadow-lg shadow-[#d4af37]/20 hover:scale-105 transition-all"
+            >
+              {isGeneratingApproach ? (
+                <>
+                  <Zap className="w-4 h-4 mr-2 animate-pulse" /> Analisando Perfil...
+                </>
+              ) : (
+                <>
+                  <Sparkles className="w-4 h-4 mr-2" /> Gerar Abordagem com IA
+                </>
+              )}
+            </Button>
+          </div>
+          
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-0">
+            {/* Notes Section */}
+            <div className="p-8 border-r border-white/5 bg-[#0f0f0f] space-y-6">
+              <div>
+                <h4 className="text-[10px] font-black uppercase tracking-[0.2em] text-white/30 mb-4">Anotações Internas</h4>
+                <Textarea 
+                  value={notes}
+                  onChange={(e) => setNotes(e.target.value)}
+                  placeholder="Ex: Cliente prefere embalagem para presente. Filha se chama Maria..."
+                  className="min-h-[200px] bg-black/40 border-white/10 text-white resize-none rounded-2xl focus:border-[#d4af37]/40 text-sm p-4"
+                />
+                <Button 
+                  onClick={() => updateNotesMutation.mutate({ id: selectedCustomer.id, notes })}
+                  disabled={updateNotesMutation.isPending}
+                  className="w-full mt-4 bg-white/5 border border-white/10 text-white font-bold uppercase tracking-widest text-[9px] h-10 rounded-xl hover:bg-white/10 transition-all"
+                >
+                  {updateNotesMutation.isPending ? 'Salvando...' : 'Salvar Notas'}
+                </Button>
+              </div>
+            </div>
+            
+            {/* AI Approach Section */}
+            <div className="p-8 border-r border-white/5 bg-[#0a0a0a] space-y-6">
+              <h4 className="text-[10px] font-black uppercase tracking-[0.2em] text-[#d4af37] mb-4 flex items-center gap-2">
+                <Bot className="w-4 h-4" /> Lumina Concierge Suggestion
+              </h4>
+              
+              {aiApproach ? (
+                <div className="space-y-4 animate-in fade-in slide-in-from-right-4 duration-500">
+                  <div className="bg-[#d4af37]/5 border border-[#d4af37]/20 p-6 rounded-2xl text-sm italic text-white/90 leading-relaxed font-serif relative group">
+                    "{aiApproach}"
+                    <Button 
+                      onClick={() => copyToClipboard(aiApproach)}
+                      variant="ghost" 
+                      size="sm" 
+                      className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity text-[#d4af37]"
+                    >
+                      <Copy className="w-4 h-4" />
+                    </Button>
+                  </div>
+                  <div className="flex gap-2">
+                    <Button 
+                      onClick={() => {
+                        const phone = selectedCustomer.phone?.replace(/\D/g, '');
+                        window.open(`https://wa.me/${phone}?text=${encodeURIComponent(aiApproach)}`, '_blank');
+                      }}
+                      className="flex-1 bg-[#25D366] text-black font-black text-[9px] uppercase tracking-widest h-10 rounded-xl hover:bg-[#25D366]/80"
+                    >
+                      <MessageCircle className="w-4 h-4 mr-2" /> Enviar WhatsApp
+                    </Button>
+                    <Button 
+                      onClick={() => setAiApproach(null)}
+                      variant="ghost"
+                      className="text-white/20 hover:text-white text-[9px] uppercase font-black"
+                    >
+                      Limpar
+                    </Button>
+                  </div>
+                </div>
+              ) : (
+                <div className="h-[200px] border border-dashed border-white/10 rounded-2xl flex flex-col items-center justify-center text-center p-6 space-y-4">
+                  <div className="w-12 h-12 rounded-full bg-white/5 flex items-center justify-center text-white/20">
+                    <Sparkles className="w-6 h-6" />
+                  </div>
+                  <p className="text-[10px] text-white/30 uppercase font-black tracking-widest leading-relaxed">
+                    Clique no botão acima para gerar uma <br /> estratégia exclusiva de vendas.
+                  </p>
+                </div>
+              )}
+            </div>
+
+            {/* History Section */}
+            <div className="p-8 bg-[#0f0f0f] overflow-y-auto max-h-[600px] custom-scrollbar">
               <h4 className="text-[10px] font-black uppercase tracking-[0.2em] text-white/30 mb-6 flex justify-between">
                 <span>Histórico de Pedidos</span>
                 <span className="text-[#d4af37]">LTV: R$ {selectedCustomer?.ltv?.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</span>
@@ -176,7 +301,7 @@ const AdminCustomers = () => {
               <div className="space-y-4">
                 {selectedCustomer?.ordersList?.length > 0 ? (
                   selectedCustomer.ordersList.map((order: any) => (
-                    <div key={order.id} className="bg-white/5 border border-white/5 p-4 rounded-2xl hover:border-white/10 transition-colors">
+                    <div key={order.id} className="bg-black/40 border border-white/5 p-4 rounded-2xl hover:border-white/10 transition-colors">
                       <div className="flex justify-between items-start mb-2">
                         <div>
                           <p className="text-xs font-bold text-white uppercase">Pedido #{order.id.slice(0,6)}</p>
@@ -201,7 +326,7 @@ const AdminCustomers = () => {
       <main className="max-w-screen-2xl mx-auto px-8 py-12">
         <div className="flex flex-col lg:flex-row gap-8">
           
-          {/* Tabela de CRM 360 */}
+          {/* CRM 360 Table */}
           <div className="flex-1 bg-[#0f0f0f]/40 backdrop-blur-2xl border border-white/5 rounded-[40px] overflow-hidden shadow-2xl">
             <div className="p-8 border-b border-white/5 bg-black/30 flex items-center justify-between">
               <div className="flex items-center gap-4">
@@ -295,7 +420,7 @@ const AdminCustomers = () => {
             </div>
           </div>
 
-          {/* Newsletter / Leads */}
+          {/* Newsletter Section */}
           <div className="w-full lg:w-80 space-y-8">
             <div className="bg-[#0f0f0f]/40 backdrop-blur-2xl border border-white/5 rounded-[40px] p-8 shadow-2xl">
               <h3 className="text-lg font-serif font-bold text-white mb-6 flex items-center gap-2">

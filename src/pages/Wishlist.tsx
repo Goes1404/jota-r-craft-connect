@@ -7,6 +7,8 @@ import { Footer } from '@/components/Footer';
 import { Heart, ArrowLeft, ShoppingBag } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useNavigate } from 'react-router-dom';
+import { Sparkles, Cpu } from 'lucide-react';
+import { useMemo } from 'react';
 
 const Wishlist: React.FC = () => {
   const { wishlist } = useWishlist();
@@ -14,6 +16,28 @@ const Wishlist: React.FC = () => {
   const navigate = useNavigate();
 
   const favoriteProducts = allProducts.filter(p => wishlist.includes(p.id));
+
+  // Lumina AI Matchmaker Logic
+  const suggestedProducts = useMemo(() => {
+    if (favoriteProducts.length === 0) return [];
+    
+    // Find categories of favorited items
+    const favoriteCategories = [...new Set(favoriteProducts.map(p => p.category))];
+    
+    // Find products in those categories (or any if empty) that are NOT in the wishlist
+    const suggestions = allProducts.filter(p => 
+      !wishlist.includes(p.id) && 
+      favoriteCategories.includes(p.category) && 
+      p.stock > 0
+    );
+
+    // If no direct category match, just suggest featured items
+    if (suggestions.length === 0) {
+      return allProducts.filter(p => !wishlist.includes(p.id) && p.is_featured).slice(0, 3);
+    }
+
+    return suggestions.slice(0, 3);
+  }, [favoriteProducts, allProducts, wishlist]);
 
   return (
     <div className="min-h-screen bg-black text-[#e2e2e2] font-sans selection:bg-[#f2ca50]/30 selection:text-[#f2ca50]">
@@ -72,7 +96,39 @@ const Wishlist: React.FC = () => {
           </div>
         )}
 
-        {/* Suggested Section could go here */}
+        {/* Lumina AI Matchmaker Section */}
+        {favoriteProducts.length > 0 && suggestedProducts.length > 0 && (
+          <div className="mt-32 animate-in fade-in slide-in-from-bottom-8 duration-1000">
+            <div className="bg-[#0f0f0f]/60 backdrop-blur-2xl border border-[#d4af37]/20 rounded-[40px] p-10 md:p-16 relative overflow-hidden group shadow-[0_0_40px_rgba(212,175,55,0.05)]">
+              <div className="absolute top-0 right-0 w-96 h-96 bg-[#d4af37]/5 rounded-full blur-[100px] pointer-events-none group-hover:bg-[#d4af37]/10 transition-colors duration-1000"></div>
+              
+              <div className="relative z-10 flex flex-col md:flex-row justify-between items-end gap-8 mb-12">
+                <div className="space-y-4">
+                  <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full border border-[#d4af37]/30 bg-[#d4af37]/10 font-bold text-[10px] uppercase tracking-widest text-[#d4af37]">
+                    <Sparkles className="w-3 h-3" />
+                    Lumina Matchmaker
+                  </div>
+                  <h2 className="text-3xl font-serif font-black text-white">Completando seu <span className="text-[#d4af37] italic">Estilo</span>.</h2>
+                  <p className="text-white/40 text-sm max-w-md font-medium leading-relaxed">
+                    Nossa IA analisou sua curadoria pessoal e encontrou peças que harmonizam perfeitamente com os itens que você já salvou.
+                  </p>
+                </div>
+                <Cpu className="w-16 h-16 text-[#d4af37]/10 hidden md:block" />
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8 relative z-10">
+                {suggestedProducts.map(product => (
+                  <div key={product.id} className="relative group/card">
+                    <div className="absolute -inset-0.5 bg-gradient-to-r from-[#d4af37] to-[#f2ca50] rounded-[34px] blur opacity-0 group-hover/card:opacity-30 transition duration-500"></div>
+                    <div className="relative h-full">
+                      <ProductCard product={product} />
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        )}
       </main>
 
       <Footer />

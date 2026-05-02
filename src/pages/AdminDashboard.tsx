@@ -28,12 +28,25 @@ import {
   MessageCircle,
   LayoutGrid,
   Target,
-  ChevronRight
+  ChevronRight,
+  Layers,
+  Star,
+  Sparkles,
+  Bot,
+  Zap
 } from 'lucide-react';
 import ImageUpload from '@/components/ImageUpload';
 import { useAppSettings } from '@/hooks/useProducts';
 import { useSales } from '@/hooks/useSales';
 import { DashboardCharts } from '@/components/DashboardCharts';
+
+interface ProductStats {
+  name: string;
+  quantity: number;
+  revenue: number;
+  profit: number;
+  cost: number;
+}
 
 const AdminDashboard = () => {
   const { user, signOut, loading } = useAuth();
@@ -42,6 +55,9 @@ const AdminDashboard = () => {
   const [profitEndDate, setProfitEndDate] = useState('');
   const [saleTypeFilter, setSaleTypeFilter] = useState<'all' | 'manual' | 'automatic'>('all');
   const navigate = useNavigate();
+  
+  const [isGeneratingInsights, setIsGeneratingInsights] = useState(false);
+  const [aiInsight, setAiInsight] = useState<string | null>(null);
 
   const { data: settingsSettings } = useAppSettings();
   const { data: allSales = [] } = useSales({ saleType: saleTypeFilter === 'all' ? undefined : saleTypeFilter });
@@ -138,12 +154,12 @@ const AdminDashboard = () => {
         acc[productId].revenue += Number(sale.total_price);
         acc[productId].profit += (Number(sale.unit_price) - acc[productId].cost) * sale.quantity;
         return acc;
-      }, {} as Record<string, any>) || {};
+      }, {} as Record<string, ProductStats>) || {};
 
-      let topSelling: any = null;
-      let mostProfitable: any = null;
+      let topSelling: ProductStats | null = null;
+      let mostProfitable: ProductStats | null = null;
       
-      Object.values(allProductQuantities).forEach((p: any) => {
+      Object.values(allProductQuantities).forEach((p) => {
         if (!topSelling || p.quantity > topSelling.quantity) topSelling = p;
         if (!mostProfitable || p.profit > mostProfitable.profit) mostProfitable = p;
       });
@@ -191,6 +207,37 @@ const AdminDashboard = () => {
       return data as number;
     },
   });
+
+  const generateAIInsights = async () => {
+    setIsGeneratingInsights(true);
+    try {
+      const context = {
+        revenue: analytics?.totalRevenue,
+        profit: profitData,
+        orders: analytics?.totalOrders,
+        visits: analytics?.totalVisits,
+        topProduct: analytics?.topSellingProduct?.name,
+        lowStock: analytics?.lowStockProducts?.length,
+        averageTicket: analytics?.totalOrders ? (analytics.totalRevenue / analytics.totalOrders) : 0
+      };
+
+      const { data, error } = await supabase.functions.invoke('ai-assistant', {
+        body: { 
+          message: `Analise estes dados de dashboard e me dê 3 insights executivos curtos e acionáveis para melhorar meu negócio: ${JSON.stringify(context)}. Responda em português, com um tom profissional e luxuoso.`,
+          context: "Você é o Lumina Executive Analyst, um especialista em BI para e-commerce de luxo."
+        }
+      });
+
+      if (error) throw error;
+      setAiInsight(data.reply);
+      toast.success('Insights gerados com sucesso! ✨');
+    } catch (error) {
+      console.error(error);
+      toast.error('Erro ao gerar insights com IA.');
+    } finally {
+      setIsGeneratingInsights(false);
+    }
+  };
 
   const updateSetting = async (key: string, value: string) => {
     await supabase.from('settings').upsert({ key, value });
@@ -240,6 +287,53 @@ const AdminDashboard = () => {
       </header>
 
       <main className="relative z-10 max-w-screen-2xl mx-auto px-8 py-12">
+        
+        {/* Lumina AI Executive Insights Card */}
+        <div className="mb-12 animate-in fade-in slide-in-from-bottom-4 duration-1000">
+          <div className="bg-gradient-to-br from-[#0f0f0f] to-[#1a1a1a] border border-[#d4af37]/20 rounded-[40px] p-8 md:p-12 shadow-2xl relative overflow-hidden group">
+            <div className="absolute -top-24 -right-24 w-96 h-96 bg-[#d4af37]/5 rounded-full blur-[100px] pointer-events-none"></div>
+            <div className="flex flex-col lg:flex-row items-center justify-between gap-8 relative z-10">
+              <div className="flex-1 space-y-4">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-2xl bg-[#d4af37]/10 flex items-center justify-center text-[#d4af37]">
+                    <Bot className="w-6 h-6" />
+                  </div>
+                  <div>
+                    <h2 className="text-2xl font-serif font-black text-white">Lumina <span className="text-[#d4af37]">Executive Insights</span></h2>
+                    <p className="text-white/40 text-[10px] uppercase tracking-widest font-bold">Análise preditiva de alta performance</p>
+                  </div>
+                </div>
+                
+                {aiInsight ? (
+                  <div className="bg-black/40 border border-white/5 rounded-3xl p-6 text-sm text-white/80 leading-relaxed whitespace-pre-line italic font-serif">
+                    {aiInsight}
+                  </div>
+                ) : (
+                  <p className="text-white/60 text-sm max-w-2xl">
+                    Pronto para uma análise profunda do seu negócio? Nossa IA processa milhões de pontos de dados para fornecer estratégias exclusivas de crescimento.
+                  </p>
+                )}
+              </div>
+              
+              <Button 
+                onClick={generateAIInsights}
+                disabled={isGeneratingInsights}
+                className="bg-[#d4af37] text-black font-black text-[11px] uppercase tracking-widest px-10 h-16 rounded-full hover:bg-[#f2ca50] shadow-xl shadow-[#d4af37]/10 transition-all group shrink-0"
+              >
+                {isGeneratingInsights ? (
+                  <>
+                    <RefreshCcw className="w-5 h-5 mr-3 animate-spin" /> Processando Dados...
+                  </>
+                ) : (
+                  <>
+                    <Sparkles className="w-5 h-5 mr-3 group-hover:scale-110 transition-transform" /> Gerar Insights de Gestão
+                  </>
+                )}
+              </Button>
+            </div>
+          </div>
+        </div>
+
         {/* Monthly Goal Gamification */}
         <div className="bg-[#0f0f0f]/40 backdrop-blur-2xl border border-white/5 rounded-[32px] p-8 mb-16 relative overflow-hidden group">
           <div className="absolute top-0 left-0 w-64 h-64 bg-[#d4af37]/5 rounded-full blur-3xl"></div>
@@ -316,11 +410,14 @@ const AdminDashboard = () => {
             <Button onClick={() => navigate('/admin/customers')} className="bg-white/5 border border-white/10 hover:border-[#d4af37]/40 hover:bg-[#d4af37]/5 text-white font-bold text-[10px] uppercase tracking-widest px-6 h-12 rounded-xl transition-all">
               CRM 360
             </Button>
+            <Button onClick={() => navigate('/admin/inventory-intelligence')} className="bg-white/5 border border-white/10 hover:border-blue-500/40 hover:bg-blue-500/5 text-white font-bold text-[10px] uppercase tracking-widest px-6 h-12 rounded-xl transition-all">
+              <Layers className="w-4 h-4 mr-2 text-blue-400" /> Intel. Estoque
+            </Button>
             <Button onClick={() => navigate('/admin/abandoned-carts')} className="bg-orange-500/10 border border-orange-500/20 hover:bg-orange-500/20 text-orange-400 font-bold text-[10px] uppercase tracking-widest px-6 h-12 rounded-xl transition-all shadow-[0_0_15px_rgba(249,115,22,0.1)]">
               Recuperar Vendas
             </Button>
             <Button onClick={() => navigate('/admin/reviews')} className="bg-white/5 border border-white/10 hover:border-[#d4af37]/40 hover:bg-[#d4af37]/5 text-white font-bold text-[10px] uppercase tracking-widest px-6 h-12 rounded-xl transition-all">
-              Reviews
+              <Star className="w-4 h-4 mr-2 text-yellow-500" /> Reviews
             </Button>
             <Button onClick={() => navigate('/admin/settings')} className="bg-white/5 border border-white/10 hover:border-[#d4af37]/40 hover:bg-[#d4af37]/5 text-white font-bold text-[10px] uppercase tracking-widest px-6 h-12 rounded-xl transition-all">
               Config
@@ -463,7 +560,7 @@ const AdminDashboard = () => {
               </div>
               <TrendingUp className="w-6 h-6 text-[#d4af37]/40" />
             </div>
-            <div className="h-[400px]">
+            <div>
               <DashboardCharts sales={allSales} />
             </div>
           </div>

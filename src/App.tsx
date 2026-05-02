@@ -31,8 +31,10 @@ import AdminCustomers from "./pages/AdminCustomers";
 import AdminReviews from "./pages/AdminReviews";
 import AdminSettings from "./pages/AdminSettings";
 import AdminAbandonedCarts from "./pages/AdminAbandonedCarts";
+import AdminInventoryIntelligence from "./pages/AdminInventoryIntelligence";
 import NotFound from "./pages/NotFound";
 import { ExitIntentPopup } from "./components/ExitIntentPopup";
+import { AICopilot } from "./components/AICopilot";
 
 const queryClient = new QueryClient();
 
@@ -47,6 +49,7 @@ const App = () => (
           <Sonner />
           <BrowserRouter>
             <ExitIntentPopup />
+            <AICopilot />
             <Routes>
               <Route path="/" element={<Index />} />
               <Route path="/produtos" element={<Products />} />
@@ -74,6 +77,7 @@ const App = () => (
               <Route path="/admin/reviews" element={<AdminReviews />} />
               <Route path="/admin/settings" element={<AdminSettings />} />
               <Route path="/admin/abandoned-carts" element={<AdminAbandonedCarts />} />
+              <Route path="/admin/inventory-intelligence" element={<AdminInventoryIntelligence />} />
               {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
               <Route path="*" element={<NotFound />} />
             </Routes>

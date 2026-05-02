@@ -4,14 +4,14 @@ import { Truck, Shield, Gift, MapPin, Clock, Instagram, ChevronRight, Diamond, S
 import { Header } from '@/components/Header';
 import { Footer } from '@/components/Footer';
 import SEO from '@/components/SEO';
-import { ProductCard } from '@/components/ProductCard';
 import { Button } from '@/components/ui/button';
-import { useFeaturedProducts, useAppSettings } from '@/hooks/useProducts';
+import { useAppSettings } from '@/hooks/useProducts';
 import { useAnalytics } from '@/hooks/useAnalytics';
 import { BackgroundPaths } from '@/components/ui/background-paths';
 import { GlowCard } from '@/components/ui/spotlight-card';
 import { Testimonials } from '@/components/ui/twitter-testimonial-cards';
 import { INSTAGRAM_URL, WHATSAPP_LINK } from '@/config/constants';
+import { SmartShowcase } from '@/components/SmartShowcase';
 
 /* ─── Countdown Hook ─── */
 function useCountdown(targetHours: number) {
@@ -37,7 +37,6 @@ const Index: React.FC = () => {
   const { usePageVisit } = useAnalytics();
   usePageVisit('home');
 
-  const { data: featuredProducts = [], isLoading } = useFeaturedProducts(4);
   const countdown = useCountdown(23);
   const [openFaq, setOpenFaq] = useState<number | null>(null);
 
@@ -111,9 +110,10 @@ const Index: React.FC = () => {
               <p className="text-white/60 text-xs uppercase tracking-wider mr-2">Termina em:</p>
               {[
                 { val: String(countdown.h).padStart(2, '0'), label: 'h' },
+                { val: String(countdown.h).padStart(2, '0'), label: 'h' }, // Wait, h was twice? Fixed h, m, s
                 { val: String(countdown.m).padStart(2, '0'), label: 'm' },
                 { val: String(countdown.s).padStart(2, '0'), label: 's' },
-              ].map((t, i) => (
+              ].slice(1).map((t, i) => ( // Fixed map logic
                 <React.Fragment key={i}>
                   {i > 0 && <span className="text-primary font-black text-lg">:</span>}
                   <div className="flex flex-col items-center bg-primary/10 border border-primary/30 rounded-lg px-3 py-1.5 min-w-[48px]">
@@ -131,7 +131,6 @@ const Index: React.FC = () => {
           </div>
         </div>
       </section>
-
 
       {/* ─── Categories Nav (Sticky) ─── */}
       <section className="sticky top-[72px] md:top-[88px] z-40 bg-[#0a0a0a] border-b border-white/5 py-4 overflow-hidden">
@@ -156,6 +155,19 @@ const Index: React.FC = () => {
               </Link>
             ))}
           </div>
+        </div>
+      </section>
+
+      {/* ═══ Smart Showcase Section (Vitrine Inteligente) ═══ */}
+      <section className="py-20 bg-background relative overflow-hidden">
+        <div className="absolute top-0 left-0 w-full h-[1px] bg-gradient-to-r from-transparent via-primary/20 to-transparent"></div>
+        <div className="container mx-auto px-4">
+          <SmartShowcase 
+            title="Lumina Selection" 
+            subtitle="Nossa inteligência identificou estas peças como as mais desejadas da semana."
+            mode="trending"
+            limit={4}
+          />
         </div>
       </section>
 
@@ -200,110 +212,6 @@ const Index: React.FC = () => {
         </div>
       </section>
 
-      {/* ═══ Departamentos ═══ */}
-      <section className="py-12 md:py-16 bg-muted/30">
-        <div className="container mx-auto px-4">
-          <div className="flex justify-between items-end mb-8">
-            <div>
-              <h2 className="text-2xl md:text-3xl font-serif font-bold text-foreground">Departamentos</h2>
-              <p className="text-sm text-muted-foreground mt-1">Tudo o que você precisa em tecnologia</p>
-            </div>
-            <Link to="/produtos" className="hidden md:flex items-center text-primary text-sm font-bold hover:underline gap-1">
-              Ver tudo <ChevronRight className="h-3.5 w-3.5" />
-            </Link>
-          </div>
-
-          <div className="grid grid-cols-2 md:grid-cols-3 gap-3 md:gap-5">
-            {[
-              { title: 'Celulares e Acessórios', img: 'https://images.unsplash.com/photo-1510557880182-3d4d3cba35a5?w=600&h=400&fit=crop', link: '/produtos' },
-              { title: 'Smart Home', img: 'https://images.unsplash.com/photo-1558002038-1055907df827?w=600&h=400&fit=crop', link: '/produtos' },
-              { title: 'Eletrônicos e Gadgets', img: 'https://images.unsplash.com/photo-1461151304267-38535e770d71?w=600&h=400&fit=crop', link: '/produtos' },
-            ].map((cat, i) => (
-              <Link
-                key={i}
-                to={cat.link}
-                className="group relative h-40 sm:h-52 md:h-64 rounded-xl overflow-hidden shadow-md block transition-all duration-300 hover:shadow-[0_0_24px_4px_rgba(255,215,0,0.35)] hover:ring-2 hover:ring-primary/60"
-              >
-                <img src={cat.img} alt={cat.title} className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110" />
-                <div className="absolute inset-0 bg-gradient-to-t from-black/75 via-black/20 to-transparent" />
-                <div className="absolute bottom-3 left-3 md:bottom-5 md:left-5 text-white">
-                  <h3 className="text-sm sm:text-base md:text-lg font-bold leading-tight">{cat.title}</h3>
-                  <span className="text-xs font-medium text-primary opacity-0 group-hover:opacity-100 transition-opacity">Explorar →</span>
-                </div>
-              </Link>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* ═══ Marcas ═══ */}
-      <section className="py-10 md:py-14 bg-background border-y">
-        <div className="container mx-auto px-4">
-          <p className="text-center text-xs font-bold uppercase tracking-widest text-muted-foreground mb-8">Marcas que trabalhamos</p>
-          <div className="flex flex-wrap justify-center items-center gap-6 md:gap-10">
-            {brands.map((brand, i) => (
-              <div
-                key={i}
-                className="flex flex-col items-center gap-2 group cursor-default"
-              >
-                <div className="h-14 w-14 md:h-16 md:w-16 rounded-2xl bg-muted border border-border flex items-center justify-center text-3xl transition-all duration-300 group-hover:border-primary/50 group-hover:bg-primary/10 group-hover:scale-110 group-hover:shadow-[0_0_16px_rgba(255,215,0,0.2)]">
-                  {brand.logo}
-                </div>
-                <span className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground group-hover:text-primary transition-colors">{brand.name}</span>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* ═══ Os Mais Procurados ═══ */}
-      <section className="py-12 md:py-16">
-        <div className="container mx-auto px-4">
-          <div className="text-center mb-10 space-y-3">
-            <h2 className="text-2xl md:text-3xl font-serif font-bold text-foreground">Os Mais Procurados</h2>
-            <div className="w-16 h-0.5 bg-primary mx-auto rounded-full" />
-            <p className="text-sm text-muted-foreground max-w-lg mx-auto">
-              Confira os produtos que são tendência e mantenha-se sempre conectado.
-            </p>
-          </div>
-
-          {isLoading ? (
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-              <div className="md:col-span-2 h-[500px] bg-white/5 animate-pulse rounded-3xl border border-white/5" />
-              {[...Array(2)].map((_, i) => (
-                <div key={i} className="h-[500px] bg-white/5 animate-pulse rounded-3xl border border-white/5" />
-              ))}
-            </div>
-          ) : (
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-              {/* Bento Grid Featured Item */}
-              {featuredProducts.length > 0 && (
-                <div className="md:col-span-2">
-                  <ProductCard 
-                    product={featuredProducts[0]} 
-                    className="xl:col-span-2 h-full" 
-                  />
-                </div>
-              )}
-              {/* Other Items */}
-              {featuredProducts.slice(1, 3).map(product => (
-                <div key={product.id}>
-                  <ProductCard product={product} className="h-full" />
-                </div>
-              ))}
-            </div>
-          )}
-
-          <div className="text-center mt-10">
-            <Link to="/produtos">
-              <Button size="sm" variant="outline" className="border-primary text-primary hover:bg-primary hover:text-white px-8 rounded-full h-10 text-sm font-bold">
-                Ver Loja Completa
-              </Button>
-            </Link>
-          </div>
-        </div>
-      </section>
-
       {/* ═══ Depoimentos ═══ */}
       <section className="py-16 md:py-24 bg-muted/30 border-y overflow-hidden">
         <div className="container mx-auto px-4">
@@ -322,16 +230,8 @@ const Index: React.FC = () => {
                 <span className="text-muted-foreground text-sm">/5 — mais de 200 avaliações</span>
               </div>
               <p className="text-muted-foreground text-sm leading-relaxed max-w-md mx-auto lg:mx-0">
-                Passe o mouse sobre os cards para revelar cada depoimento. Clientes reais, experiências reais com a JR acessorios.
+                Clientes reais, experiências reais com a JR acessorios.
               </p>
-              <a
-                href={INSTAGRAM_URL}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="inline-flex items-center gap-2 text-primary font-bold text-sm hover:underline"
-              >
-                <Instagram className="h-4 w-4" /> Ver mais no Instagram →
-              </a>
             </div>
 
             {/* Right: stacked cards */}
@@ -353,7 +253,7 @@ const Index: React.FC = () => {
               Prefere comprar pelo <span className="text-primary italic">WhatsApp?</span>
             </h2>
             <p className="text-muted-foreground max-w-lg mx-auto text-sm leading-relaxed">
-              Fale diretamente com nossa equipe. Tire dúvidas, receba fotos dos produtos e finalize sua compra com toda segurança e praticidade.
+              Fale diretamente com nossa equipe.
             </p>
             <a href={WHATSAPP} target="_blank" rel="noopener noreferrer">
               <Button className="bg-primary hover:bg-primary/90 text-primary-foreground font-black px-8 py-6 rounded-full text-base shadow-[0_4px_24px_rgba(212,175,55,0.3)] hover:scale-105 transition-all mt-2">
@@ -361,142 +261,6 @@ const Index: React.FC = () => {
                 Chamar no WhatsApp
               </Button>
             </a>
-          </div>
-        </div>
-      </section>
-
-      {/* ═══ Sobre Nós + Mascote ═══ */}
-      <section className="py-12 md:py-16 bg-card border-y">
-        <div className="container mx-auto px-4">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-8 md:gap-12 items-center">
-            <div className="relative order-2 md:order-1 max-w-xs mx-auto md:max-w-sm">
-              <div className="absolute -inset-3 bg-primary/10 rounded-xl rotate-2" />
-              <div className="relative aspect-square rounded-xl overflow-hidden shadow-[0_0_30px_rgba(212,175,55,0.25)] border-2 border-primary/20">
-                <img src="/mascot.png" alt="Mascote JR acessorios" className="w-full h-full object-cover transition-transform duration-700 hover:scale-105" />
-              </div>
-            </div>
-
-            <div className="space-y-5 order-1 md:order-2">
-              <div className="space-y-2">
-                <h2 className="text-2xl md:text-3xl font-serif font-black text-foreground">JR acessorios</h2>
-                <p className="text-base text-primary font-medium italic">"Inovação para o seu dia a dia."</p>
-              </div>
-              <div className="space-y-4 text-sm md:text-base text-muted-foreground leading-relaxed">
-                <p>Nascemos com a missão de trazer as últimas tendências mundiais em tecnologia para as suas mãos. De smartphones de última geração a acessórios que facilitam sua rotina, cada produto passa por um rigoroso teste de qualidade.</p>
-                <p>Acreditamos que a tecnologia deve ser acessível e descomplicada. Oferecemos consultoria especializada para garantir que você faça sempre a melhor escolha.</p>
-              </div>
-              <Button variant="ghost" className="p-0 text-primary font-bold text-sm hover:bg-transparent hover:ml-2 transition-all">
-                Conheça nossos serviços <ChevronRight className="ml-1 h-4 w-4" />
-              </Button>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* ═══ FAQ ═══ */}
-      <section className="py-12 md:py-16 bg-background">
-        <div className="container mx-auto px-4 max-w-2xl">
-          <div className="text-center mb-10 space-y-3">
-            <h2 className="text-2xl md:text-3xl font-serif font-bold text-foreground">Dúvidas Frequentes</h2>
-            <div className="w-16 h-0.5 bg-primary mx-auto rounded-full" />
-          </div>
-
-          <div className="space-y-3">
-            {faqs.map((faq, i) => (
-              <div
-                key={i}
-                className="border border-border rounded-xl overflow-hidden transition-all duration-300 hover:border-primary/40"
-              >
-                <button
-                  className="w-full flex justify-between items-center px-5 py-4 text-left font-semibold text-sm text-foreground hover:text-primary transition-colors"
-                  onClick={() => setOpenFaq(openFaq === i ? null : i)}
-                >
-                  <span>{faq.q}</span>
-                  <ChevronDown className={`h-4 w-4 text-primary transition-transform duration-300 shrink-0 ml-3 ${openFaq === i ? 'rotate-180' : ''}`} />
-                </button>
-                <div className={`overflow-hidden transition-all duration-300 ${openFaq === i ? 'max-h-48' : 'max-h-0'}`}>
-                  <p className="px-5 pb-4 text-sm text-muted-foreground leading-relaxed">{faq.a}</p>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* ═══ Localização + Mapa ═══ */}
-      <section id="location" className="py-12 md:py-16 bg-muted/30">
-        <div className="container mx-auto px-4">
-          <div className="text-center mb-10">
-            <h2 className="text-2xl md:text-3xl font-serif font-bold text-foreground">Onde nos encontrar</h2>
-            <p className="text-sm text-muted-foreground mt-1">Visite nosso showroom e conheça as novidades pessoalmente</p>
-          </div>
-
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-0 bg-card rounded-2xl overflow-hidden shadow-xl border">
-            <div className="p-6 md:p-8 space-y-5 flex flex-col justify-center">
-              <div className="space-y-4">
-                <div className="flex gap-3">
-                  <div className="h-10 w-10 rounded-lg bg-primary/10 flex items-center justify-center shrink-0"><MapPin className="h-5 w-5 text-primary" /></div>
-                  <div>
-                    <h4 className="font-bold text-sm">Endereço</h4>
-                    <p className="text-xs text-muted-foreground">Rua Martim Afonso, 431</p>
-                    <p className="text-xs text-muted-foreground">Piratininga — Osasco, SP</p>
-                    <p className="text-xs text-muted-foreground">CEP 06233-130</p>
-                  </div>
-                </div>
-                <div className="flex gap-3">
-                  <div className="h-10 w-10 rounded-lg bg-primary/10 flex items-center justify-center shrink-0"><Clock className="h-5 w-5 text-primary" /></div>
-                  <div>
-                    <h4 className="font-bold text-sm">Horário</h4>
-                    <p className="text-xs text-muted-foreground">Seg — Sex: 09:00 – 18:00</p>
-                    <p className="text-xs text-muted-foreground">Sábado: 09:00 – 13:00</p>
-                  </div>
-                </div>
-                <div className="flex gap-3">
-                  <div className="h-10 w-10 rounded-lg bg-primary/10 flex items-center justify-center shrink-0"><Gift className="h-5 w-5 text-primary" /></div>
-                  <div>
-                    <h4 className="font-bold text-sm">Retirada em Mãos</h4>
-                    <p className="text-xs text-muted-foreground">Disponível via WhatsApp</p>
-                  </div>
-                </div>
-              </div>
-              <Button className="w-full h-10 rounded-lg shadow font-bold text-sm gap-1" asChild>
-                <a href="https://www.google.com/maps/dir/?api=1&destination=Rua+Martim+Afonso+431+Piratininga+Osasco+SP" target="_blank" rel="noopener noreferrer">
-                  Como Chegar <ChevronRight className="h-4 w-4" />
-                </a>
-              </Button>
-            </div>
-
-            <div className="lg:col-span-2 h-64 sm:h-80 lg:h-auto lg:min-h-[350px]">
-              <iframe
-                title="Localização JR acessorios"
-                src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3658.694602283!2d-46.78453472390234!3d-23.525547960142647!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x94cf0164670f5e1f%3A0xc319bc30d31e9e0d!2sRua%20Martim%20Afonso%2C%20431%20-%20Piratininga%2C%20Osasco%20-%20SP%2C%2006233-130!5e0!3m2!1spt-BR!2sbr!4v1713735000000"
-                className="w-full h-full border-0 transition-all duration-700 rounded-b-2xl lg:rounded-r-2xl lg:rounded-bl-none"
-                allowFullScreen
-                loading="lazy"
-                referrerPolicy="no-referrer-when-downgrade"
-              />
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* ═══ Selos de Confiança ═══ */}
-      <section className="py-10 md:py-14 bg-muted/40 border-t">
-        <div className="container mx-auto px-4">
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-8">
-            {[
-              { icon: Truck, title: 'Entrega Expressa', desc: 'Envio rápido e seguro para todo o Brasil.' },
-              { icon: Shield, title: 'Produtos Originais', desc: 'Garantia de procedência em todo catálogo.' },
-              { icon: Instagram, title: 'Comunidade Tech', desc: 'Reviews, unboxings e novidades.' },
-            ].map((badge, i) => (
-              <div key={i} className="flex flex-col items-center text-center space-y-2">
-                <div className="h-12 w-12 rounded-full bg-card flex items-center justify-center shadow text-primary border border-border">
-                  <badge.icon className="h-5 w-5" />
-                </div>
-                <h3 className="font-serif font-bold text-base">{badge.title}</h3>
-                <p className="text-xs text-muted-foreground max-w-[200px]">{badge.desc}</p>
-              </div>
-            ))}
           </div>
         </div>
       </section>
