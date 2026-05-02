@@ -53,7 +53,7 @@ export const AICopilot: React.FC = () => {
         ]);
       }
     }
-  }, [isAdmin]);
+  }, [isAdmin, messages.length]);
 
   useEffect(() => {
     if (scrollRef.current) {

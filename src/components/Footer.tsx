@@ -17,7 +17,6 @@ export const Footer: React.FC = () => {
     setIsLoading(true);
 
     try {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const { error } = await (supabase as any)
         .from('newsletter')
         .insert([{ email }]);

@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useEffect, useRef } from 'react';
+import React, { useState, useMemo, useEffect, useRef, useCallback } from 'react';
 import { Header } from '@/components/Header';
 import { Footer } from '@/components/Footer';
 import SEO from '@/components/SEO';
@@ -14,29 +14,17 @@ import { useCart } from '@/contexts/CartContext';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import {
-  ShoppingCart,
-  MessageCircle,
-  Home,
   Search,
   ShoppingBag,
-  User,
-  ChevronLeft,
-  ChevronRight,
-  Filter as FilterIcon,
   Phone,
   Watch,
   Headphones,
   Shield,
   Zap,
-  Laptop,
-  PlusCircle,
   Diamond,
   LayoutGrid,
-  ChevronDown,
-  Sparkles,
   Bot,
   RefreshCcw,
-  Zap as ZapIcon
 } from 'lucide-react';
 import { WHATSAPP_NUMBER } from '@/config/constants';
 import { Product } from '@/types/database';
@@ -73,60 +61,44 @@ const Products: React.FC = () => {
     return { categories: cats, priceRange: [Math.floor(Math.min(...prices)), Math.ceil(Math.max(...prices))] as [number, number] };
   }, [products]);
 
-  // Automatic Semantic Search Logic
-  useEffect(() => {
-    if (searchTimeoutRef.current) clearTimeout(searchTimeoutRef.current);
-
-    if (!filters.search || filters.search.length < 3) {
-      setAiMatchIds(null);
-      return;
-    }
-
-    // Debounce to avoid excessive API calls
-    searchTimeoutRef.current = setTimeout(() => {
-      handleSemanticSearch();
-    }, 1500);
-
-    return () => {
-      if (searchTimeoutRef.current) clearTimeout(searchTimeoutRef.current);
-    };
-  }, [filters.search]);
-
-  const handleSemanticSearch = async () => {
-    // If standard search already found exact matches, maybe we don't need AI?
-    // But the user wants it automatic, so let's run it to find "related" things too.
-    
+  const handleSemanticSearch = useCallback(async () => {
     setIsAiSearching(true);
-    
     try {
       const productContext = products.map(p => ({
         id: p.id,
         name: p.name,
         category: p.category,
-        description: p.description
+        description: p.description,
       }));
-
-      const sanitizedSearch = filters.search.replace(/[\"\\]/g, '').slice(0, 100);
+      const sanitizedSearch = filters.search.replace(/["\\]/g, '').slice(0, 100);
       const { data, error } = await supabase.functions.invoke('ai-assistant', {
         body: {
           message: `Busca Semântica Automática: O usuário está buscando por: ${sanitizedSearch}. Retorne APENAS um array JSON de IDs dos produtos (máximo 8) que mais combinam com a INTENÇÃO da busca. Lista: ${JSON.stringify(productContext.slice(0, 40))}. Responda apenas o array de IDs.`,
-          context: "Lumina Semantic Engine. Foco em intenção e contexto."
-        }
+          context: 'Lumina Semantic Engine. Foco em intenção e contexto.',
+        },
       });
-
       if (error) throw error;
-      
       const reply = data.reply.match(/\[.*\]/s)?.[0];
-      if (reply) {
-        const ids = JSON.parse(reply);
-        setAiMatchIds(ids);
-      }
+      if (reply) setAiMatchIds(JSON.parse(reply));
     } catch (err) {
       console.error(err);
     } finally {
       setIsAiSearching(false);
     }
-  };
+  }, [products, filters.search]);
+
+  // Automatic Semantic Search Logic — debounced
+  useEffect(() => {
+    if (searchTimeoutRef.current) clearTimeout(searchTimeoutRef.current);
+    if (!filters.search || filters.search.length < 3) {
+      setAiMatchIds(null);
+      return;
+    }
+    searchTimeoutRef.current = setTimeout(handleSemanticSearch, 1500);
+    return () => {
+      if (searchTimeoutRef.current) clearTimeout(searchTimeoutRef.current);
+    };
+  }, [filters.search, handleSemanticSearch]);
 
   const filteredProducts = useMemo(() => {
     let filtered = [...products];

@@ -101,7 +101,6 @@ const Checkout = () => {
     
     const saveAbandonedCart = async () => {
       try {
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const db = supabase as any;
         if (abandonedCartId) {
           await db.from('abandoned_carts').update({
@@ -261,7 +260,6 @@ const Checkout = () => {
       }
 
       if (abandonedCartId) {
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         await (supabase as any).from('abandoned_carts').update({ status: 'purchased' }).eq('id', abandonedCartId);
       }
 

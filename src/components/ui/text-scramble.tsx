@@ -73,7 +73,8 @@ export function TextScramble({
   useEffect(() => {
     if (!trigger) return;
     scramble();
-  }, [trigger]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [trigger]); // scramble is recreated each render; only trigger should re-run this
 
   return (
     <MotionComponent className={className} {...props}>

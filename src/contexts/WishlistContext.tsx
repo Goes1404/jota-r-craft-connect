@@ -1,7 +1,56 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
+import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
 import { useAuth } from './AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
+
+// ── Price-drop tracking via localStorage ─────────────────────────────────────
+const PRICES_KEY = 'jr_wl_prices';
+
+export const saveWishlistPrice = (productId: string, price: number): void => {
+  try {
+    const stored: Record<string, number> = JSON.parse(localStorage.getItem(PRICES_KEY) || '{}');
+    stored[productId] = price;
+    localStorage.setItem(PRICES_KEY, JSON.stringify(stored));
+  } catch {
+    // localStorage unavailable (e.g. private browsing with strict settings)
+  }
+};
+
+export interface PriceDrop {
+  id: string;
+  name: string;
+  oldPrice: number;
+  newPrice: number;
+  discountPct: number;
+}
+
+export const getWishlistPriceDrops = (
+  products: Array<{ id: string; name: string; price: number }>
+): PriceDrop[] => {
+  try {
+    const stored: Record<string, number> = JSON.parse(localStorage.getItem(PRICES_KEY) || '{}');
+    const drops: PriceDrop[] = [];
+    const updated = { ...stored };
+    products.forEach(p => {
+      const prev = stored[p.id];
+      if (prev !== undefined && p.price < prev) {
+        drops.push({
+          id: p.id,
+          name: p.name,
+          oldPrice: prev,
+          newPrice: p.price,
+          discountPct: Math.round(((prev - p.price) / prev) * 100),
+        });
+      }
+      updated[p.id] = p.price;
+    });
+    localStorage.setItem(PRICES_KEY, JSON.stringify(updated));
+    return drops;
+  } catch {
+    return [];
+  }
+};
+// ─────────────────────────────────────────────────────────────────────────────
 
 interface WishlistContextType {
   wishlist: string[];
@@ -12,6 +61,9 @@ interface WishlistContextType {
 
 const WishlistContext = createContext<WishlistContextType | undefined>(undefined);
 
+// Supabase cast needed because the `wishlist` table is not in the generated types
+const db = supabase as any;
+
 export const WishlistProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const { user } = useAuth();
   const { toast } = useToast();
@@ -19,77 +71,60 @@ export const WishlistProvider: React.FC<{ children: React.ReactNode }> = ({ chil
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    if (user) {
-      fetchWishlist();
-    } else {
+    if (!user) {
       setWishlist([]);
       setIsLoading(false);
+      return;
     }
+
+    setIsLoading(true);
+    db.from('wishlist')
+      .select('product_id')
+      .eq('user_id', user.id)
+      .then(({ data, error }: { data: Array<{ product_id: string }> | null; error: unknown }) => {
+        if (error) {
+          console.warn('Wishlist table not found, using local state.');
+        } else if (data) {
+          setWishlist(data.map((item) => item.product_id));
+        }
+      })
+      .finally(() => setIsLoading(false));
   }, [user]);
 
-  const fetchWishlist = async () => {
-    try {
-      const { data, error } = await supabase
-        .from('wishlist')
-        .select('product_id')
-        .eq('user_id', user?.id);
-
-      if (error) {
-        // If table doesn't exist, we'll just use local state for now
-        console.warn('Wishlist table not found, using local state.');
-        return;
-      }
-
-      setWishlist(data.map(item => item.product_id));
-    } catch (err) {
-      console.error('Error fetching wishlist:', err);
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  const toggleWishlist = async (productId: string) => {
+  const toggleWishlist = useCallback(async (productId: string) => {
     if (!user) {
       toast({
-        title: "Acesso Necessário",
-        description: "Faça login para salvar seus favoritos.",
+        title: 'Acesso Necessário',
+        description: 'Faça login para salvar seus favoritos.',
       });
       return;
     }
 
     const isFav = wishlist.includes(productId);
-    
-    // Optimistic Update
-    const newWishlist = isFav 
-      ? wishlist.filter(id => id !== productId)
+    const optimistic = isFav
+      ? wishlist.filter((id) => id !== productId)
       : [...wishlist, productId];
-    
-    setWishlist(newWishlist);
+
+    setWishlist(optimistic);
 
     try {
       if (isFav) {
-        await supabase
-          .from('wishlist')
-          .delete()
-          .eq('user_id', user.id)
-          .eq('product_id', productId);
-        
-        toast({ title: "Removido dos favoritos" });
+        await db.from('wishlist').delete().eq('user_id', user.id).eq('product_id', productId);
+        toast({ title: 'Removido dos favoritos' });
       } else {
-        await supabase
-          .from('wishlist')
-          .insert({ user_id: user.id, product_id: productId });
-        
-        toast({ title: "Adicionado aos favoritos! ❤️" });
+        await db.from('wishlist').insert({ user_id: user.id, product_id: productId });
+        toast({ title: 'Adicionado aos favoritos! ❤️' });
       }
     } catch (err) {
       console.error('Error updating wishlist:', err);
-      // Revert on error
-      setWishlist(wishlist);
+      setWishlist(wishlist); // revert on error
     }
-  };
+  }, [user, wishlist, toast]);
 
-  const isInWishlist = (productId: string) => wishlist.includes(productId);
+  const isInWishlist = useCallback(
+    (productId: string) => wishlist.includes(productId),
+    [wishlist]
+  );
 
   return (
     <WishlistContext.Provider value={{ wishlist, toggleWishlist, isInWishlist, isLoading }}>

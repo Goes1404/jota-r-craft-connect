@@ -1,3 +1,4 @@
+import { lazy, Suspense } from "react";
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -9,88 +10,100 @@ import { WishlistProvider } from "@/contexts/WishlistContext";
 import { HelmetProvider } from 'react-helmet-async';
 import { ErrorBoundary } from "./components/ErrorBoundary";
 import ProtectedAdminRoute from "./components/ProtectedAdminRoute";
-import Index from "./pages/Index";
-import Products from "./pages/Products";
-import ProductDetails from "./pages/ProductDetails";
-import Contact from "./pages/Contact";
-import AdminLogin from "./pages/AdminLogin";
-import ForgotPassword from "./pages/ForgotPassword";
-import ResetPassword from "./pages/ResetPassword";
-import Register from "./pages/Register";
-import Profile from "./pages/Profile";
-import Orders from "./pages/Orders";
-import Addresses from "./pages/Addresses";
-import Coupons from "./pages/Coupons";
-import Payments from "./pages/Payments";
-import Checkout from "./pages/Checkout";
-import Wishlist from "./pages/Wishlist";
-import AdminDashboard from "./pages/AdminDashboard";
-import AdminProducts from "./pages/AdminProducts";
-import AdminOrders from "./pages/AdminOrders";
-import SalesManagement from "./pages/SalesManagement";
-import AdminCoupons from "./pages/AdminCoupons";
-import AdminCustomers from "./pages/AdminCustomers";
-import AdminReviews from "./pages/AdminReviews";
-import AdminSettings from "./pages/AdminSettings";
-import AdminAbandonedCarts from "./pages/AdminAbandonedCarts";
-import AdminInventoryIntelligence from "./pages/AdminInventoryIntelligence";
-import NotFound from "./pages/NotFound";
 import { ExitIntentPopup } from "./components/ExitIntentPopup";
 import { AICopilot } from "./components/AICopilot";
+import { SocialProofToast } from "./components/SocialProofToast";
+
+// ─── lazy page imports ────────────────────────────────────────────────────────
+const Index = lazy(() => import("./pages/Index"));
+const Products = lazy(() => import("./pages/Products"));
+const ProductDetails = lazy(() => import("./pages/ProductDetails"));
+const Contact = lazy(() => import("./pages/Contact"));
+const AdminLogin = lazy(() => import("./pages/AdminLogin"));
+const ForgotPassword = lazy(() => import("./pages/ForgotPassword"));
+const ResetPassword = lazy(() => import("./pages/ResetPassword"));
+const Register = lazy(() => import("./pages/Register"));
+const Profile = lazy(() => import("./pages/Profile"));
+const Orders = lazy(() => import("./pages/Orders"));
+const Addresses = lazy(() => import("./pages/Addresses"));
+const Coupons = lazy(() => import("./pages/Coupons"));
+const Payments = lazy(() => import("./pages/Payments"));
+const Checkout = lazy(() => import("./pages/Checkout"));
+const Wishlist = lazy(() => import("./pages/Wishlist"));
+const AdminDashboard = lazy(() => import("./pages/AdminDashboard"));
+const AdminProducts = lazy(() => import("./pages/AdminProducts"));
+const AdminOrders = lazy(() => import("./pages/AdminOrders"));
+const SalesManagement = lazy(() => import("./pages/SalesManagement"));
+const AdminCoupons = lazy(() => import("./pages/AdminCoupons"));
+const AdminCustomers = lazy(() => import("./pages/AdminCustomers"));
+const AdminReviews = lazy(() => import("./pages/AdminReviews"));
+const AdminSettings = lazy(() => import("./pages/AdminSettings"));
+const AdminAbandonedCarts = lazy(() => import("./pages/AdminAbandonedCarts"));
+const AdminInventoryIntelligence = lazy(() => import("./pages/AdminInventoryIntelligence"));
+const NotFound = lazy(() => import("./pages/NotFound"));
+// ─────────────────────────────────────────────────────────────────────────────
+
+const PageLoader = () => (
+  <div className="min-h-screen bg-black flex items-center justify-center">
+    <div className="w-6 h-6 rounded-full border-2 border-[#d4af37] border-t-transparent animate-spin" />
+  </div>
+);
 
 const queryClient = new QueryClient();
 
 const App = () => (
   <HelmetProvider>
     <QueryClientProvider client={queryClient}>
-    <AuthProvider>
-      <WishlistProvider>
-        <CartProvider>
-        <TooltipProvider>
-          <Toaster />
-          <Sonner />
-          <BrowserRouter>
-            <ErrorBoundary>
-              <ExitIntentPopup />
-              <AICopilot />
-              <Routes>
-                <Route path="/" element={<Index />} />
-                <Route path="/produtos" element={<Products />} />
-                <Route path="/produto/:id" element={<ProductDetails />} />
-                <Route path="/contato" element={<Contact />} />
-                <Route path="/admin/login" element={<AdminLogin />} />
-                <Route path="/login" element={<AdminLogin />} />
-                <Route path="/entrar" element={<AdminLogin />} />
-                <Route path="/forgot-password" element={<ForgotPassword />} />
-                <Route path="/reset-password" element={<ResetPassword />} />
-                <Route path="/register" element={<Register />} />
-                <Route path="/perfil" element={<Profile />} />
-                <Route path="/pedidos" element={<Orders />} />
-                <Route path="/enderecos" element={<Addresses />} />
-                <Route path="/cupons" element={<Coupons />} />
-                <Route path="/pagamentos" element={<Payments />} />
-                <Route path="/favoritos" element={<Wishlist />} />
-                <Route path="/checkout" element={<Checkout />} />
-                <Route path="/admin/dashboard" element={<ProtectedAdminRoute><AdminDashboard /></ProtectedAdminRoute>} />
-                <Route path="/admin/products" element={<ProtectedAdminRoute><AdminProducts /></ProtectedAdminRoute>} />
-                <Route path="/admin/orders" element={<ProtectedAdminRoute><AdminOrders /></ProtectedAdminRoute>} />
-                <Route path="/admin/sales" element={<ProtectedAdminRoute><SalesManagement /></ProtectedAdminRoute>} />
-                <Route path="/admin/coupons" element={<ProtectedAdminRoute><AdminCoupons /></ProtectedAdminRoute>} />
-                <Route path="/admin/customers" element={<ProtectedAdminRoute><AdminCustomers /></ProtectedAdminRoute>} />
-                <Route path="/admin/reviews" element={<ProtectedAdminRoute><AdminReviews /></ProtectedAdminRoute>} />
-                <Route path="/admin/settings" element={<ProtectedAdminRoute><AdminSettings /></ProtectedAdminRoute>} />
-                <Route path="/admin/abandoned-carts" element={<ProtectedAdminRoute><AdminAbandonedCarts /></ProtectedAdminRoute>} />
-                <Route path="/admin/inventory-intelligence" element={<ProtectedAdminRoute><AdminInventoryIntelligence /></ProtectedAdminRoute>} />
-                {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
-                <Route path="*" element={<NotFound />} />
-              </Routes>
-            </ErrorBoundary>
-          </BrowserRouter>
-        </TooltipProvider>
-      </CartProvider>
-      </WishlistProvider>
-    </AuthProvider>
-  </QueryClientProvider>
+      <AuthProvider>
+        <WishlistProvider>
+          <CartProvider>
+            <TooltipProvider>
+              <Toaster />
+              <Sonner />
+              <BrowserRouter>
+                <ErrorBoundary>
+                  <ExitIntentPopup />
+                  <AICopilot />
+                  <SocialProofToast />
+                  <Suspense fallback={<PageLoader />}>
+                    <Routes>
+                      <Route path="/" element={<Index />} />
+                      <Route path="/produtos" element={<Products />} />
+                      <Route path="/produto/:id" element={<ProductDetails />} />
+                      <Route path="/contato" element={<Contact />} />
+                      <Route path="/admin/login" element={<AdminLogin />} />
+                      <Route path="/login" element={<AdminLogin />} />
+                      <Route path="/entrar" element={<AdminLogin />} />
+                      <Route path="/forgot-password" element={<ForgotPassword />} />
+                      <Route path="/reset-password" element={<ResetPassword />} />
+                      <Route path="/register" element={<Register />} />
+                      <Route path="/perfil" element={<Profile />} />
+                      <Route path="/pedidos" element={<Orders />} />
+                      <Route path="/enderecos" element={<Addresses />} />
+                      <Route path="/cupons" element={<Coupons />} />
+                      <Route path="/pagamentos" element={<Payments />} />
+                      <Route path="/favoritos" element={<Wishlist />} />
+                      <Route path="/checkout" element={<Checkout />} />
+                      <Route path="/admin/dashboard" element={<ProtectedAdminRoute><AdminDashboard /></ProtectedAdminRoute>} />
+                      <Route path="/admin/products" element={<ProtectedAdminRoute><AdminProducts /></ProtectedAdminRoute>} />
+                      <Route path="/admin/orders" element={<ProtectedAdminRoute><AdminOrders /></ProtectedAdminRoute>} />
+                      <Route path="/admin/sales" element={<ProtectedAdminRoute><SalesManagement /></ProtectedAdminRoute>} />
+                      <Route path="/admin/coupons" element={<ProtectedAdminRoute><AdminCoupons /></ProtectedAdminRoute>} />
+                      <Route path="/admin/customers" element={<ProtectedAdminRoute><AdminCustomers /></ProtectedAdminRoute>} />
+                      <Route path="/admin/reviews" element={<ProtectedAdminRoute><AdminReviews /></ProtectedAdminRoute>} />
+                      <Route path="/admin/settings" element={<ProtectedAdminRoute><AdminSettings /></ProtectedAdminRoute>} />
+                      <Route path="/admin/abandoned-carts" element={<ProtectedAdminRoute><AdminAbandonedCarts /></ProtectedAdminRoute>} />
+                      <Route path="/admin/inventory-intelligence" element={<ProtectedAdminRoute><AdminInventoryIntelligence /></ProtectedAdminRoute>} />
+                      <Route path="*" element={<NotFound />} />
+                    </Routes>
+                  </Suspense>
+                </ErrorBoundary>
+              </BrowserRouter>
+            </TooltipProvider>
+          </CartProvider>
+        </WishlistProvider>
+      </AuthProvider>
+    </QueryClientProvider>
   </HelmetProvider>
 );
 

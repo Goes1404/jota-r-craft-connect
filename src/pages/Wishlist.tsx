@@ -1,19 +1,33 @@
-import React from 'react';
-import { useWishlist } from '@/contexts/WishlistContext';
-import { useProducts } from '@/hooks/useProducts';
-import { ProductCard } from '@/components/ProductCard';
+import React, { useEffect, useRef, useMemo } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { Heart, ArrowLeft, ShoppingBag, Sparkles, Cpu } from 'lucide-react';
+import { Button } from '@/components/ui/button';
 import { Header } from '@/components/Header';
 import { Footer } from '@/components/Footer';
-import { Heart, ArrowLeft, ShoppingBag } from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { useNavigate } from 'react-router-dom';
-import { Sparkles, Cpu } from 'lucide-react';
-import { useMemo } from 'react';
+import { ProductCard } from '@/components/ProductCard';
+import { useWishlist, getWishlistPriceDrops } from '@/contexts/WishlistContext';
+import { useProducts } from '@/hooks/useProducts';
+import { useToast } from '@/hooks/use-toast';
 
 const Wishlist: React.FC = () => {
   const { wishlist } = useWishlist();
   const { data: allProducts = [], isLoading: productsLoading } = useProducts();
   const navigate = useNavigate();
+  const { toast } = useToast();
+  const hasCheckedDrops = useRef(false);
+
+  useEffect(() => {
+    if (productsLoading || !allProducts.length || !wishlist.length || hasCheckedDrops.current) return;
+    hasCheckedDrops.current = true;
+    const wishlisted = allProducts.filter(p => wishlist.includes(p.id));
+    const drops = getWishlistPriceDrops(wishlisted);
+    drops.forEach(d => {
+      toast({
+        title: 'Baixou de preço! 🎉',
+        description: `${d.name} caiu ${d.discountPct}% — de R$ ${d.oldPrice.toFixed(2).replace('.', ',')} para R$ ${d.newPrice.toFixed(2).replace('.', ',')}`,
+      });
+    });
+  }, [productsLoading, allProducts, wishlist, toast]);
 
   const favoriteProducts = allProducts.filter(p => wishlist.includes(p.id));
 
