@@ -47,7 +47,7 @@ const Index: React.FC = () => {
   ];
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-background pb-28">
       <SEO />
       <Header />
 
@@ -56,10 +56,10 @@ const Index: React.FC = () => {
         href={WHATSAPP}
         target="_blank"
         rel="noopener noreferrer"
-        className="fixed bottom-6 right-6 z-50 flex items-center gap-2 bg-primary text-primary-foreground font-bold text-sm px-4 py-3 rounded-full shadow-[0_4px_24px_rgba(212,175,55,0.5)] hover:scale-105 transition-transform duration-200"
+        className="fixed bottom-6 right-6 z-50 flex items-center gap-2 bg-primary text-primary-foreground font-bold text-sm px-5 py-3 rounded-full shadow-[0_4px_24px_rgba(212,175,55,0.5)] hover:scale-105 transition-transform duration-200 whitespace-nowrap"
         aria-label="Falar no WhatsApp"
       >
-        <MessageCircle className="h-5 w-5" />
+        <MessageCircle className="h-5 w-5 shrink-0" />
         <span className="hidden sm:inline">Compre pelo WhatsApp</span>
         <span className="absolute -top-1.5 -right-1.5 h-3.5 w-3.5 rounded-full bg-green-400 border-2 border-background animate-ping" />
         <span className="absolute -top-1.5 -right-1.5 h-3.5 w-3.5 rounded-full bg-green-400 border-2 border-background" />
@@ -104,8 +104,8 @@ const Index: React.FC = () => {
         </div>
       </section>
 
-      {/* ─── Categories Nav (Sticky) ─── */}
-      <section className="sticky top-[72px] md:top-[88px] z-40 bg-[#0a0a0a] border-b border-white/5 py-4 overflow-hidden">
+      {/* ─── Categories Nav ─── */}
+      <section className="bg-[#0a0a0a] border-b border-white/5 py-4">
         <div className="container mx-auto px-4 overflow-x-auto scrollbar-hide">
           <div className="flex justify-between md:justify-center gap-6 md:gap-16 min-w-max">
             {[

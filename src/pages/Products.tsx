@@ -53,6 +53,7 @@ const Products: React.FC = () => {
   const [isAiSearching, setIsAiSearching] = useState(false);
   const [aiMatchIds, setAiMatchIds] = useState<string[] | null>(null);
   const searchTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const priceRangeSynced = useRef(false);
 
   const { categories, priceRange } = useMemo(() => {
     if (!products.length) return { categories: [], priceRange: [0, 15000] as [number, number] };
@@ -60,6 +61,15 @@ const Products: React.FC = () => {
     const prices = products.map(p => Number(p.price));
     return { categories: cats, priceRange: [Math.floor(Math.min(...prices)), Math.ceil(Math.max(...prices))] as [number, number] };
   }, [products]);
+
+  // Sync price filter to actual product range on first load so nothing is
+  // filtered out by the hardcoded [0, 15000] default before products arrive.
+  useEffect(() => {
+    if (!priceRangeSynced.current && products.length > 0) {
+      priceRangeSynced.current = true;
+      setFilters(prev => ({ ...prev, priceRange }));
+    }
+  }, [products.length, priceRange]);
 
   const handleSemanticSearch = useCallback(async () => {
     setIsAiSearching(true);
