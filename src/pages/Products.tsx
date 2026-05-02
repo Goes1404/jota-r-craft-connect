@@ -132,7 +132,7 @@ const Products: React.FC = () => {
     { name: 'Watches', value: 'Watch', icon: Watch, color: 'bg-orange-500/10 text-orange-500' },
     { name: 'Audio', value: 'Audio', icon: Headphones, color: 'bg-purple-500/10 text-purple-500' },
     { name: 'Proteção', value: 'Protection', icon: Shield, color: 'bg-green-500/10 text-green-500' },
-    { name: 'Energia', value: 'Power', icon: ZapIcon, color: 'bg-yellow-500/10 text-yellow-500' },
+    { name: 'Energia', value: 'Power', icon: Zap, color: 'bg-yellow-500/10 text-yellow-500' },
     { name: 'Todos', value: '', icon: LayoutGrid, color: 'bg-primary/10 text-primary' },
   ];
 
