@@ -11,7 +11,7 @@ import { Heart } from 'lucide-react';
 const styles = {
   // Small card
   card: 'group relative flex flex-col bg-background rounded-2xl border border-primary transition-all duration-500 overflow-hidden shadow-luxury hover:shadow-luxury-hover cursor-pointer h-full',
-  imageSection: 'h-64 bg-background relative overflow-hidden flex items-center justify-center p-6 border-b border-primary/20',
+  imageSection: 'h-52 bg-background relative overflow-hidden flex items-center justify-center p-5 border-b border-primary/20',
   ofertaBadge: 'absolute top-4 left-4 z-10 bg-background/80 backdrop-blur-sm text-primary px-3 py-1 rounded-md font-serif text-xs uppercase tracking-wider border border-primary',
   wishlistBtn: (active: boolean) =>
     `absolute top-4 right-4 z-20 w-8 h-8 rounded-full flex items-center justify-center transition-all duration-300 ${
@@ -23,7 +23,7 @@ const styles = {
   priceBlock: 'mt-auto mb-6',
   priceMain: 'block text-2xl font-bold text-primary mb-1',
   priceInstallments: 'block text-sm text-white/70',
-  addBtn: 'w-full bg-background border border-primary text-primary hover:bg-primary hover:text-background transition-all duration-300 py-6 rounded-full font-bold uppercase tracking-wider shadow-luxury',
+  addBtn: 'w-full bg-background border border-primary text-primary hover:bg-primary hover:text-background transition-all duration-300 py-3 rounded-full font-bold uppercase tracking-wider shadow-luxury',
   // Large (bento) card
   largeCard: 'group relative flex flex-col sm:flex-row bg-background rounded-2xl border border-primary transition-all duration-500 overflow-hidden shadow-luxury hover:shadow-luxury-hover cursor-pointer',
   largeImageSection: 'sm:w-1/2 h-64 sm:h-auto bg-background relative overflow-hidden flex items-center justify-center p-8 border-b sm:border-b-0 sm:border-r border-primary/20',
@@ -34,11 +34,11 @@ const styles = {
     }`,
   largeBody: 'sm:w-1/2 p-6 md:p-8 flex flex-col justify-center bg-background',
   largePremiumBadge: 'bg-muted text-foreground text-[10px] font-bold uppercase px-2 py-1 rounded tracking-wider border border-primary/30',
-  largeTitle: 'text-3xl font-serif font-bold text-foreground mb-2 group-hover:text-primary transition-colors',
-  largeDesc: 'text-base text-white/80 mb-6 line-clamp-2',
-  largePriceMain: 'block text-3xl font-bold text-primary mb-1',
+  largeTitle: 'text-2xl font-serif font-bold text-foreground mb-2 group-hover:text-primary transition-colors',
+  largeDesc: 'text-sm text-white/80 mb-5 line-clamp-2',
+  largePriceMain: 'block text-2xl font-bold text-primary mb-1',
   largePriceInstallments: 'block text-sm text-white/70',
-  largeAddBtn: 'w-full bg-background border border-primary text-primary hover:bg-primary hover:text-background transition-all duration-300 py-6 rounded-full font-bold uppercase tracking-wider shadow-luxury',
+  largeAddBtn: 'w-full bg-background border border-primary text-primary hover:bg-primary hover:text-background transition-all duration-300 py-3 rounded-full font-bold uppercase tracking-wider shadow-luxury',
 };
 
 // ─── skeleton ─────────────────────────────────────────────────────────────────

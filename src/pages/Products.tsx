@@ -28,7 +28,7 @@ import {
 } from 'lucide-react';
 import { WHATSAPP_NUMBER } from '@/config/constants';
 import { Product } from '@/types/database';
-import { Link } from 'react-router-dom';
+import { Link, useSearchParams } from 'react-router-dom';
 import { MaskReveal } from '@/components/animations/MaskReveal';
 import { TrackingInText } from '@/components/animations/TrackingIn';
 
@@ -36,13 +36,16 @@ const Products: React.FC = () => {
   const { usePageVisit } = useAnalytics();
   usePageVisit('products');
 
+  const [searchParams] = useSearchParams();
+  const initialCategory = searchParams.get('category') || '';
+
   const { data: products = [], isLoading } = useProducts();
   const { addToCart } = useCart();
   const { toast } = useToast();
 
   const [filters, setFilters] = useState<FilterState>({
     search: '',
-    category: '',
+    category: initialCategory,
     priceRange: [0, 15000],
     sortBy: 'created_at_desc',
     inStockOnly: false,

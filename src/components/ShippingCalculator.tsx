@@ -1,156 +1,218 @@
-import React, { useState } from 'react';
-import { Truck, MapPin, Loader2, CheckCircle2 } from 'lucide-react';
-import { Button } from '@/components/ui/button';
+import React, { useState, useRef, useCallback } from 'react';
+import { Truck, MapPin, CheckCircle2, AlertCircle, RefreshCw } from 'lucide-react';
+import { supabase } from '@/integrations/supabase/client';
+
+// ─── Types ────────────────────────────────────────────────────────────────────
 
 interface ShippingOption {
   name: string;
   price: number;
   days: string;
+  arrivalLabel: string;
   highlight?: boolean;
 }
 
-const FREE_THRESHOLD = 500;
-
-// Flat-rate table by Brazilian state (PAC price, Sedex price, PAC days, Sedex days)
-const RATES: Record<string, [number, number, string, string]> = {
-  SP: [12.90, 22.90, '1-2 dias úteis', 'Mesmo dia (Osasco/SP)'],
-  RJ: [25.90, 38.90, '3-4 dias úteis', '2-3 dias úteis'],
-  MG: [25.90, 36.90, '3-4 dias úteis', '2-3 dias úteis'],
-  ES: [28.90, 40.90, '4-5 dias úteis', '3-4 dias úteis'],
-  PR: [28.90, 40.90, '3-4 dias úteis', '2-3 dias úteis'],
-  SC: [28.90, 42.90, '4-5 dias úteis', '3-4 dias úteis'],
-  RS: [30.90, 44.90, '5-6 dias úteis', '3-4 dias úteis'],
-  BA: [30.90, 46.90, '5-7 dias úteis', '3-5 dias úteis'],
-  GO: [30.90, 44.90, '4-6 dias úteis', '3-4 dias úteis'],
-  DF: [30.90, 44.90, '4-6 dias úteis', '3-4 dias úteis'],
-};
-
-function getOptions(uf: string, total: number): ShippingOption[] {
-  if (total >= FREE_THRESHOLD) {
-    return [{ name: 'Frete Cortesia', price: 0, days: '1-5 dias úteis', highlight: true }];
-  }
-  const r = RATES[uf] ?? [35.90, 52.90, '6-8 dias úteis', '4-6 dias úteis'];
-  return [
-    { name: 'PAC Correios', price: r[0], days: r[2] },
-    { name: 'Sedex', price: r[1], days: r[3], highlight: true },
-  ];
+interface EdgeFunctionResponse {
+  city: string;
+  state: string;
+  options: ShippingOption[];
+  freeThreshold: number;
+  error?: string;
 }
+
+// ─── Skeleton ─────────────────────────────────────────────────────────────────
+
+const ResultSkeleton = () => (
+  <div aria-hidden="true" className="space-y-2 animate-pulse">
+    <div className="h-3 bg-white/5 rounded w-40" />
+    <div className="h-12 bg-white/5 rounded-xl" />
+    <div className="h-12 bg-white/5 rounded-xl" />
+  </div>
+);
+
+// ─── Component ────────────────────────────────────────────────────────────────
 
 interface Props {
   totalValue?: number;
-  compact?: boolean;
+  source?: string;
 }
 
-export const ShippingCalculator: React.FC<Props> = ({ totalValue = 0, compact = false }) => {
+export const ShippingCalculator: React.FC<Props> = ({
+  totalValue = 0,
+  source = 'web',
+}) => {
   const [cep, setCep] = useState('');
   const [locationLabel, setLocationLabel] = useState('');
   const [options, setOptions] = useState<ShippingOption[] | null>(null);
+  const [freeThreshold, setFreeThreshold] = useState(500);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const raw = e.target.value.replace(/\D/g, '').slice(0, 8);
-    setCep(raw.length > 5 ? `${raw.slice(0, 5)}-${raw.slice(5)}` : raw);
-    setOptions(null);
-    setError('');
-    setLocationLabel('');
-  };
+  const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const latestCepRef = useRef('');
 
-  const calculate = async () => {
-    const raw = cep.replace(/\D/g, '');
-    if (raw.length !== 8) { setError('Digite um CEP válido com 8 dígitos.'); return; }
+  const calculate = useCallback(async (rawCep: string) => {
+    if (rawCep.length !== 8) return;
+    latestCepRef.current = rawCep;
     setLoading(true);
     setError('');
     setOptions(null);
     setLocationLabel('');
+
     try {
-      const res = await fetch(`https://viacep.com.br/ws/${raw}/json/`);
-      if (!res.ok) throw new Error('not_found');
-      const data = await res.json();
-      if (data.erro) throw new Error('not_found');
-      setLocationLabel(`${data.localidade}, ${data.uf}`);
-      setOptions(getOptions(data.uf, totalValue));
-    } catch {
-      setError('CEP não encontrado. Verifique o número e tente novamente.');
+      const { data, error: fnError } = await supabase.functions.invoke<EdgeFunctionResponse>(
+        'shipping-calculate',
+        { body: { cep: rawCep, productValue: totalValue, source } },
+      );
+
+      // Guard against stale responses if the user typed a different CEP
+      if (latestCepRef.current !== rawCep) return;
+
+      if (fnError || !data) {
+        throw new Error(fnError?.message ?? 'Erro desconhecido');
+      }
+      if (data.error) {
+        throw new Error(data.error);
+      }
+
+      setLocationLabel(`${data.city}, ${data.state}`);
+      setOptions(data.options);
+      setFreeThreshold(data.freeThreshold);
+    } catch (err: unknown) {
+      if (latestCepRef.current !== rawCep) return;
+      const msg = err instanceof Error ? err.message : 'Erro ao calcular frete.';
+      setError(msg);
     } finally {
-      setLoading(false);
+      if (latestCepRef.current === rawCep) setLoading(false);
+    }
+  }, [totalValue, source]);
+
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const raw = e.target.value.replace(/\D/g, '').slice(0, 8);
+    const masked = raw.length > 5 ? `${raw.slice(0, 5)}-${raw.slice(5)}` : raw;
+    setCep(masked);
+    setOptions(null);
+    setError('');
+    setLocationLabel('');
+
+    if (debounceRef.current) clearTimeout(debounceRef.current);
+    if (raw.length === 8) {
+      debounceRef.current = setTimeout(() => calculate(raw), 500);
     }
   };
 
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'Enter') {
+      if (debounceRef.current) clearTimeout(debounceRef.current);
+      calculate(cep.replace(/\D/g, ''));
+    }
+  };
+
+  const handleRetry = () => calculate(cep.replace(/\D/g, ''));
+
   return (
     <div className="space-y-3">
+      {/* Label */}
       <div className="flex items-center gap-2">
-        <Truck className="w-4 h-4 text-[#d4af37] shrink-0" />
-        <span className="text-[10px] font-black uppercase tracking-[0.2em] text-white/50">
+        <Truck className="w-4 h-4 text-[#d4af37] shrink-0" aria-hidden="true" />
+        <span id="shipping-calc-label" className="text-[10px] font-black uppercase tracking-[0.2em] text-white/50">
           Calcular Frete
         </span>
       </div>
 
-      <div className="flex gap-2">
-        <div className="relative flex-1">
-          <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-white/20 pointer-events-none" />
-          <input
-            type="text"
-            inputMode="numeric"
-            value={cep}
-            onChange={handleChange}
-            placeholder="00000-000"
-            onKeyDown={e => e.key === 'Enter' && calculate()}
-            aria-label="CEP para cálculo de frete"
-            className="w-full bg-white/[0.04] border border-white/10 focus:border-[#d4af37]/50 pl-9 pr-3 h-10 rounded-xl text-white placeholder:text-white/20 outline-none transition-colors text-sm font-mono tracking-widest"
-          />
-        </div>
-        <Button
-          onClick={calculate}
-          disabled={loading || cep.replace(/\D/g, '').length !== 8}
-          className="bg-[#d4af37] text-black hover:bg-[#f2ca50] h-10 px-4 rounded-xl font-black text-[10px] uppercase tracking-widest shrink-0 disabled:opacity-30 disabled:cursor-not-allowed transition-all"
-        >
-          {loading ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : 'OK'}
-        </Button>
+      {/* Input */}
+      <div className="relative">
+        <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-white/20 pointer-events-none" aria-hidden="true" />
+        <input
+          type="text"
+          inputMode="numeric"
+          value={cep}
+          onChange={handleChange}
+          onKeyDown={handleKeyDown}
+          placeholder="00000-000"
+          aria-labelledby="shipping-calc-label"
+          aria-label="CEP para cálculo de frete"
+          aria-busy={loading}
+          aria-describedby={error ? 'shipping-error' : undefined}
+          autoComplete="postal-code"
+          className="w-full bg-white/[0.04] border border-white/10 focus:border-[#d4af37]/50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#d4af37]/30 pl-9 pr-10 h-10 rounded-xl text-white placeholder:text-white/20 transition-colors text-sm font-mono tracking-widest"
+        />
+        {loading && (
+          <RefreshCw className="absolute right-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-[#d4af37] animate-spin" aria-hidden="true" />
+        )}
+        {!loading && options && (
+          <CheckCircle2 className="absolute right-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-green-500" aria-hidden="true" />
+        )}
+        {!loading && error && (
+          <AlertCircle className="absolute right-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-red-400" aria-hidden="true" />
+        )}
       </div>
 
+      {/* Error */}
       {error && (
-        <p className="text-red-400 text-[10px] font-medium">{error}</p>
-      )}
-
-      {options && (
-        <div className="space-y-2 animate-in fade-in slide-in-from-top-2 duration-400">
-          {locationLabel && (
-            <p className="text-[10px] text-white/30 flex items-center gap-1.5">
-              <CheckCircle2 className="w-3 h-3 text-green-500 shrink-0" />
-              Entregando em <span className="text-white/50 font-bold">{locationLabel}</span>
-            </p>
-          )}
-          {options.map((opt, i) => (
-            <div
-              key={i}
-              className={`flex items-center justify-between px-4 py-3 rounded-xl border transition-all ${
-                opt.highlight
-                  ? 'bg-[#d4af37]/5 border-[#d4af37]/30'
-                  : 'bg-white/[0.02] border-white/5'
-              }`}
-            >
-              <div>
-                <p className={`text-[10px] font-black uppercase tracking-wider ${opt.highlight ? 'text-[#d4af37]' : 'text-white/50'}`}>
-                  {opt.name}
-                </p>
-                <p className="text-[9px] text-white/25 mt-0.5">{opt.days}</p>
-              </div>
-              <span className={`text-sm font-black tabular-nums ${opt.price === 0 ? 'text-green-400' : 'text-white'}`}>
-                {opt.price === 0 ? 'GRÁTIS' : `R$ ${opt.price.toFixed(2).replace('.', ',')}`}
-              </span>
-            </div>
-          ))}
-          {totalValue < FREE_THRESHOLD && (
-            <p className="text-[9px] text-white/20 text-center pt-1">
-              Frete grátis acima de{' '}
-              <span className="text-[#d4af37]/60">
-                R$ {FREE_THRESHOLD.toLocaleString('pt-BR')}
-              </span>
-            </p>
-          )}
+        <div className="flex items-center gap-2" role="alert">
+          <p id="shipping-error" className="text-red-400 text-[10px] font-medium flex-1">{error}</p>
+          <button
+            onClick={handleRetry}
+            aria-label="Tentar novamente"
+            className="text-red-400/60 hover:text-red-400 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-400/50 rounded p-0.5"
+          >
+            <RefreshCw className="w-3 h-3" />
+          </button>
         </div>
       )}
+
+      {/* Skeleton while loading */}
+      {loading && <ResultSkeleton />}
+
+      {/* Results */}
+      <div role="region" aria-live="polite" aria-label="Opções de frete">
+        {options && (
+          <div className="space-y-2 animate-in fade-in slide-in-from-top-2 duration-400">
+            {locationLabel && (
+              <p className="text-[10px] text-white/30 flex items-center gap-1.5">
+                <CheckCircle2 className="w-3 h-3 text-green-500 shrink-0" aria-hidden="true" />
+                Entregando em{' '}
+                <span className="text-white/50 font-bold">{locationLabel}</span>
+              </p>
+            )}
+
+            {options.map((opt, i) => (
+              <div
+                key={i}
+                className={`flex items-start justify-between px-4 py-3 rounded-xl border transition-all ${
+                  opt.highlight
+                    ? 'bg-[#d4af37]/5 border-[#d4af37]/30'
+                    : 'bg-white/[0.02] border-white/5'
+                }`}
+              >
+                <div>
+                  <p className={`text-[10px] font-black uppercase tracking-wider ${opt.highlight ? 'text-[#d4af37]' : 'text-white/50'}`}>
+                    {opt.name}
+                  </p>
+                  <p className="text-[9px] text-white/25 mt-0.5">{opt.days}</p>
+                  <p className="text-[9px] text-white/30 mt-0.5 font-medium">{opt.arrivalLabel}</p>
+                </div>
+                <span
+                  className={`text-sm font-black tabular-nums shrink-0 mt-0.5 ${opt.price === 0 ? 'text-green-400' : 'text-white'}`}
+                  aria-label={opt.price === 0 ? 'Grátis' : `R$ ${opt.price.toFixed(2).replace('.', ',')}`}
+                >
+                  {opt.price === 0 ? 'GRÁTIS' : `R$ ${opt.price.toFixed(2).replace('.', ',')}`}
+                </span>
+              </div>
+            ))}
+
+            {totalValue < freeThreshold && (
+              <p className="text-[9px] text-white/20 text-center pt-1">
+                Frete grátis acima de{' '}
+                <span className="text-[#d4af37]/60">
+                  R$ {freeThreshold.toLocaleString('pt-BR')}
+                </span>
+              </p>
+            )}
+          </div>
+        )}
+      </div>
     </div>
   );
 };

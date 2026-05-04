@@ -5,6 +5,7 @@ import { ShoppingBag, MessageCircle, Star, Shield, Zap } from 'lucide-react';
 import { GoldenBlob } from '@/components/animations/GoldenBlob';
 import { TrackingInText } from '@/components/animations/TrackingIn';
 import { MaskReveal } from '@/components/animations/MaskReveal';
+import { HeroCarousel } from '@/components/HeroCarousel';
 import { WHATSAPP_LINK } from '@/config/constants';
 
 const WHATSAPP = `${WHATSAPP_LINK}?text=Ol%C3%A1%2C%20vim%20pelo%20site%20e%20gostaria%20de%20mais%20informa%C3%A7%C3%B5es!`;
@@ -27,7 +28,7 @@ export const GlassHero: React.FC = () => {
 
   return (
     <section
-      className="relative w-full min-h-[100svh] overflow-hidden bg-[#0A0A0A] flex items-center"
+      className="relative w-full min-h-[90svh] md:min-h-[100svh] overflow-hidden bg-[#0A0A0A] flex items-center"
       aria-label="Hero principal"
     >
       {/* ── Decorative golden gradient line at bottom ── */}
@@ -62,10 +63,10 @@ export const GlassHero: React.FC = () => {
       />
 
       {/* ── Content ── */}
-      <div className="relative z-10 w-full max-w-screen-xl mx-auto px-6 md:px-12 pt-28 pb-16 grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
+      <div className="relative z-10 w-full max-w-screen-xl mx-auto px-6 md:px-12 pt-20 pb-12 grid grid-cols-1 lg:grid-cols-2 gap-10 items-center">
 
         {/* LEFT — text */}
-        <div className="flex flex-col items-start gap-8">
+        <div className="flex flex-col items-start gap-6">
 
           {/* Badge pill */}
           <motion.div
@@ -79,7 +80,7 @@ export const GlassHero: React.FC = () => {
           </motion.div>
 
           {/* Main heading with TrackingIn effect */}
-          <h1 className="text-6xl md:text-8xl font-serif font-black leading-none tracking-tight text-white">
+          <h1 className="text-5xl md:text-6xl font-serif font-black leading-none tracking-tight text-white">
             <TrackingInText
               text="JR"
               className="text-[#D4AF37] block"
@@ -88,7 +89,7 @@ export const GlassHero: React.FC = () => {
             />
             <TrackingInText
               text="acessorios"
-              className="text-white italic font-light block text-5xl md:text-7xl"
+              className="text-white italic font-light block text-4xl md:text-5xl"
               stagger={0.06}
               delay={0.6}
             />
@@ -162,46 +163,7 @@ export const GlassHero: React.FC = () => {
           {/* Glow ring behind image */}
           <div className="absolute w-80 h-80 rounded-full bg-[#D4AF37]/10 blur-[60px]" />
 
-          <motion.div
-            variants={floatVariants}
-            animate={prefersReducedMotion ? {} : 'animate'}
-            className="relative z-10"
-          >
-            {/* Glassmorphism frame */}
-            <div className="w-72 h-[480px] rounded-[40px] bg-white/[0.03] backdrop-blur-2xl border border-white/10 overflow-hidden shadow-[0_32px_80px_rgba(0,0,0,0.6)] flex items-center justify-center p-6">
-              <img
-                src="https://images.unsplash.com/photo-1695048133142-1a20484d256e?w=600"
-                alt="iPhone 15 Pro Max — JR Acessórios"
-                className="w-full h-full object-contain drop-shadow-2xl mix-blend-luminosity hover:mix-blend-normal transition-all duration-700"
-                loading="eager"
-              />
-            </div>
-
-            {/* Floating badge — price */}
-            <motion.div
-              className="absolute -right-8 top-16 px-5 py-3 rounded-2xl bg-[#D4AF37] text-black shadow-xl"
-              initial={{ opacity: 0, x: 20 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ delay: 1.6, duration: 0.5 }}
-            >
-              <p className="text-[9px] font-black uppercase tracking-widest">iPhone 15 Pro</p>
-              <p className="text-lg font-black leading-none">R$9.500</p>
-            </motion.div>
-
-            {/* Floating badge — stock */}
-            <motion.div
-              className="absolute -left-10 bottom-20 px-4 py-3 rounded-2xl bg-white/5 backdrop-blur-xl border border-white/10 text-white shadow-xl"
-              initial={{ opacity: 0, x: -20 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ delay: 1.9, duration: 0.5 }}
-            >
-              <p className="text-[9px] font-black uppercase tracking-widest text-white/40">Em Estoque</p>
-              <div className="flex items-center gap-2 mt-0.5">
-                <span className="w-1.5 h-1.5 rounded-full bg-green-400 animate-pulse" />
-                <p className="text-xs font-black">Disponível</p>
-              </div>
-            </motion.div>
-          </motion.div>
+          <HeroCarousel />
         </div>
       </div>
 

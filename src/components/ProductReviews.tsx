@@ -132,9 +132,9 @@ export const ProductReviews: React.FC<ProductReviewsProps> = ({ productId }) => 
         )}
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-16">
-        {/* Review Form */}
-        <div className="lg:col-span-5">
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-10">
+        {/* Review Form — second on mobile so reviews are read first */}
+        <div className="lg:col-span-5 order-2 lg:order-1">
           {user ? (
             <form onSubmit={submitReview} className="bg-[#0f0f0f]/40 backdrop-blur-2xl border border-white/5 rounded-[40px] p-8 md:p-10 space-y-8 sticky top-32">
               <div className="space-y-4 text-center">
@@ -189,8 +189,8 @@ export const ProductReviews: React.FC<ProductReviewsProps> = ({ productId }) => 
           )}
         </div>
 
-        {/* Reviews List */}
-        <div className="lg:col-span-7 space-y-8">
+        {/* Reviews List — first on mobile */}
+        <div className="lg:col-span-7 space-y-8 order-1 lg:order-2">
           
           {/* Lumina Review Genius */}
           {reviews.length > 0 && (

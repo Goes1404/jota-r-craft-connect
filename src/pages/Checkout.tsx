@@ -66,13 +66,26 @@ const Checkout = () => {
   const timerRef = useRef<NodeJS.Timeout | null>(null);
   const [abandonedCartId, setAbandonedCartId] = useState<string | null>(null);
 
+  const [acceptedTerms, setAcceptedTerms] = useState(false);
+  const [shippingOption, setShippingOption] = useState<'normal' | 'express'>('express');
+  const [shippingCost, setShippingCost] = useState(0);
+  const [couponCode, setCouponCode] = useState('');
+  const [discount, setDiscount] = useState(0);
+
+  const finalTotal = total + shippingCost - discount;
+
+  const [createAccount, setCreateAccount] = useState(false);
   const [formData, setFormData] = useState({
     fullName: user?.user_metadata?.full_name || '',
+    email: user?.email || '',
+    password: '',
     cpf: '',
     phone: '',
     cep: '',
     address: '',
     number: '',
+    complement: '',
+    neighborhood: '',
     city: '',
     state: ''
   });
@@ -196,7 +209,7 @@ const Checkout = () => {
         if (data.erro) {
           toast.error('CEP não encontrado. Verifique o número digitado.');
         } else {
-          setFormData(prev => ({ ...prev, address: data.logradouro || prev.address, city: data.localidade || prev.city, state: data.uf || prev.state }));
+          setFormData(prev => ({ ...prev, address: data.logradouro || prev.address, neighborhood: data.bairro || prev.neighborhood, city: data.localidade || prev.city, state: data.uf || prev.state }));
           toast.success('Endereço autocompletado!');
         }
       } catch (error) {
@@ -208,23 +221,57 @@ const Checkout = () => {
   const handleCheckout = async (e: React.FormEvent) => {
     e.preventDefault();
     if (cartItems.length === 0) return;
-    if (!user) { navigate('/login?redirect=/checkout'); return; }
 
     if (!isValidCPF(formData.cpf)) {
       toast.error('CPF inválido. Verifique os números digitados.');
       return;
     }
 
+    if (!formData.email) {
+      toast.error('E-mail é obrigatório.');
+      return;
+    }
+
+    if (!acceptedTerms) {
+      toast.error('Você deve aceitar os Termos e Condições para continuar.');
+      return;
+    }
+
     setIsProcessing(true);
 
     try {
+      let finalUserId = user?.id || null;
+
+      if (!user && createAccount && formData.password) {
+        const { data: signUpData, error: signUpError } = await supabase.auth.signUp({
+          email: formData.email,
+          password: formData.password,
+          options: {
+            data: {
+              full_name: formData.fullName,
+            }
+          }
+        });
+        if (signUpError) {
+          toast.error('Erro ao criar conta: ' + signUpError.message);
+          setIsProcessing(false);
+          return;
+        }
+        if (signUpData.user) {
+          finalUserId = signUpData.user.id;
+        }
+      }
+
       const { data: orderData, error: orderError } = await supabase.from('orders').insert({
-        user_id: user.id,
-        total_amount: total,
+        user_id: finalUserId,
+        customer_name: formData.fullName,
+        customer_phone: formData.phone,
+        customer_email: formData.email,
+        total_amount: finalTotal,
         status: 'Aguardando Pagamento',
-        shipping_address: `${formData.address}, ${formData.number} — ${formData.city}/${formData.state} (${formData.cep})`,
+        shipping_address: `${formData.address}, ${formData.number} ${formData.complement ? '- ' + formData.complement : ''} — ${formData.neighborhood}, ${formData.city}/${formData.state} (${formData.cep})`,
         payment_method: paymentMethod
-      }).select().single();
+      } as any).select().single();
 
       if (orderError) throw orderError;
       const orderId = orderData.id;
@@ -239,7 +286,7 @@ const Checkout = () => {
 
       if (paymentMethod === 'pix') {
         const { data: pixResult } = await supabase.functions.invoke('create-pix-payment', {
-          body: { orderId: orderId, totalAmount: total, payerEmail: user.email }
+          body: { orderId: orderId, totalAmount: finalTotal, payerEmail: formData.email || user?.email }
         });
         if (pixResult?.success && pixResult.pix) {
           setPixData({ qrCodeBase64: pixResult.pix.qrCodeBase64, qrCode: pixResult.pix.qrCode });
@@ -251,7 +298,7 @@ const Checkout = () => {
         }
       } else {
         const { data: stripeResult } = await supabase.functions.invoke('create-stripe-payment', {
-          body: { orderId: orderId, totalAmount: total }
+          body: { orderId: orderId, totalAmount: finalTotal }
         });
         if (stripeResult?.success && stripeResult.clientSecret) {
           setStripeClientSecret(stripeResult.clientSecret);
@@ -295,6 +342,23 @@ const Checkout = () => {
               <Button onClick={() => { navigator.clipboard.writeText(pixData?.qrCode || ''); setCopied(true); setTimeout(() => setCopied(false), 3000); }} className="w-full bg-[#25D366]/10 border border-[#25D366]/20 text-[#25D366] h-12 rounded-xl">
                 {copied ? 'Copiado!' : 'Copiar Código PIX'}
               </Button>
+            </div>
+          )}
+
+          {paymentMethod === 'credit_card' && !isPaid && stripeClientSecret && (
+            <div className="bg-[#0f0f0f] border border-white/10 p-8 rounded-[40px] mb-10 w-full max-w-md text-left">
+              <h2 className="text-xl font-bold text-white mb-6">Dados do Cartão</h2>
+              <StripeCardForm 
+                clientSecret={stripeClientSecret}
+                isProcessing={isProcessing}
+                setIsProcessing={setIsProcessing}
+                onSuccess={(paymentIntentId) => {
+                  setPaymentStatus('pago');
+                  toast.success('Pagamento confirmado com sucesso!');
+                }}
+                onError={(msg) => toast.error(msg)}
+                onSubmit={() => {}}
+              />
             </div>
           )}
 
@@ -343,6 +407,10 @@ const Checkout = () => {
                     <Label className="text-[9px] font-black uppercase tracking-widest text-white/30">Nome Completo</Label>
                     <Input required name="fullName" value={formData.fullName} onChange={handleInputChange} className="bg-white/5 border-white/10 h-14 rounded-2xl" />
                   </div>
+                  <div className="space-y-3 md:col-span-2">
+                    <Label className="text-[9px] font-black uppercase tracking-widest text-white/30">E-mail</Label>
+                    <Input required type="email" name="email" value={formData.email} onChange={handleInputChange} placeholder="seu@email.com" className="bg-white/5 border-white/10 h-14 rounded-2xl" />
+                  </div>
                   <div className="space-y-3">
                     <Label className="text-[9px] font-black uppercase tracking-widest text-white/30">CPF</Label>
                     <Input required name="cpf" value={formData.cpf} onChange={handleCpfChange} placeholder="000.000.000-00" className="bg-white/5 border-white/10 h-14 rounded-2xl" />
@@ -356,6 +424,10 @@ const Checkout = () => {
                     <Input required name="cep" value={formData.cep} onChange={handleCepChange} placeholder="00000-000" className="bg-white/5 border-white/10 h-14 rounded-2xl" />
                   </div>
                   <div className="space-y-3">
+                    <Label className="text-[9px] font-black uppercase tracking-widest text-white/30">Bairro</Label>
+                    <Input required name="neighborhood" value={formData.neighborhood} onChange={handleInputChange} className="bg-white/5 border-white/10 h-14 rounded-2xl" />
+                  </div>
+                  <div className="space-y-3">
                     <Label className="text-[9px] font-black uppercase tracking-widest text-white/30">Cidade</Label>
                     <Input required name="city" value={formData.city} onChange={handleInputChange} className="bg-white/5 border-white/10 h-14 rounded-2xl" />
                   </div>
@@ -363,6 +435,32 @@ const Checkout = () => {
                     <Label className="text-[9px] font-black uppercase tracking-widest text-white/30">Endereço</Label>
                     <Input required name="address" value={formData.address} onChange={handleInputChange} className="bg-white/5 border-white/10 h-14 rounded-2xl" />
                   </div>
+                  <div className="space-y-3">
+                    <Label className="text-[9px] font-black uppercase tracking-widest text-white/30">Número</Label>
+                    <Input required name="number" value={formData.number} onChange={handleInputChange} className="bg-white/5 border-white/10 h-14 rounded-2xl" />
+                  </div>
+                  <div className="space-y-3">
+                    <Label className="text-[9px] font-black uppercase tracking-widest text-white/30">Complemento</Label>
+                    <Input name="complement" value={formData.complement} onChange={handleInputChange} placeholder="Apto 101, etc." className="bg-white/5 border-white/10 h-14 rounded-2xl" />
+                  </div>
+
+                  {!user && (
+                    <div className="md:col-span-2 pt-6 border-t border-white/5 space-y-4">
+                      <label className="flex items-center gap-3 cursor-pointer group">
+                        <div className={`w-5 h-5 rounded flex items-center justify-center transition-all ${createAccount ? 'bg-[#d4af37]' : 'bg-white/5 border border-white/10 group-hover:border-white/30'}`}>
+                          {createAccount && <Check className="w-3 h-3 text-black" />}
+                        </div>
+                        <input type="checkbox" className="hidden" checked={createAccount} onChange={(e) => setCreateAccount(e.target.checked)} />
+                        <span className="text-[11px] font-bold text-white/60">Criar uma conta para acompanhar meu pedido (opcional)</span>
+                      </label>
+                      {createAccount && (
+                        <div className="space-y-3 animate-in fade-in">
+                          <Label className="text-[9px] font-black uppercase tracking-widest text-white/30">Senha para sua nova conta</Label>
+                          <Input required type="password" name="password" value={formData.password} onChange={handleInputChange} placeholder="Sua senha" className="bg-white/5 border-white/10 h-14 rounded-2xl" />
+                        </div>
+                      )}
+                    </div>
+                  )}
                 </div>
               </div>
 
@@ -400,8 +498,20 @@ const Checkout = () => {
                 </div>
               </div>
               
+              <div className="space-y-4">
+                <label className="flex items-start gap-3 cursor-pointer group">
+                  <div className={`w-5 h-5 rounded flex items-center justify-center shrink-0 transition-all ${acceptedTerms ? 'bg-[#d4af37]' : 'bg-white/5 border border-white/10 group-hover:border-white/30'}`}>
+                    {acceptedTerms && <Check className="w-3 h-3 text-black" />}
+                  </div>
+                  <input type="checkbox" className="hidden" checked={acceptedTerms} onChange={(e) => setAcceptedTerms(e.target.checked)} />
+                  <span className="text-[10px] text-white/40 leading-relaxed">
+                    Eu li e concordo com os <a href="#" className="text-[#d4af37] hover:underline">Termos e Condições</a> e a <a href="#" className="text-[#d4af37] hover:underline">Política de Privacidade</a> da JR Acessórios. *
+                  </span>
+                </label>
+              </div>
+
               <Button type="submit" disabled={isProcessing} className="w-full h-20 bg-[#d4af37] text-black font-black uppercase tracking-[0.2em] text-[11px] rounded-[24px] shadow-2xl shadow-[#d4af37]/10 hover:bg-[#f2ca50] transition-all">
-                {isProcessing ? <Loader2 className="w-6 h-6 animate-spin" /> : `Finalizar Pedido — R$ ${total.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`}
+                {isProcessing ? <Loader2 className="w-6 h-6 animate-spin" /> : `Finalizar Pedido — R$ ${finalTotal.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`}
               </Button>
             </form>
           </div>
@@ -458,19 +568,51 @@ const Checkout = () => {
                 </div>
               )}
 
-              <div className="mt-10 pt-8 border-t border-white/5 space-y-4">
+              <div className="mt-8 pt-8 border-t border-white/5 space-y-6">
+                <div className="space-y-3">
+                  <Label className="text-[9px] font-black uppercase tracking-widest text-white/30">Opções de Entrega</Label>
+                  <div className="grid grid-cols-2 gap-4">
+                    <button type="button" onClick={() => { setShippingOption('normal'); setShippingCost(15.90); }} className={`p-4 rounded-2xl border-2 text-left transition-all ${shippingOption === 'normal' ? 'border-[#d4af37] bg-[#d4af37]/5' : 'border-white/5 bg-white/[0.02]'}`}>
+                      <p className="text-[10px] font-bold text-white uppercase">Normal</p>
+                      <p className="text-[9px] text-white/40 mt-1">7 a 10 dias úteis</p>
+                      <p className="text-[10px] font-bold text-[#d4af37] mt-2">R$ 15,90</p>
+                    </button>
+                    <button type="button" onClick={() => { setShippingOption('express'); setShippingCost(0); }} className={`p-4 rounded-2xl border-2 text-left transition-all ${shippingOption === 'express' ? 'border-[#d4af37] bg-[#d4af37]/5' : 'border-white/5 bg-white/[0.02]'}`}>
+                      <p className="text-[10px] font-bold text-white uppercase">Expressa</p>
+                      <p className="text-[9px] text-white/40 mt-1">2 a 4 dias úteis</p>
+                      <p className="text-[10px] font-bold text-green-500 mt-2">Grátis</p>
+                    </button>
+                  </div>
+                </div>
+
+                <div className="space-y-3">
+                  <Label className="text-[9px] font-black uppercase tracking-widest text-white/30">Cupom de Desconto</Label>
+                  <div className="flex gap-2">
+                    <Input value={couponCode} onChange={(e) => setCouponCode(e.target.value)} placeholder="Código" className="bg-white/5 border-white/10 h-12 rounded-xl flex-1 uppercase" />
+                    <Button type="button" onClick={() => { if (couponCode.toUpperCase() === 'LUMINA10') { setDiscount(total * 0.1); toast.success('Cupom aplicado: 10% OFF!'); } else { toast.error('Cupom inválido'); } }} className="h-12 bg-white/10 text-white rounded-xl font-bold text-[10px] px-6 uppercase hover:bg-white/20">Aplicar</Button>
+                  </div>
+                </div>
+              </div>
+
+              <div className="mt-8 pt-8 border-t border-white/5 space-y-4">
                 <div className="flex justify-between text-[10px] font-bold uppercase tracking-widest text-white/30">
                   <span>Subtotal</span>
                   <span>R$ {total.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</span>
                 </div>
-                <div className="flex justify-between text-[10px] font-bold uppercase tracking-widest text-green-500">
-                  <span>Entrega Expressa</span>
-                  <span>Grátis</span>
+                <div className="flex justify-between text-[10px] font-bold uppercase tracking-widest text-white/30">
+                  <span>Frete</span>
+                  <span className={shippingCost === 0 ? "text-green-500" : ""}>{shippingCost === 0 ? 'Grátis' : `R$ ${shippingCost.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`}</span>
                 </div>
-                <div className="flex justify-between items-end pt-6">
+                {discount > 0 && (
+                  <div className="flex justify-between text-[10px] font-bold uppercase tracking-widest text-[#d4af37]">
+                    <span>Desconto</span>
+                    <span>- R$ {discount.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</span>
+                  </div>
+                )}
+                <div className="flex justify-between items-end pt-6 border-t border-white/5">
                   <div>
                     <p className="text-[10px] font-black uppercase tracking-widest text-white/20">Valor Total</p>
-                    <p className="text-3xl font-serif font-black text-white">R$ {total.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</p>
+                    <p className="text-3xl font-serif font-black text-white">R$ {finalTotal.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</p>
                   </div>
                   <Diamond className="w-6 h-6 text-[#d4af37]/20" />
                 </div>

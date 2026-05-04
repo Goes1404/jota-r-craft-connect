@@ -105,8 +105,9 @@ export const AICopilot: React.FC = () => {
 
   if (!isOpen) {
     return (
-      <button 
+      <button
         onClick={() => setIsOpen(true)}
+        aria-label="Abrir assistente Lumina AI"
         className="fixed bottom-8 right-8 z-[100] w-16 h-16 bg-[#0a0a0a] border border-[#d4af37]/40 rounded-full shadow-[0_0_40px_rgba(212,175,55,0.2)] flex items-center justify-center group hover:scale-110 transition-all duration-500 hover:border-[#d4af37]"
       >
         <Sparkles className="w-8 h-8 text-[#d4af37] group-hover:rotate-12 transition-transform" />
@@ -133,10 +134,18 @@ export const AICopilot: React.FC = () => {
           </div>
         </div>
         <div className="flex items-center gap-1 relative z-10">
-          <button onClick={() => setIsMinimized(!isMinimized)} className="text-white/20 hover:text-white p-2 transition-colors">
+          <button
+            onClick={() => setIsMinimized(!isMinimized)}
+            aria-label={isMinimized ? 'Expandir chat' : 'Minimizar chat'}
+            className="text-white/20 hover:text-white p-2 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#d4af37]/50 rounded"
+          >
             {isMinimized ? <Maximize2 className="w-4 h-4" /> : <Minimize2 className="w-4 h-4" />}
           </button>
-          <button onClick={() => setIsOpen(false)} className="text-white/20 hover:text-red-400 p-2 transition-colors">
+          <button
+            onClick={() => setIsOpen(false)}
+            aria-label="Fechar assistente"
+            className="text-white/20 hover:text-red-400 p-2 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-400/50 rounded"
+          >
             <X className="w-4 h-4" />
           </button>
         </div>
@@ -145,7 +154,7 @@ export const AICopilot: React.FC = () => {
       {!isMinimized && (
         <>
           {/* Messages */}
-          <div ref={scrollRef} className="flex-1 overflow-y-auto p-8 space-y-8 scrollbar-hide">
+          <div ref={scrollRef} role="log" aria-live="polite" aria-label="Mensagens do chat" className="flex-1 overflow-y-auto p-8 space-y-8 scrollbar-hide">
             {messages.map((msg, i) => (
               <div key={i} className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'} animate-in fade-in slide-in-from-bottom-2 duration-500`}>
                 <div className={`flex gap-4 max-w-[85%] ${msg.role === 'user' ? 'flex-row-reverse' : ''}`}>
@@ -188,17 +197,20 @@ export const AICopilot: React.FC = () => {
           {/* Input Area */}
           <div className="p-8 border-t border-white/5 bg-[#050505]">
             <div className="relative group">
-              <input 
+              <input
                 value={input}
                 onChange={(e) => setInput(e.target.value)}
-                onKeyPress={(e) => e.key === 'Enter' && handleSendMessage()}
+                onKeyDown={(e) => e.key === 'Enter' && !e.shiftKey && handleSendMessage()}
                 placeholder={isAdmin ? "Comando estratégico..." : "Sua dúvida ou desejo..."}
+                aria-label="Mensagem para Lumina AI"
                 className="w-full bg-white/[0.03] border border-white/10 h-16 rounded-2xl pl-6 pr-16 text-xs text-white placeholder:text-white/20 outline-none focus:border-[#d4af37]/40 focus:bg-white/[0.05] transition-all"
               />
-              <button 
+              <button
                 onClick={handleSendMessage}
                 disabled={isLoading || !input.trim()}
-                className="absolute right-3 top-3 w-10 h-10 bg-[#d4af37] hover:bg-[#f2ca50] disabled:bg-white/10 disabled:text-white/20 text-black rounded-xl flex items-center justify-center transition-all shadow-lg"
+                aria-label="Enviar mensagem"
+                aria-busy={isLoading}
+                className="absolute right-3 top-3 w-10 h-10 bg-[#d4af37] hover:bg-[#f2ca50] disabled:bg-white/10 disabled:text-white/20 text-black rounded-xl flex items-center justify-center transition-all shadow-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#d4af37]"
               >
                 <Send className="w-4 h-4" />
               </button>

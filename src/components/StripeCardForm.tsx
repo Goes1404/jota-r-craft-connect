@@ -92,7 +92,7 @@ const StripeCardFormInner: React.FC<StripeCardFormProps> = ({
   };
 
   return (
-    <div className="space-y-6">
+    <form onSubmit={(e) => { e.preventDefault(); handleSubmit(); }} className="space-y-6">
       <div className="space-y-3">
         <Label className="text-[10px] font-bold uppercase tracking-widest text-white/40 flex items-center gap-2">
           <CreditCard className="w-3 h-3" /> Número do Cartão
@@ -121,11 +121,15 @@ const StripeCardFormInner: React.FC<StripeCardFormProps> = ({
         <p className="text-red-500 text-xs font-bold animate-in fade-in">{cardError}</p>
       )}
 
+      <Button type="submit" disabled={isProcessing} className="w-full bg-[#d4af37] text-black hover:bg-[#f2ca50] font-bold uppercase tracking-widest text-[10px] h-12 rounded-xl">
+        {isProcessing ? 'Processando...' : 'Confirmar Pagamento'}
+      </Button>
+
       <div className="flex items-center gap-2 text-[9px] font-bold text-white/20 uppercase tracking-widest pt-2">
         <Lock className="w-3 h-3" />
         Dados criptografados via Stripe. Nenhum dado de cartão toca nossos servidores.
       </div>
-    </div>
+    </form>
   );
 };
 

@@ -13,6 +13,61 @@ import { SmartShowcase } from '@/components/SmartShowcase';
 import { TrackingInText } from '@/components/animations/TrackingIn';
 import { MaskReveal } from '@/components/animations/MaskReveal';
 
+const ApplePhoneIcon = ({ className }: { className?: string }) => (
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1" strokeLinecap="round" strokeLinejoin="round" className={className}>
+    <rect x="5.5" y="2.5" width="13" height="19" rx="3.5" />
+    <path d="M10.5 2.5h3" strokeWidth="1.5" />
+    <circle cx="12" cy="18.5" r="0.75" fill="currentColor" stroke="none" />
+  </svg>
+);
+
+const AppleWatchIcon = ({ className }: { className?: string }) => (
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1" strokeLinecap="round" strokeLinejoin="round" className={className}>
+    <rect x="7" y="5" width="10" height="14" rx="3.5" />
+    <path d="M8.5 2v3" />
+    <path d="M15.5 2v3" />
+    <path d="M8.5 19v3" />
+    <path d="M15.5 19v3" />
+    <path d="M17 9h1" strokeWidth="1.5" />
+    <circle cx="17.5" cy="13" r="1" fill="currentColor" stroke="none" />
+  </svg>
+);
+
+const AirPodsIcon = ({ className }: { className?: string }) => (
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1" strokeLinecap="round" strokeLinejoin="round" className={className}>
+    <path d="M3 14.5v-2a9 9 0 0 1 18 0v2" />
+    <rect x="3" y="14.5" width="18" height="7" rx="3" />
+    <circle cx="12" cy="18" r="1" fill="currentColor" stroke="none" />
+  </svg>
+);
+
+const CaseIcon = ({ className }: { className?: string }) => (
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1" strokeLinecap="round" strokeLinejoin="round" className={className}>
+    <rect x="5" y="2" width="14" height="20" rx="4" />
+    <rect x="6.5" y="3.5" width="11" height="17" rx="2.5" strokeOpacity="0.5" />
+    <path d="M10 2h4" strokeWidth="1.5" />
+  </svg>
+);
+
+const EnergyIcon = ({ className }: { className?: string }) => (
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1" strokeLinecap="round" strokeLinejoin="round" className={className}>
+    <circle cx="12" cy="12" r="8" />
+    <circle cx="12" cy="12" r="3" />
+    <path d="M12 4v3" />
+    <path d="M12 17v3" />
+    <path d="M4 12h3" />
+    <path d="M17 12h3" />
+  </svg>
+);
+
+const PlusIcon = ({ className }: { className?: string }) => (
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1" strokeLinecap="round" strokeLinejoin="round" className={className}>
+    <circle cx="12" cy="12" r="9" />
+    <path d="M12 8v8" />
+    <path d="M8 12h8" />
+  </svg>
+);
+
 /* ─── Countdown Hook ─── */
 function useCountdown(targetHours: number) {
   const end = useRef(Date.now() + targetHours * 3600 * 1000);
@@ -111,17 +166,17 @@ const Index: React.FC = () => {
         <div className="container mx-auto px-4 overflow-x-auto scrollbar-hide">
           <div className="flex justify-between md:justify-center gap-6 md:gap-16 min-w-max">
             {[
-              { label: 'iPhones', icon: Smartphone, color: 'bg-blue-500/10 text-blue-500' },
-              { label: 'Watches', icon: Watch, color: 'bg-orange-500/10 text-orange-500' },
-              { label: 'AirPods', icon: Headphones, color: 'bg-purple-500/10 text-purple-500' },
-              { label: 'Cases', icon: Shield, color: 'bg-green-500/10 text-green-500' },
-              { label: 'Energia', icon: Zap, color: 'bg-yellow-500/10 text-yellow-500' },
-              { label: 'Mais', icon: Plus, color: 'bg-primary/10 text-primary' }
+              { label: 'iPhones', value: 'Smartphone', icon: ApplePhoneIcon, color: 'bg-blue-500/10 text-blue-500' },
+              { label: 'Watches', value: 'Watch', icon: AppleWatchIcon, color: 'bg-orange-500/10 text-orange-500' },
+              { label: 'AirPods', value: 'Audio', icon: AirPodsIcon, color: 'bg-purple-500/10 text-purple-500' },
+              { label: 'Cases', value: 'Protection', icon: CaseIcon, color: 'bg-green-500/10 text-green-500' },
+              { label: 'Energia', value: 'Power', icon: EnergyIcon, color: 'bg-yellow-500/10 text-yellow-500' },
+              { label: 'Mais', value: '', icon: PlusIcon, color: 'bg-primary/10 text-primary' }
             ].map((item, i) => (
-              <Link key={i} to="/produtos" className="flex flex-col items-center gap-3 group transition-all">
+              <Link key={i} to={`/produtos${item.value ? `?category=${item.value}` : ''}`} className="flex flex-col items-center gap-3 group transition-all">
                 <div className={`h-14 w-14 rounded-full ${item.color} flex items-center justify-center transition-all duration-500 shadow-lg border border-white/5 group-hover:border-primary/40 relative overflow-hidden`}>
                   <div className="absolute inset-0 bg-white/5 opacity-0 group-hover:opacity-100 transition-opacity"></div>
-                  <item.icon className="h-6 w-6 transition-transform duration-500" />
+                  <item.icon className="h-7 w-7 transition-transform duration-500 group-hover:scale-110" />
                 </div>
                 <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-white/30 group-hover:text-white transition-all">
                   {item.label}
@@ -133,7 +188,7 @@ const Index: React.FC = () => {
       </section>
 
       {/* ═══ Smart Showcase Section (Vitrine Inteligente) ═══ */}
-      <section className="py-20 bg-background relative overflow-hidden">
+      <section className="py-14 bg-background relative overflow-hidden">
         <div className="absolute top-0 left-0 w-full h-[1px] bg-gradient-to-r from-transparent via-primary/20 to-transparent"></div>
         <div className="container mx-auto px-4">
           <SmartShowcase 
@@ -173,7 +228,7 @@ const Index: React.FC = () => {
               to="/produtos"
               className="relative col-span-2 h-48 md:h-56 rounded-2xl overflow-hidden bg-zinc-900 border border-primary/20 group cursor-pointer"
             >
-              <div className="absolute inset-0 bg-[url('https://images.unsplash.com/photo-1592899677977-9c10ca588bbd?w=800')] bg-cover bg-center brightness-[0.4] group-hover:brightness-50 transition-all duration-700 group-hover:scale-105" />
+              <div className="absolute inset-0 bg-zinc-800 bg-[url('https://images.unsplash.com/photo-1592899677977-9c10ca588bbd?w=800&auto=format&fit=crop')] bg-cover bg-center brightness-[0.4] group-hover:brightness-50 transition-all duration-700 group-hover:scale-105" />
               <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent" />
               <div className="relative z-10 p-6 h-full flex flex-col justify-end">
                 <span className="text-[9px] font-black uppercase tracking-[0.35em] text-primary mb-1 opacity-80">Coleção Premium</span>
@@ -226,10 +281,10 @@ const Index: React.FC = () => {
 
             {/* Smartwatches banner — spans 2 cols on all sizes */}
             <Link
-              to="/produtos"
+              to="/produtos?category=Watch"
               className="relative col-span-2 h-48 md:h-56 rounded-2xl overflow-hidden bg-zinc-900 border border-primary/20 group cursor-pointer"
             >
-              <div className="absolute inset-0 bg-[url('https://images.unsplash.com/photo-1544244015-0cd4b3ff8f9d?w=800')] bg-cover bg-center brightness-[0.4] group-hover:brightness-50 transition-all duration-700 group-hover:scale-105" />
+              <div className="absolute inset-0 bg-zinc-800 bg-[url('https://images.unsplash.com/photo-1546868871-7041f2a55e12?q=80&w=1000&auto=format&fit=crop')] bg-cover bg-center brightness-[0.5] group-hover:brightness-75 transition-all duration-700 group-hover:scale-105" />
               <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent" />
               <div className="relative z-10 p-6 h-full flex flex-col justify-end">
                 <span className="text-[9px] font-black uppercase tracking-[0.35em] text-primary mb-1 opacity-80">Novidades</span>
@@ -245,7 +300,7 @@ const Index: React.FC = () => {
       </section>
 
       {/* ═══ Depoimentos ═══ */}
-      <section className="py-16 md:py-24 bg-muted/30 border-y overflow-hidden">
+      <section className="py-12 md:py-16 bg-muted/30 border-y overflow-hidden">
         <div className="container mx-auto px-4">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
             {/* Left: info */}
