@@ -13,7 +13,7 @@ import ProtectedAdminRoute from "./components/ProtectedAdminRoute";
 import { ExitIntentPopup } from "./components/ExitIntentPopup";
 import { AICopilot } from "./components/AICopilot";
 import { SocialProofToast } from "./components/SocialProofToast";
-import { LGPDBanner } from "./components/LGPDBanner";
+import { CookieBanner } from "./components/CookieBanner";
 
 // ─── lazy page imports ────────────────────────────────────────────────────────
 const Index = lazy(() => import("./pages/Index"));
@@ -41,9 +41,9 @@ const AdminReviews = lazy(() => import("./pages/AdminReviews"));
 const AdminSettings = lazy(() => import("./pages/AdminSettings"));
 const AdminAbandonedCarts = lazy(() => import("./pages/AdminAbandonedCarts"));
 const AdminInventoryIntelligence = lazy(() => import("./pages/AdminInventoryIntelligence"));
-const Termos = lazy(() => import("./pages/Termos"));
-const Privacidade = lazy(() => import("./pages/Privacidade"));
-const Seguranca = lazy(() => import("./pages/Seguranca"));
+const Terms = lazy(() => import("./pages/Terms"));
+const Privacy = lazy(() => import("./pages/Privacy"));
+const Security = lazy(() => import("./pages/Security"));
 const NotFound = lazy(() => import("./pages/NotFound"));
 // ─────────────────────────────────────────────────────────────────────────────
 
@@ -69,7 +69,7 @@ const App = () => (
                   <ExitIntentPopup />
                   <AICopilot />
                   <SocialProofToast />
-                  <LGPDBanner />
+                  <CookieBanner />
                   <Suspense fallback={<PageLoader />}>
                     <Routes>
                       <Route path="/" element={<Index />} />
@@ -99,9 +99,9 @@ const App = () => (
                       <Route path="/admin/settings" element={<ProtectedAdminRoute><AdminSettings /></ProtectedAdminRoute>} />
                       <Route path="/admin/abandoned-carts" element={<ProtectedAdminRoute><AdminAbandonedCarts /></ProtectedAdminRoute>} />
                       <Route path="/admin/inventory-intelligence" element={<ProtectedAdminRoute><AdminInventoryIntelligence /></ProtectedAdminRoute>} />
-                      <Route path="/termos" element={<Termos />} />
-                      <Route path="/privacidade" element={<Privacidade />} />
-                      <Route path="/perfil/seguranca" element={<Seguranca />} />
+                      <Route path="/termos" element={<Terms />} />
+                      <Route path="/privacidade" element={<Privacy />} />
+                      <Route path="/perfil/seguranca" element={<Security />} />
                       <Route path="*" element={<NotFound />} />
                     </Routes>
                   </Suspense>
