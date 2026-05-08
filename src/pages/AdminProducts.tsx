@@ -30,7 +30,8 @@ import {
   TrendingDown,
   PieChart,
   Sparkles,
-  Loader2
+  Loader2,
+  FileText
 } from 'lucide-react';
 import {
   Dialog,
@@ -51,11 +52,13 @@ import {
 
 import { useAdminProducts, useProductMutations } from '@/hooks/useProducts';
 import { Product } from '@/types/database';
+import PdfBulkImport from '@/components/PdfBulkImport';
 
 const AdminProducts = () => {
   const { user, loading } = useAuth();
   const navigate = useNavigate();
   const { toast } = useToast();
+  const queryClient = useQueryClient();
   
   const [editingProduct, setEditingProduct] = useState<Product | null>(null);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
@@ -76,6 +79,7 @@ const AdminProducts = () => {
   const [nameFilter, setNameFilter] = useState('');
   const [categoryFilter, setCategoryFilter] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
+  const [isPdfDialogOpen, setIsPdfDialogOpen] = useState(false);
 
   const { data: allProducts = [], isLoading } = useAdminProducts();
   const { createProduct, updateProduct, deleteProduct } = useProductMutations();
@@ -215,6 +219,36 @@ const AdminProducts = () => {
             <h1 className="text-xl font-serif font-black text-white uppercase tracking-[0.2em]">Curadoria <span className="text-[#d4af37]">Peças</span></h1>
           </div>
           
+          <div className="flex items-center gap-3">
+            {/* PDF Bulk Import */}
+            <Dialog open={isPdfDialogOpen} onOpenChange={setIsPdfDialogOpen}>
+              <DialogTrigger asChild>
+                <Button variant="ghost" className="border border-white/10 text-white/50 hover:text-[#d4af37] hover:border-[#d4af37]/30 font-black text-[10px] uppercase tracking-widest px-6 h-12 rounded-full transition-all">
+                  <FileText className="h-4 w-4 mr-2" /> Importar PDF
+                </Button>
+              </DialogTrigger>
+              <DialogContent className="max-w-2xl bg-[#0a0a0a] border-white/10 text-white rounded-[32px] overflow-hidden p-0">
+                <div className="p-8 border-b border-white/5 bg-black/50">
+                  <DialogHeader>
+                    <DialogTitle className="text-2xl font-serif font-bold text-white">
+                      Importar Produtos via PDF
+                    </DialogTitle>
+                    <DialogDescription className="text-white/40 text-xs uppercase tracking-widest font-bold mt-1">
+                      A IA extrai automaticamente os produtos do documento.
+                    </DialogDescription>
+                  </DialogHeader>
+                </div>
+                <div className="p-8">
+                  <PdfBulkImport
+                    onImportComplete={() => {
+                      setIsPdfDialogOpen(false);
+                      queryClient.invalidateQueries({ queryKey: ['admin-products'] });
+                    }}
+                  />
+                </div>
+              </DialogContent>
+            </Dialog>
+
           <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
             <DialogTrigger asChild>
               <Button onClick={resetForm} className="bg-[#d4af37] text-black font-black text-[10px] uppercase tracking-widest px-8 h-12 rounded-full transition-all hover:bg-[#f2ca50] shadow-xl shadow-[#d4af37]/10">
