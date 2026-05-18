@@ -12,6 +12,7 @@ import { WHATSAPP_LINK } from '@/config/constants';
 import { SmartShowcase } from '@/components/SmartShowcase';
 import { TrackingInText } from '@/components/animations/TrackingIn';
 import { MaskReveal } from '@/components/animations/MaskReveal';
+import { useAppSettings } from '@/hooks/useProducts';
 
 const ApplePhoneIcon = ({ className }: { className?: string }) => (
   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1" strokeLinecap="round" strokeLinejoin="round" className={className}>
@@ -93,6 +94,11 @@ const Index: React.FC = () => {
   usePageVisit('home');
 
   const countdown = useCountdown(23);
+  const { data: settings } = useAppSettings();
+  const bannerEnabled = settings?.offer_banner_enabled !== 'false';
+  const bannerBadge = settings?.offer_banner_badge || 'Oferta Relâmpago';
+  const bannerText = settings?.offer_banner_text || 'Até 20% OFF em acessórios selecionados';
+  const freeShippingThreshold = settings?.free_shipping_threshold || '500';
 
   const WHATSAPP = `${WHATSAPP_LINK}?text=Ol%C3%A1%2C%20vim%20pelo%20site%20e%20gostaria%20de%20mais%20informa%C3%A7%C3%B5es!`;
 
@@ -126,14 +132,15 @@ const Index: React.FC = () => {
       <GlassHero />
 
       {/* ═══ Flash Sale Countdown ═══ */}
+      {bannerEnabled && (
       <section className="bg-zinc-950 border-y border-primary/30 py-5">
         <div className="container mx-auto px-4">
           <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
             <div className="flex items-center gap-3">
               <span className="text-2xl">⚡</span>
               <div>
-                <p className="text-primary font-black uppercase tracking-widest text-xs">Oferta Relâmpago</p>
-                <p className="text-white font-bold text-sm md:text-base">Até <span className="text-primary">20% OFF</span> em acessórios selecionados</p>
+                <p className="text-primary font-black uppercase tracking-widest text-xs">{bannerBadge}</p>
+                <p className="text-white font-bold text-sm md:text-base">{bannerText}</p>
               </div>
             </div>
             <div className="flex items-center gap-2">
@@ -160,6 +167,7 @@ const Index: React.FC = () => {
           </div>
         </div>
       </section>
+      )}
 
       {/* ─── Categories Nav ─── */}
       <section className="bg-[#0a0a0a] border-b border-white/5 py-4">
@@ -267,7 +275,7 @@ const Index: React.FC = () => {
                 <p className="text-sm font-black text-white">Frete Grátis</p>
                 <p className="text-[10px] text-white/30 mt-1 leading-relaxed">
                   Compras acima de{' '}
-                  <span className="text-primary font-bold">R$ 500</span>{' '}
+                  <span className="text-primary font-bold">R$ {freeShippingThreshold}</span>{' '}
                   têm envio cortesia
                 </p>
               </div>

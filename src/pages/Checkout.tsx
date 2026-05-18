@@ -65,6 +65,7 @@ const Checkout = () => {
   const [pixTimeLeft, setPixTimeLeft] = useState(PIX_EXPIRATION_MINUTES * 60);
   const pollingRef = useRef<NodeJS.Timeout | null>(null);
   const timerRef = useRef<NodeJS.Timeout | null>(null);
+  const numberInputRef = useRef<HTMLInputElement>(null);
   const [abandonedCartId, setAbandonedCartId] = useState<string | null>(null);
 
   const [acceptedTerms, setAcceptedTerms] = useState(false);
@@ -214,6 +215,7 @@ const Checkout = () => {
         } else {
           setFormData(prev => ({ ...prev, address: data.logradouro || prev.address, neighborhood: data.bairro || prev.neighborhood, city: data.localidade || prev.city, state: data.uf || prev.state }));
           toast.success('Endereço autocompletado!');
+          setTimeout(() => numberInputRef.current?.focus(), 100);
 
           // Fetch real shipping rates from edge function
           setIsCalculatingShipping(true);
@@ -563,7 +565,7 @@ const Checkout = () => {
                   </div>
                   <div className="space-y-3">
                     <Label className="text-[9px] font-black uppercase tracking-widest text-white/30">Número</Label>
-                    <Input required name="number" value={formData.number} onChange={handleInputChange} className="bg-white/5 border-white/10 h-14 rounded-2xl" />
+                    <Input ref={numberInputRef} required name="number" value={formData.number} onChange={handleInputChange} className="bg-white/5 border-white/10 h-14 rounded-2xl" />
                   </div>
                   <div className="space-y-3">
                     <Label className="text-[9px] font-black uppercase tracking-widest text-white/30">Complemento</Label>

@@ -3,7 +3,7 @@ import { Lock, Plus, Minus, ShoppingBag, Diamond, Trash2, ArrowRight, Zap, Spark
 import { Button } from '@/components/ui/button';
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sheet';
 import { useCart } from '@/contexts/CartContext';
-import { useProducts } from '@/hooks/useProducts';
+import { useProducts, useAppSettings } from '@/hooks/useProducts';
 import { useToast } from '@/hooks/use-toast';
 import { useNavigate } from 'react-router-dom';
 
@@ -74,11 +74,11 @@ interface CartModalProps {
   onClose: () => void;
 }
 
-const FREE_SHIPPING_THRESHOLD = 500;
-
 export const CartModal: React.FC<CartModalProps> = ({ isOpen, onClose }) => {
   const { cartItems, updateQuantity, removeFromCart, getTotalPrice, addToCart } = useCart();
   const { data: allProducts = [] } = useProducts();
+  const { data: settings } = useAppSettings();
+  const FREE_SHIPPING_THRESHOLD = Number(settings?.free_shipping_threshold) || 500;
   const { toast } = useToast();
   const navigate = useNavigate();
 
