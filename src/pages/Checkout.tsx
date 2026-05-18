@@ -10,6 +10,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { toast } from 'sonner';
 import { StripeCardForm } from '@/components/StripeCardForm';
+import { PaymentRequestButton } from '@/components/PaymentRequestButton';
 import { useProducts } from '@/hooks/useProducts';
 import { 
   CreditCard, 
@@ -244,6 +245,90 @@ const Checkout = () => {
     }
   };
 
+  // Apple Pay / Google Pay — cria o pedido e retorna o clientSecret.
+  // A confirmação do pagamento é feita pelo PaymentRequestButton (que tem acesso ao stripe).
+  const createWalletOrder = async (paymentMethodId: string): Promise<{ clientSecret: string } | null> => {
+    if (!isValidCPF(formData.cpf)) {
+      toast.error('CPF inválido. Preencha o formulário antes de usar Apple Pay / Google Pay.');
+      return null;
+    }
+    if (!formData.fullName || !formData.email || !formData.cep || !formData.address) {
+      toast.error('Preencha os dados de entrega antes de usar o pagamento expresso.');
+      return null;
+    }
+    if (!acceptedTerms) {
+      toast.error('Aceite os Termos e Condições para continuar.');
+      return null;
+    }
+
+    setIsProcessing(true);
+    try {
+      const { data: currentProducts } = await supabase
+        .from('products')
+        .select('id, name, stock')
+        .in('id', cartItems.map(i => i.id));
+
+      for (const cartItem of cartItems) {
+        const product = currentProducts?.find(p => p.id === cartItem.id);
+        if (!product || product.stock < cartItem.quantity) {
+          toast.error(`Estoque insuficiente para "${cartItem.name}". Disponível: ${product?.stock ?? 0}`);
+          return null;
+        }
+      }
+
+      let finalUserId = user?.id || null;
+      if (!user && createAccount && formData.password) {
+        const { data: signUpData, error: signUpError } = await supabase.auth.signUp({
+          email: formData.email,
+          password: formData.password,
+          options: { data: { full_name: formData.fullName } }
+        });
+        if (signUpError) throw signUpError;
+        if (signUpData.user) finalUserId = signUpData.user.id;
+      }
+
+      const { data: orderData, error: orderError } = await supabase.from('orders').insert({
+        user_id: finalUserId,
+        customer_name: formData.fullName,
+        customer_phone: formData.phone,
+        customer_email: formData.email,
+        total_amount: finalTotal,
+        status: 'Aguardando Pagamento',
+        shipping_address: `${formData.address}, ${formData.number} ${formData.complement ? '- ' + formData.complement : ''} — ${formData.neighborhood}, ${formData.city}/${formData.state} (${formData.cep})`,
+        payment_method: 'credit_card'
+      } as any).select().single();
+
+      if (orderError) throw orderError;
+
+      const orderId = orderData.id;
+      setCreatedOrderId(orderId);
+
+      await supabase.from('order_items').insert(
+        cartItems.map(item => ({
+          order_id: orderId,
+          product_id: item.id,
+          quantity: item.quantity,
+          unit_price: item.price,
+        }))
+      );
+
+      const { data: stripeResult } = await supabase.functions.invoke('create-stripe-payment', {
+        body: { orderId, totalAmount: finalTotal }
+      });
+
+      if (!stripeResult?.success || !stripeResult.clientSecret) {
+        throw new Error('Falha ao iniciar pagamento via carteira digital.');
+      }
+
+      return { clientSecret: stripeResult.clientSecret };
+    } catch (error: any) {
+      toast.error('Erro ao preparar pagamento: ' + error.message);
+      return null;
+    } finally {
+      setIsProcessing(false);
+    }
+  };
+
   const handleCheckout = async (e: React.FormEvent) => {
     e.preventDefault();
     if (cartItems.length === 0) return;
@@ -389,11 +474,11 @@ const Checkout = () => {
           {paymentMethod === 'credit_card' && !isPaid && stripeClientSecret && (
             <div className="bg-[#0f0f0f] border border-white/10 p-8 rounded-[40px] mb-10 w-full max-w-md text-left">
               <h2 className="text-xl font-bold text-white mb-6">Dados do Cartão</h2>
-              <StripeCardForm 
+              <StripeCardForm
                 clientSecret={stripeClientSecret}
                 isProcessing={isProcessing}
                 setIsProcessing={setIsProcessing}
-                onSuccess={(paymentIntentId) => {
+                onSuccess={() => {
                   setPaymentStatus('pago');
                   toast.success('Pagamento confirmado com sucesso!');
                 }}
@@ -513,6 +598,19 @@ const Checkout = () => {
                   </div>
                   <h2 className="text-xl font-bold text-white uppercase tracking-wider">Forma de Pagamento</h2>
                 </div>
+
+                <PaymentRequestButton
+                  amount={finalTotal}
+                  label="JR Acessórios"
+                  onCreateOrder={createWalletOrder}
+                  onSuccess={() => {
+                    clearCart();
+                    setPaymentStatus('pago');
+                    setOrderSuccess(true);
+                    toast.success('Pagamento via carteira digital confirmado!');
+                  }}
+                  onError={(msg) => toast.error(msg)}
+                />
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <button type="button" onClick={() => setPaymentMethod('pix')} className={`p-6 rounded-3xl border-2 flex items-center justify-between transition-all ${paymentMethod === 'pix' ? 'border-[#25D366] bg-[#25D366]/5' : 'border-white/5 bg-white/[0.02]'}`}>
