@@ -3,9 +3,18 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
 serve(async (req) => {
   try {
+    const MERCADOPAGO_ACCESS_TOKEN = Deno.env.get("MERCADOPAGO_ACCESS_TOKEN");
+    const SUPABASE_URL = Deno.env.get("SUPABASE_URL");
+    const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
+
+    if (!MERCADOPAGO_ACCESS_TOKEN || !SUPABASE_URL || !SUPABASE_SERVICE_ROLE_KEY) {
+      console.error("MP Webhook: missing environment variables");
+      return new Response("Missing env vars", { status: 500 });
+    }
+
     // ── Validação de assinatura do Mercado Pago ──────────────────────────────
     // Docs: https://www.mercadopago.com.br/developers/pt/docs/your-integrations/notifications/webhooks
-    const MP_WEBHOOK_SECRET = Deno.env.get("MP_WEBHOOK_SECRET");
+    const MP_WEBHOOK_SECRET = Deno.env.get("MP_WEBHOOK_SECRET") || Deno.env.get("MERCADOPAGO_WEBHOOK_SECRET");
 
     if (MP_WEBHOOK_SECRET) {
       const xSignature = req.headers.get("x-signature");
@@ -30,7 +39,7 @@ serve(async (req) => {
       }
 
       // Monta o manifest conforme documentação do MP
-      const manifest = `id:${dataId};request-id:${xRequestId};ts:${ts};`;
+      const manifest = `id:${dataId};request-id:${xRequestId ?? ""};ts:${ts};`;
       const key = await crypto.subtle.importKey(
         "raw",
         new TextEncoder().encode(MP_WEBHOOK_SECRET),
@@ -63,10 +72,6 @@ serve(async (req) => {
       return new Response("Ignored event type", { status: 200 });
     }
 
-    const MERCADOPAGO_ACCESS_TOKEN = Deno.env.get("MERCADOPAGO_ACCESS_TOKEN");
-    const SUPABASE_URL = Deno.env.get("SUPABASE_URL");
-    const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
-
     // Busca o pagamento real na API do MP para verificar status
     const mpResponse = await fetch(`https://api.mercadopago.com/v1/payments/${data.id}`, {
       headers: { "Authorization": `Bearer ${MERCADOPAGO_ACCESS_TOKEN}` },
@@ -79,41 +84,44 @@ serve(async (req) => {
 
     const payment = await mpResponse.json();
 
+    console.log(`MP Webhook — Payment ${data.id}: status=${payment.status}, ref=${payment.external_reference}`);
+
     if (payment.status !== "approved") {
       return new Response("Payment not approved", { status: 200 });
     }
 
-    const supabase = createClient(SUPABASE_URL!, SUPABASE_SERVICE_ROLE_KEY!);
     const orderId = payment.external_reference;
-
     if (!orderId) {
-      console.error("MP Webhook: external_reference ausente no pagamento", data.id);
+      console.error("MP Webhook: no external_reference on payment", data.id);
       return new Response("Missing external_reference", { status: 200 });
     }
 
-    // ── Idempotência: não reprocessar se já está Pago ───────────────────────
-    const { data: existingOrder } = await supabase
+    const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
+
+    // Idempotência: não reprocessar se já está Pago
+    const { data: order } = await supabase
       .from("orders")
-      .select("status, payment_intent_id")
+      .select("status, customer_email, customer_name, total_amount, shipping_address")
       .eq("id", orderId)
       .single();
 
-    if (existingOrder?.status === "Pago") {
+    if (order?.status === "Pago") {
+      console.log(`Order ${orderId} already Pago — skipping duplicate MP webhook`);
       return new Response("Already processed", { status: 200 });
     }
-    // ────────────────────────────────────────────────────────────────────────
 
+    // 1. Mark order as Pago
     const { error: updateError } = await supabase
       .from("orders")
       .update({ status: "Pago", payment_intent_id: String(payment.id) })
       .eq("id", orderId);
 
     if (updateError) {
-      console.error("MP Webhook: erro ao atualizar pedido", updateError.message);
+      console.error("Error updating order:", updateError.message);
       return new Response("DB error", { status: 500 });
     }
 
-    // Decrementa estoque
+    // 2. Deduct stock
     const { data: orderItems, error: itemsError } = await supabase
       .from("order_items")
       .select("product_id, quantity")
@@ -128,7 +136,22 @@ serve(async (req) => {
       }
     }
 
-    return new Response("Webhook received", { status: 200 });
+    // 3. Send confirmation email (fire-and-forget)
+    if (order?.customer_email) {
+      supabase.functions.invoke("send-email", {
+        body: {
+          type: "order_confirmed",
+          to: order.customer_email,
+          customerName: order.customer_name,
+          orderId,
+          totalAmount: order.total_amount,
+          shippingAddress: order.shipping_address,
+        },
+      }).catch((err) => console.error("send-email failed:", err));
+    }
+
+    console.log(`Order ${orderId} marked Pago via MP webhook`);
+    return new Response("OK", { status: 200 });
   } catch (error) {
     console.error("MP Webhook error:", error);
     return new Response("Error", { status: 500 });

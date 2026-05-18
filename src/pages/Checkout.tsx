@@ -69,6 +69,8 @@ const Checkout = () => {
   const [acceptedTerms, setAcceptedTerms] = useState(false);
   const [shippingOption, setShippingOption] = useState<'normal' | 'express'>('express');
   const [shippingCost, setShippingCost] = useState(0);
+  const [shippingOptions, setShippingOptions] = useState<{ id: string; name: string; price: number; deadline: string }[]>([]);
+  const [isCalculatingShipping, setIsCalculatingShipping] = useState(false);
   const [couponCode, setCouponCode] = useState('');
   const [discount, setDiscount] = useState(0);
 
@@ -211,6 +213,30 @@ const Checkout = () => {
         } else {
           setFormData(prev => ({ ...prev, address: data.logradouro || prev.address, neighborhood: data.bairro || prev.neighborhood, city: data.localidade || prev.city, state: data.uf || prev.state }));
           toast.success('Endereço autocompletado!');
+
+          // Fetch real shipping rates from edge function
+          setIsCalculatingShipping(true);
+          try {
+            const { data: shippingData } = await supabase.functions.invoke('shipping-calculate', {
+              body: { cep: value.replace(/\D/g, ''), productValue: total },
+            });
+            if (shippingData?.options?.length) {
+              const opts = shippingData.options.map((o: any, idx: number) => ({
+                id: idx === 0 ? 'normal' : 'express',
+                name: o.name ?? (idx === 0 ? 'Normal' : 'Expressa'),
+                price: typeof o.price === 'number' ? o.price : (idx === 0 ? 15.90 : 0),
+                deadline: o.deadline ?? (idx === 0 ? '7 a 10 dias úteis' : '2 a 4 dias úteis'),
+              }));
+              setShippingOptions(opts);
+              // Default to first option
+              setShippingOption('normal');
+              setShippingCost(opts[0].price);
+            }
+          } catch {
+            // Shipping fetch failed — keep UI defaults
+          } finally {
+            setIsCalculatingShipping(false);
+          }
         }
       } catch (error) {
         toast.error('Não foi possível buscar o CEP. Preencha o endereço manualmente.');
@@ -240,6 +266,21 @@ const Checkout = () => {
     setIsProcessing(true);
 
     try {
+      // Validate stock before creating the order
+      const { data: currentProducts } = await supabase
+        .from('products')
+        .select('id, name, stock')
+        .in('id', cartItems.map(i => i.id));
+
+      for (const cartItem of cartItems) {
+        const product = currentProducts?.find(p => p.id === cartItem.id);
+        if (!product || product.stock < cartItem.quantity) {
+          toast.error(`Estoque insuficiente para "${cartItem.name}". Disponível: ${product?.stock ?? 0}`);
+          setIsProcessing(false);
+          return;
+        }
+      }
+
       let finalUserId = user?.id || null;
 
       if (!user && createAccount && formData.password) {
@@ -570,26 +611,47 @@ const Checkout = () => {
 
               <div className="mt-8 pt-8 border-t border-white/5 space-y-6">
                 <div className="space-y-3">
-                  <Label className="text-[9px] font-black uppercase tracking-widest text-white/30">Opções de Entrega</Label>
+                  <div className="flex items-center justify-between">
+                    <Label className="text-[9px] font-black uppercase tracking-widest text-white/30">Opções de Entrega</Label>
+                    {isCalculatingShipping && <Loader2 className="w-3 h-3 text-[#d4af37] animate-spin" />}
+                  </div>
                   <div className="grid grid-cols-2 gap-4">
-                    <button type="button" onClick={() => { setShippingOption('normal'); setShippingCost(15.90); }} className={`p-4 rounded-2xl border-2 text-left transition-all ${shippingOption === 'normal' ? 'border-[#d4af37] bg-[#d4af37]/5' : 'border-white/5 bg-white/[0.02]'}`}>
-                      <p className="text-[10px] font-bold text-white uppercase">Normal</p>
-                      <p className="text-[9px] text-white/40 mt-1">7 a 10 dias úteis</p>
-                      <p className="text-[10px] font-bold text-[#d4af37] mt-2">R$ 15,90</p>
-                    </button>
-                    <button type="button" onClick={() => { setShippingOption('express'); setShippingCost(0); }} className={`p-4 rounded-2xl border-2 text-left transition-all ${shippingOption === 'express' ? 'border-[#d4af37] bg-[#d4af37]/5' : 'border-white/5 bg-white/[0.02]'}`}>
-                      <p className="text-[10px] font-bold text-white uppercase">Expressa</p>
-                      <p className="text-[9px] text-white/40 mt-1">2 a 4 dias úteis</p>
-                      <p className="text-[10px] font-bold text-green-500 mt-2">Grátis</p>
-                    </button>
+                    {(shippingOptions.length > 0 ? shippingOptions : [
+                      { id: 'normal', name: 'Normal', price: 15.90, deadline: '7 a 10 dias úteis' },
+                      { id: 'express', name: 'Expressa', price: 0, deadline: '2 a 4 dias úteis' },
+                    ]).map((opt) => (
+                      <button
+                        key={opt.id}
+                        type="button"
+                        onClick={() => { setShippingOption(opt.id as 'normal' | 'express'); setShippingCost(opt.price); }}
+                        className={`p-4 rounded-2xl border-2 text-left transition-all ${shippingOption === opt.id ? 'border-[#d4af37] bg-[#d4af37]/5' : 'border-white/5 bg-white/[0.02]'}`}
+                      >
+                        <p className="text-[10px] font-bold text-white uppercase">{opt.name}</p>
+                        <p className="text-[9px] text-white/40 mt-1">{opt.deadline}</p>
+                        <p className={`text-[10px] font-bold mt-2 ${opt.price === 0 ? 'text-green-500' : 'text-[#d4af37]'}`}>
+                          {opt.price === 0 ? 'Grátis' : `R$ ${opt.price.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`}
+                        </p>
+                      </button>
+                    ))}
                   </div>
                 </div>
 
                 <div className="space-y-3">
                   <Label className="text-[9px] font-black uppercase tracking-widest text-white/30">Cupom de Desconto</Label>
                   <div className="flex gap-2">
-                    <Input value={couponCode} onChange={(e) => setCouponCode(e.target.value)} placeholder="Código" className="bg-white/5 border-white/10 h-12 rounded-xl flex-1 uppercase" />
-                    <Button type="button" onClick={() => { if (couponCode.toUpperCase() === 'LUMINA10') { setDiscount(total * 0.1); toast.success('Cupom aplicado: 10% OFF!'); } else { toast.error('Cupom inválido'); } }} className="h-12 bg-white/10 text-white rounded-xl font-bold text-[10px] px-6 uppercase hover:bg-white/20">Aplicar</Button>
+                    <Input value={couponCode} onChange={(e) => setCouponCode(e.target.value.toUpperCase())} placeholder="Código" className="bg-white/5 border-white/10 h-12 rounded-xl flex-1 uppercase" />
+                    <Button type="button" onClick={async () => {
+                      if (!couponCode.trim()) return;
+                      const { data, error } = await (supabase as any).rpc('apply_coupon', { p_code: couponCode.trim() });
+                      const result = data?.[0];
+                      if (!error && result?.valid) {
+                        setDiscount(total * (result.discount_percentage / 100));
+                        toast.success(`Cupom aplicado: ${result.discount_percentage}% OFF!`);
+                      } else {
+                        setDiscount(0);
+                        toast.error(result?.message || 'Cupom inválido.');
+                      }
+                    }} className="h-12 bg-white/10 text-white rounded-xl font-bold text-[10px] px-6 uppercase hover:bg-white/20">Aplicar</Button>
                   </div>
                 </div>
               </div>

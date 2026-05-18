@@ -20,7 +20,7 @@ const AdminReviews = () => {
     queryFn: async () => {
       const { data, error } = await supabase
         .from('product_reviews')
-        .select('*, products(name), auth.users!user_id(email)')
+        .select('*, products(name), profiles!user_id(full_name)')
         .order('created_at', { ascending: false });
       if (error) throw error;
       return data;
@@ -68,7 +68,7 @@ const AdminReviews = () => {
                   <span className="text-xs text-[#d4af37] border border-[#d4af37]/30 px-2 py-0.5 rounded-full">{r.products?.name}</span>
                 </div>
                 <p className="text-white text-lg mb-2">"{r.comment}"</p>
-                <p className="text-white/40 text-sm">Por {r.auth?.users?.email} em {new Date(r.created_at).toLocaleDateString('pt-BR')}</p>
+                <p className="text-white/40 text-sm">Por {r.profiles?.full_name || 'Anônimo'} em {new Date(r.created_at).toLocaleDateString('pt-BR')}</p>
               </div>
               <Button variant="ghost" onClick={() => deleteMutation.mutate(r.id)} className="text-red-400 hover:text-red-300 hover:bg-red-400/10 shrink-0">
                 <Trash2 className="w-5 h-5 mr-2" /> Remover

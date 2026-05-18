@@ -9,12 +9,10 @@ serve(async (req) => {
   const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
 
   const stripe = new Stripe(STRIPE_SECRET_KEY, { apiVersion: "2023-10-16" });
-
   const body = await req.text();
   const signature = req.headers.get("stripe-signature")!;
 
   let event: Stripe.Event;
-
   try {
     event = await stripe.webhooks.constructEventAsync(body, signature, STRIPE_WEBHOOK_SECRET);
   } catch (err) {
@@ -27,23 +25,26 @@ serve(async (req) => {
     const orderId = paymentIntent.metadata?.orderId;
 
     if (!orderId) {
+      console.warn("Stripe webhook: no orderId in metadata");
       return new Response(JSON.stringify({ received: true }), { status: 200 });
     }
 
     const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
 
     // ── Idempotência: só processa se ainda não está Pago ────────────────────
-    const { data: existingOrder } = await supabase
+    const { data: order } = await supabase
       .from("orders")
-      .select("status, payment_intent_id")
+      .select("status, customer_email, customer_name, total_amount, shipping_address")
       .eq("id", orderId)
       .single();
 
-    if (existingOrder?.status === "Pago") {
+    if (order?.status === "Pago") {
+      console.log(`Order ${orderId} already Pago — skipping duplicate webhook`);
       return new Response(JSON.stringify({ received: true, skipped: "already_paid" }), { status: 200 });
     }
     // ────────────────────────────────────────────────────────────────────────
 
+    // 1. Mark order as Pago
     const { error: updateError } = await supabase
       .from("orders")
       .update({ status: "Pago", payment_intent_id: paymentIntent.id })
@@ -54,7 +55,7 @@ serve(async (req) => {
       return new Response("DB error", { status: 500 });
     }
 
-    // Decrementa estoque
+    // 2. Decrement stock
     const { data: orderItems, error: itemsError } = await supabase
       .from("order_items")
       .select("product_id, quantity")
@@ -68,6 +69,22 @@ serve(async (req) => {
         });
       }
     }
+
+    // 3. Send confirmation email (fire-and-forget)
+    if (order?.customer_email) {
+      supabase.functions.invoke("send-email", {
+        body: {
+          type: "order_confirmed",
+          to: order.customer_email,
+          customerName: order.customer_name,
+          orderId,
+          totalAmount: order.total_amount,
+          shippingAddress: order.shipping_address,
+        },
+      }).catch((err) => console.error("send-email failed:", err));
+    }
+
+    console.log(`Order ${orderId} marked Pago via Stripe`);
   }
 
   return new Response(JSON.stringify({ received: true }), { status: 200 });

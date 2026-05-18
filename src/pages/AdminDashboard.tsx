@@ -33,7 +33,8 @@ import {
   Star,
   Sparkles,
   Bot,
-  Zap
+  Zap,
+  RefreshCcw
 } from 'lucide-react';
 import ImageUpload from '@/components/ImageUpload';
 import { useAppSettings } from '@/hooks/useProducts';

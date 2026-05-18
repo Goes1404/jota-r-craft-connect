@@ -30,7 +30,8 @@ import {
   Box,
   Diamond,
   Zap,
-  MessageCircle
+  MessageCircle,
+  Loader2
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
@@ -41,6 +42,9 @@ const AdminOrders = () => {
   const queryClient = useQueryClient();
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedOrder, setSelectedOrder] = useState<any>(null);
+  const [trackingInput, setTrackingInput] = useState('');
+  const [isTrackingDialogOpen, setIsTrackingDialogOpen] = useState(false);
+  const [isSendingTracking, setIsSendingTracking] = useState(false);
 
   const { data: orders = [], isLoading } = useQuery({
     queryKey: ['admin-all-orders'],
@@ -71,6 +75,35 @@ const AdminOrders = () => {
       }
     }
   });
+
+  const handleShipOrder = async () => {
+    if (!trackingInput.trim() || !selectedOrder) return;
+    setIsSendingTracking(true);
+    try {
+      await updateStatusMutation.mutateAsync({
+        id: selectedOrder.id,
+        status: 'Enviado',
+        tracking_code: trackingInput.trim(),
+      });
+      // Send shipped email
+      await supabase.functions.invoke('send-email', {
+        body: {
+          type: 'order_shipped',
+          to: selectedOrder.customer_email,
+          customerName: selectedOrder.customer_name,
+          orderId: selectedOrder.id,
+          trackingCode: trackingInput.trim(),
+        },
+      });
+      toast.success('Pedido marcado como Enviado e cliente notificado por e-mail!');
+      setIsTrackingDialogOpen(false);
+      setTrackingInput('');
+    } catch {
+      toast.error('Erro ao atualizar status do pedido.');
+    } finally {
+      setIsSendingTracking(false);
+    }
+  };
 
   const notifyWhatsApp = (order: any) => {
     const firstName = order.user?.full_name?.split(' ')[0] || 'Cliente';
@@ -215,21 +248,47 @@ const AdminOrders = () => {
                     <div className="space-y-4">
                       <p className="text-[9px] font-black text-white/20 uppercase tracking-widest">Ações de Logística</p>
                       <div className="grid grid-cols-2 gap-3">
-                        <Button 
+                        <Button
                           onClick={() => updateStatusMutation.mutate({ id: selectedOrder.id, status: 'Em Preparação' })}
                           className="bg-white/5 hover:bg-blue-500/20 border border-white/10 text-white text-[9px] font-black uppercase h-10 rounded-xl"
                         >
                           Preparar
                         </Button>
-                        <Button 
-                          onClick={() => {
-                            const code = prompt('Digite o código de rastreio:');
-                            if (code) updateStatusMutation.mutate({ id: selectedOrder.id, status: 'Enviado', tracking_code: code });
-                          }}
-                          className="bg-white/5 hover:bg-purple-500/20 border border-white/10 text-white text-[9px] font-black uppercase h-10 rounded-xl"
-                        >
-                          Enviar
-                        </Button>
+                        <Dialog open={isTrackingDialogOpen} onOpenChange={setIsTrackingDialogOpen}>
+                          <DialogTrigger asChild>
+                            <Button className="bg-white/5 hover:bg-purple-500/20 border border-white/10 text-white text-[9px] font-black uppercase h-10 rounded-xl">
+                              Enviar
+                            </Button>
+                          </DialogTrigger>
+                          <DialogContent className="bg-[#0a0a0a] border-white/10 text-white rounded-[24px] max-w-sm">
+                            <DialogHeader>
+                              <DialogTitle className="text-lg font-serif font-bold">Código de Rastreio</DialogTitle>
+                            </DialogHeader>
+                            <div className="space-y-4 pt-2">
+                              <p className="text-xs text-white/40">Informe o código para notificar o cliente por e-mail automaticamente.</p>
+                              <Input
+                                value={trackingInput}
+                                onChange={(e) => setTrackingInput(e.target.value)}
+                                placeholder="Ex: BR123456789BR"
+                                className="bg-white/5 border-white/10 h-12 rounded-xl uppercase tracking-widest"
+                                onKeyDown={(e) => e.key === 'Enter' && handleShipOrder()}
+                                autoFocus
+                              />
+                              <div className="flex gap-3">
+                                <Button variant="ghost" onClick={() => setIsTrackingDialogOpen(false)} className="flex-1 text-white/40 hover:text-white text-[10px] font-black uppercase">
+                                  Cancelar
+                                </Button>
+                                <Button
+                                  onClick={handleShipOrder}
+                                  disabled={!trackingInput.trim() || isSendingTracking}
+                                  className="flex-1 bg-[#d4af37] text-black font-black text-[10px] uppercase h-11 rounded-xl hover:bg-[#f2ca50] disabled:opacity-30"
+                                >
+                                  {isSendingTracking ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Confirmar Envio'}
+                                </Button>
+                              </div>
+                            </div>
+                          </DialogContent>
+                        </Dialog>
                       </div>
                     </div>
 

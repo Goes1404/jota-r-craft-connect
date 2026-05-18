@@ -1,6 +1,8 @@
-import React, { createContext, useContext, useState, ReactNode } from 'react';
+import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 
 import { Product } from '@/types/database';
+
+const CART_STORAGE_KEY = 'jr_cart';
 
 export interface CartItem extends Product {
   quantity: number;
@@ -31,7 +33,22 @@ interface CartProviderProps {
 }
 
 export const CartProvider: React.FC<CartProviderProps> = ({ children }) => {
-  const [cartItems, setCartItems] = useState<CartItem[]>([]);
+  const [cartItems, setCartItems] = useState<CartItem[]>(() => {
+    try {
+      const stored = localStorage.getItem(CART_STORAGE_KEY);
+      return stored ? JSON.parse(stored) : [];
+    } catch {
+      return [];
+    }
+  });
+
+  useEffect(() => {
+    try {
+      localStorage.setItem(CART_STORAGE_KEY, JSON.stringify(cartItems));
+    } catch {
+      // localStorage unavailable (private mode / quota exceeded)
+    }
+  }, [cartItems]);
 
   const addToCart = (product: Product) => {
     setCartItems(currentItems => {
@@ -78,6 +95,7 @@ export const CartProvider: React.FC<CartProviderProps> = ({ children }) => {
 
   const clearCart = () => {
     setCartItems([]);
+    try { localStorage.removeItem(CART_STORAGE_KEY); } catch { /* noop */ }
   };
 
   const value: CartContextType = {
