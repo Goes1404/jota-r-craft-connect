@@ -18,15 +18,10 @@ create policy "allow_anonymous_insert_site_errors"
   to anon, authenticated
   with check (true);
 
--- Apenas admins leem os erros
 create policy "allow_admin_read_site_errors"
   on public.site_errors
   for select
   to authenticated
   using (
-    exists (
-      select 1 from public.profiles
-      where profiles.id = auth.uid()
-      and profiles.role = 'admin'
-    )
+    (SELECT raw_user_meta_data->>'role' FROM auth.users WHERE id = auth.uid()) = 'admin'
   );

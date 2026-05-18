@@ -14,4 +14,4 @@ Disallow: /register
 Disallow: /entrar
 Disallow: /login
 
-Sitemap: https://SEU_DOMINIO_AQUI/sitemap.xml
+Sitemap: https://jracessorios.com.br/sitemap.xml

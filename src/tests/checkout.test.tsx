@@ -1,4 +1,4 @@
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, beforeEach } from 'vitest';
 import { renderHook, act } from '@testing-library/react';
 import { CartProvider, useCart } from '@/contexts/CartContext';
 import type { Product } from '@/types/database';
@@ -18,6 +18,10 @@ const wrapper = ({ children }: { children: React.ReactNode }) => (
 );
 
 describe('CartContext — fluxo de compra', () => {
+  beforeEach(() => {
+    localStorage.clear();
+  });
+
   it('inicia com carrinho vazio', () => {
     const { result } = renderHook(() => useCart(), { wrapper });
     expect(result.current.cartItems).toHaveLength(0);
