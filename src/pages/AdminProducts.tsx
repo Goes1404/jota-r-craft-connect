@@ -333,7 +333,8 @@ const AdminProducts = () => {
             </DialogContent>
           </Dialog>
         </div>
-      </header>
+      </div>
+    </header>
 
       <main className="max-w-screen-2xl mx-auto px-8 py-12">
         {/* Intelligence Cards */}
