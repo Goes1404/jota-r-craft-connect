@@ -6,7 +6,7 @@ const corsHeaders = {
 };
 
 const BRAND = "JR Acessórios";
-const FROM = `${BRAND} <notificacoes@jracessorios.com.br>`;
+const FROM = `${BRAND} <notificacoes@jracessorios.com>`;
 
 function baseTemplate(content: string) {
   return `<!DOCTYPE html>
@@ -57,7 +57,7 @@ function orderConfirmedHtml(name: string, orderId: string, total: number, addres
       <p>${address}</p>
     </div>
     <p>Você pode acompanhar o status do seu pedido a qualquer momento clicando no botão abaixo.</p>
-    <a href="https://compromissose.com/pedidos" class="btn">Acompanhar Pedido</a>
+    <a href="https://jracessorios.com/pedidos" class="btn">Acompanhar Pedido</a>
   `);
 }
 
@@ -74,7 +74,7 @@ function orderShippedHtml(name: string, orderId: string, trackingCode: string) {
       <p class="highlight" style="font-size:18px;letter-spacing:.1em">${trackingCode}</p>
     </div>
     <p>Use o código acima para rastrear sua encomenda no site dos Correios ou na transportadora responsável.</p>
-    <a href="https://compromissose.com/pedidos" class="btn">Ver Status do Pedido</a>
+    <a href="https://jracessorios.com/pedidos" class="btn">Ver Status do Pedido</a>
   `);
 }
 

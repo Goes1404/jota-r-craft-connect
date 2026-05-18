@@ -65,8 +65,8 @@ const Terms: React.FC = () => (
       </div>
 
       <p className="text-sm text-white/40 leading-relaxed mb-8 bg-white/[0.02] border border-white/5 rounded-2xl p-5">
-        Ao acessar ou utilizar o site <strong className="text-white/60">jracessorios.com.br</strong>, você concorda com os presentes Termos de Uso. Leia-os com atenção antes de realizar qualquer compra. Em caso de dúvida, entre em contato via{' '}
-        <a href="mailto:contato@jracessorios.com.br" className="text-[#d4af37] hover:underline">contato@jracessorios.com.br</a>.
+        Ao acessar ou utilizar o site <strong className="text-white/60">jracessorios.com</strong>, você concorda com os presentes Termos de Uso. Leia-os com atenção antes de realizar qualquer compra. Em caso de dúvida, entre em contato via{' '}
+        <a href="mailto:contato@jracessorios.com" className="text-[#d4af37] hover:underline">contato@jracessorios.com</a>.
       </p>
 
       {/* Sections */}
@@ -80,7 +80,7 @@ const Terms: React.FC = () => (
 
           <Section number="02" title="Quem Somos">
             <p><strong className="text-white/60">JR Acessórios</strong> é uma loja especializada em acessórios premium para dispositivos Apple, localizada em Osasco/SP. Operamos com entrega em todo o Brasil.</p>
-            <p>Contato: <a href="mailto:contato@jracessorios.com.br" className="text-[#d4af37]">contato@jracessorios.com.br</a></p>
+            <p>Contato: <a href="mailto:contato@jracessorios.com" className="text-[#d4af37]">contato@jracessorios.com</a></p>
           </Section>
 
           <Section number="03" title="Cadastro e Conta de Usuário">

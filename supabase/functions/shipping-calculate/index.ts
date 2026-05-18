@@ -7,7 +7,7 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 // ─── CORS ─────────────────────────────────────────────────────────────────────
 
 const CORS = {
-  "Access-Control-Allow-Origin": Deno.env.get("ALLOWED_ORIGIN") || "https://jracessorios.com.br",
+  "Access-Control-Allow-Origin": Deno.env.get("ALLOWED_ORIGIN") || "https://jracessorios.com",
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
@@ -90,7 +90,7 @@ async function fetchMelhorEnvioRates(
       "Content-Type": "application/json",
       "Accept": "application/json",
       "Authorization": `Bearer ${token}`,
-      "User-Agent": "jr-acessorios/1.0 (contato@jracessorios.com.br)",
+      "User-Agent": "jr-acessorios/1.0 (contato@jracessorios.com)",
     },
     body: JSON.stringify({
       from: { postal_code: originZip.replace(/\D/g, "") },

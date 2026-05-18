@@ -23,7 +23,7 @@ const SEO: React.FC<SEOProps> = ({
   title = 'JR Acessórios — Luxo e Tecnologia Exclusiva',
   description = 'Descubra a coleção exclusiva da JR Acessórios. Tecnologia de ponta, smartwatches e acessórios premium para o seu lifestyle de luxo.',
   image = 'https://images.unsplash.com/photo-1515562141207-7a88fb7ce338',
-  url = 'https://jracessorios.com.br',
+  url = 'https://jracessorios.com',
   type = 'website',
   product,
 }) => {
@@ -53,7 +53,7 @@ const SEO: React.FC<SEOProps> = ({
         '@type': 'Store',
         name: 'JR Acessórios',
         description,
-        url: 'https://jracessorios.com.br',
+        url: 'https://jracessorios.com',
         image,
         address: {
           '@type': 'PostalAddress',

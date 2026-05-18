@@ -1,7 +1,7 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
-const ALLOWED_ORIGIN = Deno.env.get("ALLOWED_ORIGIN") || "https://jracessorios.com.br";
+const ALLOWED_ORIGIN = Deno.env.get("ALLOWED_ORIGIN") || "https://jracessorios.com";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": ALLOWED_ORIGIN,
@@ -80,7 +80,7 @@ serve(async (req) => {
       description: `Pedido JR Acessórios #${orderId.slice(0, 8)}`,
       payment_method_id: "pix",
       external_reference: orderId,
-      payer: { email: payerEmail || "cliente@jracessorios.com.br" },
+      payer: { email: payerEmail || "cliente@jracessorios.com" },
     };
 
     const mpResponse = await fetch("https://api.mercadopago.com/v1/payments", {

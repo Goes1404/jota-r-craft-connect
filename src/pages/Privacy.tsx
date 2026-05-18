@@ -100,8 +100,8 @@ const Privacy: React.FC = () => (
         </div>
         <p className="text-xs text-white/30 mt-3">
           Para exercer seus direitos, envie e-mail para{' '}
-          <a href="mailto:privacidade@jracessorios.com.br" className="text-[#d4af37] hover:underline">
-            privacidade@jracessorios.com.br
+          <a href="mailto:privacidade@jracessorios.com" className="text-[#d4af37] hover:underline">
+            privacidade@jracessorios.com
           </a>{' '}
           com o assunto "Direitos LGPD". Responderemos em até 15 dias úteis.
         </p>
@@ -114,7 +114,7 @@ const Privacy: React.FC = () => (
           <Section number="01" title="Controlador dos Dados">
             <p><strong className="text-white/60">JR Acessórios</strong> é o controlador responsável pelo tratamento dos dados pessoais coletados neste site.</p>
             <p>Encarregado de Proteção de Dados (DPO):{' '}
-              <a href="mailto:privacidade@jracessorios.com.br" className="text-[#d4af37]">privacidade@jracessorios.com.br</a>
+              <a href="mailto:privacidade@jracessorios.com" className="text-[#d4af37]">privacidade@jracessorios.com</a>
             </p>
           </Section>
 
