@@ -24,9 +24,20 @@ export const CookieBanner: React.FC = () => {
     setLeaving(true);
     setTimeout(() => {
       localStorage.setItem(STORAGE_KEY, value);
+      
+      // Salva preferências granulares
+      const prefs = value === 'accepted' 
+        ? { essential: true, analytics: true, marketing: true }
+        : { essential: true, analytics: false, marketing: false };
+      localStorage.setItem('jr_cookie_consent_prefs', JSON.stringify(prefs));
+      
       setConsent(value);
       setVisible(false);
       setLeaving(false);
+      
+      if (value === 'accepted') {
+        import('@/hooks/useAnalytics').then(({ initGA }) => initGA());
+      }
     }, 400);
   };
 

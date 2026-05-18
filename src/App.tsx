@@ -14,6 +14,7 @@ import { ExitIntentPopup } from "./components/ExitIntentPopup";
 import { AICopilot } from "./components/AICopilot";
 import { SocialProofToast } from "./components/SocialProofToast";
 import { CookieBanner } from "./components/CookieBanner";
+import { ScrollToTop } from "./components/ScrollToTop";
 
 // ─── lazy page imports ────────────────────────────────────────────────────────
 const Index = lazy(() => import("./pages/Index"));
@@ -65,6 +66,7 @@ const App = () => (
               <Toaster />
               <Sonner />
               <BrowserRouter>
+                <ScrollToTop />
                 <ErrorBoundary>
                   <ExitIntentPopup />
                   <AICopilot />

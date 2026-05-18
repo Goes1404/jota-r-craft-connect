@@ -2,20 +2,21 @@ import React, { useState } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { Header } from '@/components/Header';
 import { Footer } from '@/components/Footer';
-import { 
-  ShoppingBag, 
-  MapPin, 
-  CreditCard, 
-  Tag, 
-  ShieldCheck, 
-  Settings, 
-  LogOut, 
-  ChevronRight, 
-  Star, 
-  Diamond, 
+import {
+  ShoppingBag,
+  MapPin,
+  CreditCard,
+  Tag,
+  ShieldCheck,
+  Settings,
+  LogOut,
+  ChevronRight,
+  Star,
+  Diamond,
   Bell,
   User,
-  Heart
+  Heart,
+  Download
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -53,6 +54,47 @@ const Profile: React.FC = () => {
   const handleSignOut = async () => {
     await signOut();
     navigate('/admin/login');
+  };
+
+  const handleExportData = async () => {
+    if (!user) return;
+
+    try {
+      toast.loading("Preparando seus dados...");
+
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('id', user.id)
+        .single();
+
+      const { data: orders } = await supabase
+        .from('orders')
+        .select('*')
+        .eq('user_id', user.id);
+
+      const userData = {
+        exportedAt: new Date().toISOString(),
+        profile: profile || {},
+        orders: orders || [],
+        lawConsent: "LGPD Art. 20 - Direito de Portabilidade e Acesso"
+      };
+
+      const blob = new Blob([JSON.stringify(userData, null, 2)], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `jr-acessorios-dados-usuario-${user.id.substring(0, 8)}.json`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+
+      toast.success("Dados exportados com sucesso!");
+    } catch (error) {
+      console.error(error);
+      toast.error("Erro ao exportar dados. Tente novamente.");
+    }
   };
 
   const userName = user?.user_metadata?.full_name || 'Usuário Premium';
@@ -221,8 +263,15 @@ const Profile: React.FC = () => {
         </section>
 
         {/* Logout Section */}
-        <div className="flex justify-center pt-4 pb-12">
-          <button 
+        <div className="flex flex-col items-center gap-4 pt-4 pb-12">
+          <button
+            onClick={handleExportData}
+            className="flex items-center gap-3 px-8 py-4 rounded-full border border-white/5 bg-[#0f0f0f]/40 text-white/30 hover:text-[#d4af37] hover:bg-[#d4af37]/5 hover:border-[#d4af37]/20 transition-all group tracking-widest text-[10px] font-bold uppercase"
+          >
+            <Download className="w-4 h-4 transition-transform group-hover:translate-y-0.5" />
+            Exportar Meus Dados (LGPD)
+          </button>
+          <button
             onClick={handleSignOut}
             className="flex items-center gap-3 px-8 py-4 rounded-full border border-white/5 bg-[#0f0f0f]/40 text-white/30 hover:text-[#ffb4ab] hover:bg-[#ffb4ab]/5 hover:border-[#ffb4ab]/20 transition-all group tracking-widest text-[10px] font-bold uppercase"
           >

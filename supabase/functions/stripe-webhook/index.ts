@@ -18,7 +18,7 @@ serve(async (req) => {
   try {
     event = await stripe.webhooks.constructEventAsync(body, signature, STRIPE_WEBHOOK_SECRET);
   } catch (err) {
-    console.error("Webhook signature verification failed:", err);
+    console.error("Stripe webhook: falha na verificação de assinatura");
     return new Response("Invalid signature", { status: 400 });
   }
 
@@ -26,42 +26,47 @@ serve(async (req) => {
     const paymentIntent = event.data.object as Stripe.PaymentIntent;
     const orderId = paymentIntent.metadata?.orderId;
 
-    console.log(`Stripe Webhook — PaymentIntent ${paymentIntent.id}: orderId=${orderId}`);
+    if (!orderId) {
+      return new Response(JSON.stringify({ received: true }), { status: 200 });
+    }
 
-    if (orderId) {
-      const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
+    const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
 
-      // 1. Mark order as "Pago"
-      const { error: updateError } = await supabase
-        .from("orders")
-        .update({
-          status: "Pago",
-          payment_intent_id: paymentIntent.id,
-        })
-        .eq("id", orderId);
+    // ── Idempotência: só processa se ainda não está Pago ────────────────────
+    const { data: existingOrder } = await supabase
+      .from("orders")
+      .select("status, payment_intent_id")
+      .eq("id", orderId)
+      .single();
 
-      if (updateError) {
-        console.error("Error updating order:", updateError.message);
-        return new Response("DB error", { status: 500 });
+    if (existingOrder?.status === "Pago") {
+      return new Response(JSON.stringify({ received: true, skipped: "already_paid" }), { status: 200 });
+    }
+    // ────────────────────────────────────────────────────────────────────────
+
+    const { error: updateError } = await supabase
+      .from("orders")
+      .update({ status: "Pago", payment_intent_id: paymentIntent.id })
+      .eq("id", orderId);
+
+    if (updateError) {
+      console.error("Stripe webhook: erro ao atualizar pedido", updateError.message);
+      return new Response("DB error", { status: 500 });
+    }
+
+    // Decrementa estoque
+    const { data: orderItems, error: itemsError } = await supabase
+      .from("order_items")
+      .select("product_id, quantity")
+      .eq("order_id", orderId);
+
+    if (!itemsError && orderItems) {
+      for (const item of orderItems) {
+        await supabase.rpc("decrement_stock", {
+          p_product_id: item.product_id,
+          p_quantity: item.quantity,
+        });
       }
-
-      // 2. Deduct stock for each item in the order
-      const { data: orderItems, error: itemsError } = await supabase
-        .from("order_items")
-        .select("product_id, quantity")
-        .eq("order_id", orderId);
-
-      if (!itemsError && orderItems) {
-        for (const item of orderItems) {
-          await supabase.rpc("decrement_stock", {
-            p_product_id: item.product_id,
-            p_quantity: item.quantity,
-          });
-        }
-        console.log(`Stock decremented for order ${orderId} — ${orderItems.length} items`);
-      }
-
-      console.log(`Order ${orderId} marked as Pago via Stripe webhook`);
     }
   }
 

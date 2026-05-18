@@ -23,6 +23,17 @@ export class ErrorBoundary extends Component<Props, State> {
 
   componentDidCatch(error: Error, info: React.ErrorInfo) {
     console.error('ErrorBoundary caught:', error, info);
+    
+    // Tenta registrar o erro no Supabase
+    import('@/integrations/supabase/client').then(({ supabase }) => {
+      supabase.from('site_errors').insert({
+        error_message: error.message,
+        error_stack: error.stack,
+        component_stack: info.componentStack,
+        url: window.location.href,
+        user_agent: navigator.userAgent
+      }).catch(err => console.error('Failed to log error to Supabase', err));
+    }).catch(err => console.error('Failed to import supabase', err));
   }
 
   render() {

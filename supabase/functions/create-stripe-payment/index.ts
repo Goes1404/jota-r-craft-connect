@@ -1,7 +1,10 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+
+const ALLOWED_ORIGIN = Deno.env.get("ALLOWED_ORIGIN") || "https://jracessorios.com.br";
 
 const corsHeaders = {
-  "Access-Control-Allow-Origin": "*",
+  "Access-Control-Allow-Origin": ALLOWED_ORIGIN,
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
@@ -11,21 +14,60 @@ serve(async (req) => {
   }
 
   try {
-    const { orderId, totalAmount, description } = await req.json();
+    // ── Autenticação obrigatória ─────────────────────────────────────────────
+    const authHeader = req.headers.get("authorization");
+    if (!authHeader) {
+      return new Response(JSON.stringify({ success: false, error: "Unauthorized" }), {
+        status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+    // ────────────────────────────────────────────────────────────────────────
 
-    const STRIPE_SECRET_KEY = Deno.env.get("STRIPE_SECRET_KEY");
+    const { orderId, description } = await req.json();
 
-    if (!STRIPE_SECRET_KEY) {
-      throw new Error("STRIPE_SECRET_KEY not configured in Supabase secrets.");
+    if (!orderId) {
+      return new Response(JSON.stringify({ success: false, error: "orderId obrigatório" }), {
+        status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
     }
 
-    // Create a Stripe Payment Intent for credit card processing
-    // IMPORTANT: metadata fields must be sent as separate key-value pairs, not JSON-stringified
+    const STRIPE_SECRET_KEY = Deno.env.get("STRIPE_SECRET_KEY");
+    const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
+    const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
+
+    if (!STRIPE_SECRET_KEY) {
+      throw new Error("STRIPE_SECRET_KEY not configured.");
+    }
+
+    // ── Busca total real do pedido no banco ──────────────────────────────────
+    const adminClient = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
+
+    const { data: order, error: orderError } = await adminClient
+      .from("orders")
+      .select("id, total_amount, status, payment_intent_id")
+      .eq("id", orderId)
+      .single();
+
+    if (orderError || !order) {
+      return new Response(JSON.stringify({ success: false, error: "Pedido não encontrado" }), {
+        status: 404, headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
+    if (order.status !== "Aguardando Pagamento") {
+      return new Response(JSON.stringify({ success: false, error: "Pedido já processado" }), {
+        status: 409, headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
+    const totalAmount = order.total_amount; // fonte da verdade: banco
+    // ────────────────────────────────────────────────────────────────────────
+
     const params = new URLSearchParams();
-    params.append("amount", Math.round(totalAmount * 100).toString()); // Stripe uses cents
+    params.append("amount", Math.round(Number(totalAmount) * 100).toString());
     params.append("currency", "brl");
-    params.append("description", description || "Compra JR Acessórios - Lumina Tech");
-    params.append("metadata[orderId]", orderId); // Correct format for Stripe metadata
+    params.append("description", description || "Compra JR Acessórios");
+    params.append("metadata[orderId]", orderId);
     params.append("payment_method_types[]", "card");
 
     const stripeResponse = await fetch("https://api.stripe.com/v1/payment_intents", {
@@ -33,6 +75,7 @@ serve(async (req) => {
       headers: {
         "Authorization": `Bearer ${STRIPE_SECRET_KEY}`,
         "Content-Type": "application/x-www-form-urlencoded",
+        "Idempotency-Key": `pi-${orderId}`,
       },
       body: params,
     });
@@ -44,8 +87,6 @@ serve(async (req) => {
 
     const stripeData = await stripeResponse.json();
 
-    console.log(`Stripe PaymentIntent created: ${stripeData.id} for order: ${orderId}`);
-
     return new Response(
       JSON.stringify({
         success: true,
@@ -56,7 +97,7 @@ serve(async (req) => {
     );
 
   } catch (error) {
-    console.error("Stripe PaymentIntent error:", error);
+    console.error("Stripe PaymentIntent error:", error.message);
     return new Response(
       JSON.stringify({ success: false, error: error.message }),
       { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
