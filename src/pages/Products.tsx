@@ -159,7 +159,7 @@ const Products: React.FC = () => {
       <main className="relative z-10">
         <section className="relative w-full h-[300px] md:h-[400px] overflow-hidden pt-20">
           <div className="absolute inset-0 bg-gradient-to-b from-[#d4af37]/10 to-transparent"></div>
-          <div className="relative h-full max-w-7xl mx-auto px-8 flex flex-col justify-center items-center text-center">
+          <div className="relative h-full max-w-7xl mx-auto px-4 md:px-8 flex flex-col justify-center items-center text-center">
             <h1 className="text-4xl md:text-7xl font-serif font-bold text-white mb-4 tracking-tight">
               <TrackingInText text="JR" className="text-[#d4af37]" stagger={0.12} />
               {' '}
@@ -173,8 +173,26 @@ const Products: React.FC = () => {
           </div>
         </section>
 
-        <div className="max-w-7xl mx-auto px-8 -mt-20">
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 pb-32">
+        <div className="max-w-7xl mx-auto px-4 md:px-8 -mt-20">
+          {/* Mobile floating filters button */}
+          <div className="lg:hidden sticky top-20 z-30 flex justify-end mb-4">
+            <Sheet>
+              <SheetTrigger asChild>
+                <button className="flex items-center gap-2 bg-[#0f0f0f]/80 backdrop-blur-xl border border-[#d4af37]/30 text-[#d4af37] px-5 py-3 rounded-full shadow-[0_8px_30px_rgba(0,0,0,0.5)] text-xs font-black uppercase tracking-widest active:scale-95 transition-transform">
+                  <Search className="w-3.5 h-3.5" />
+                  Filtros
+                </button>
+              </SheetTrigger>
+              <SheetContent side="bottom" className="bg-[#0a0a0a] border-t border-white/10 rounded-t-3xl max-h-[85vh] overflow-y-auto">
+                <SheetHeader className="pb-4">
+                  <SheetTitle className="text-white text-left text-lg font-serif">Filtros</SheetTitle>
+                </SheetHeader>
+                <ProductFilters filters={filters} onFiltersChange={setFilters} categories={categories} priceRange={priceRange} />
+              </SheetContent>
+            </Sheet>
+          </div>
+
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 pb-32">
             
             {/* Desktop Filters */}
             <aside className="hidden lg:block lg:col-span-3">
@@ -219,11 +237,11 @@ const Products: React.FC = () => {
 
               {/* Grid */}
               {isLoading ? (
-                <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-8">
+                <div className="grid grid-cols-2 md:grid-cols-2 xl:grid-cols-3 gap-3 md:gap-8">
                   {[...Array(6)].map((_, i) => <ProductCardSkeleton key={i} />)}
                 </div>
               ) : filteredProducts.length > 0 ? (
-                <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-8">
+                <div className="grid grid-cols-2 md:grid-cols-2 xl:grid-cols-3 gap-3 md:gap-8">
                   {filteredProducts.map((product, index) => (
                     <ProductCard
                       key={product.id}

@@ -161,7 +161,7 @@ const Profile: React.FC = () => {
                 </div>
                 <Button 
                   onClick={() => setIsEditing(true)}
-                  className="bg-white/5 hover:bg-white/10 text-white border border-white/10 px-8 py-2 rounded-xl text-[10px] font-bold uppercase tracking-widest transition-all mt-4"
+                  className="bg-white/5 hover:bg-white/10 text-white border border-white/10 px-4 md:px-8 py-2 rounded-xl text-[10px] font-bold uppercase tracking-widest transition-all mt-4"
                 >
                   Editar Perfil
                 </Button>
@@ -266,14 +266,14 @@ const Profile: React.FC = () => {
         <div className="flex flex-col items-center gap-4 pt-4 pb-12">
           <button
             onClick={handleExportData}
-            className="flex items-center gap-3 px-8 py-4 rounded-full border border-white/5 bg-[#0f0f0f]/40 text-white/30 hover:text-[#d4af37] hover:bg-[#d4af37]/5 hover:border-[#d4af37]/20 transition-all group tracking-widest text-[10px] font-bold uppercase"
+            className="flex items-center gap-3 px-4 md:px-8 py-4 rounded-full border border-white/5 bg-[#0f0f0f]/40 text-white/30 hover:text-[#d4af37] hover:bg-[#d4af37]/5 hover:border-[#d4af37]/20 transition-all group tracking-widest text-[10px] font-bold uppercase"
           >
             <Download className="w-4 h-4 transition-transform group-hover:translate-y-0.5" />
             Exportar Meus Dados (LGPD)
           </button>
           <button
             onClick={handleSignOut}
-            className="flex items-center gap-3 px-8 py-4 rounded-full border border-white/5 bg-[#0f0f0f]/40 text-white/30 hover:text-[#ffb4ab] hover:bg-[#ffb4ab]/5 hover:border-[#ffb4ab]/20 transition-all group tracking-widest text-[10px] font-bold uppercase"
+            className="flex items-center gap-3 px-4 md:px-8 py-4 rounded-full border border-white/5 bg-[#0f0f0f]/40 text-white/30 hover:text-[#ffb4ab] hover:bg-[#ffb4ab]/5 hover:border-[#ffb4ab]/20 transition-all group tracking-widest text-[10px] font-bold uppercase"
           >
             <LogOut className="w-4 h-4 transition-transform group-hover:-translate-x-1" />
             Sair da Experiência

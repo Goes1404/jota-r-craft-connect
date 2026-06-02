@@ -163,7 +163,7 @@ const Addresses: React.FC = () => {
           {!isAdding && (
             <Button 
               onClick={() => setIsAdding(true)}
-              className="bg-[#d4af37] text-black font-black text-[10px] uppercase tracking-widest px-8 py-6 rounded-2xl hover:bg-[#f2ca50] transition-all flex items-center gap-2 shadow-xl shadow-[#d4af37]/10"
+              className="bg-[#d4af37] text-black font-black text-[10px] uppercase tracking-widest px-4 md:px-8 py-6 rounded-2xl hover:bg-[#f2ca50] transition-all flex items-center gap-2 shadow-xl shadow-[#d4af37]/10"
             >
               <Plus className="w-4 h-4" /> Novo Endereço
             </Button>
@@ -275,7 +275,7 @@ const Addresses: React.FC = () => {
                   type="button"
                   onClick={() => { setIsAdding(false); setEditingId(null); }}
                   variant="ghost"
-                  className="bg-white/5 border border-white/10 text-white font-bold text-[10px] uppercase tracking-widest py-8 rounded-2xl px-12"
+                  className="bg-white/5 border border-white/10 text-white font-bold text-[10px] uppercase tracking-widest py-8 rounded-2xl px-6 md:px-12"
                 >
                   CANCELAR
                 </Button>
@@ -335,7 +335,7 @@ const Addresses: React.FC = () => {
                 </div>
               ))
             ) : (
-              <div className="flex flex-col items-center justify-center py-24 px-8 text-center space-y-8 bg-[#0f0f0f]/40 backdrop-blur-2xl border border-white/5 rounded-[40px]">
+              <div className="flex flex-col items-center justify-center py-24 px-4 md:px-8 text-center space-y-8 bg-[#0f0f0f]/40 backdrop-blur-2xl border border-white/5 rounded-[40px]">
                 <div className="w-24 h-24 rounded-full bg-white/5 flex items-center justify-center">
                   <MapPin className="w-10 h-10 text-white/10" />
                 </div>

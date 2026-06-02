@@ -12,6 +12,7 @@ import { WHATSAPP_LINK } from '@/config/constants';
 import { SmartShowcase } from '@/components/SmartShowcase';
 import { TrackingInText } from '@/components/animations/TrackingIn';
 import { MaskReveal } from '@/components/animations/MaskReveal';
+import { Reveal } from '@/components/animations/Reveal';
 import { useAppSettings } from '@/hooks/useProducts';
 
 const ApplePhoneIcon = ({ className }: { className?: string }) => (
@@ -110,7 +111,7 @@ const Index: React.FC = () => {
   ];
 
   return (
-    <div className="min-h-screen bg-background pb-28">
+    <div className="min-h-screen bg-background pb-28 md:pb-28">
       <SEO />
       <Header />
 
@@ -119,7 +120,7 @@ const Index: React.FC = () => {
         href={WHATSAPP}
         target="_blank"
         rel="noopener noreferrer"
-        className="fixed bottom-6 right-6 z-50 flex items-center gap-2 bg-primary text-primary-foreground font-bold text-sm px-5 py-3 rounded-full shadow-[0_4px_24px_rgba(212,175,55,0.5)] hover:scale-105 transition-transform duration-200 whitespace-nowrap"
+        className="fixed bottom-24 md:bottom-6 right-4 md:right-6 z-50 flex items-center gap-2 bg-primary text-primary-foreground font-bold text-sm px-4 md:px-5 py-3 rounded-full shadow-[0_4px_24px_rgba(212,175,55,0.5)] hover:scale-105 transition-transform duration-200 whitespace-nowrap"
         aria-label="Falar no WhatsApp"
       >
         <MessageCircle className="h-5 w-5 shrink-0" />
@@ -199,13 +200,15 @@ const Index: React.FC = () => {
       <section className="py-14 bg-background relative overflow-hidden">
         <div className="absolute top-0 left-0 w-full h-[1px] bg-gradient-to-r from-transparent via-primary/20 to-transparent"></div>
         <div className="container mx-auto px-4">
-          <SmartShowcase 
-            title="Lumina Selection" 
-            subtitle="Nossa inteligência identificou estas peças como as mais desejadas da semana."
-            mode="trending"
-            limit={4}
-            TitleComponent={TrackingInText}
-          />
+          <Reveal y={32}>
+            <SmartShowcase
+              title="Lumina Selection"
+              subtitle="Nossa inteligência identificou estas peças como as mais desejadas da semana."
+              mode="trending"
+              limit={4}
+              TitleComponent={TrackingInText}
+            />
+          </Reveal>
         </div>
       </section>
 
@@ -214,13 +217,15 @@ const Index: React.FC = () => {
         <div className="container mx-auto px-4">
           <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
             {stats.map((s, i) => (
-              <div key={i} className="flex flex-col items-center text-center gap-2 group">
-                <div className="h-12 w-12 rounded-xl bg-primary/10 flex items-center justify-center border border-primary/20 group-hover:bg-primary/20 transition-colors">
-                  <s.icon className="h-5 w-5 text-primary" />
+              <Reveal key={i} delay={i * 0.08} y={20}>
+                <div className="flex flex-col items-center text-center gap-2 group">
+                  <div className="h-12 w-12 rounded-xl bg-primary/10 flex items-center justify-center border border-primary/20 group-hover:bg-primary/20 group-hover:scale-110 transition-all duration-300">
+                    <s.icon className="h-5 w-5 text-primary" />
+                  </div>
+                  <span className="text-2xl md:text-3xl font-black text-foreground">{s.value}</span>
+                  <span className="text-xs text-muted-foreground font-medium uppercase tracking-wide">{s.label}</span>
                 </div>
-                <span className="text-2xl md:text-3xl font-black text-foreground">{s.value}</span>
-                <span className="text-xs text-muted-foreground font-medium uppercase tracking-wide">{s.label}</span>
-              </div>
+              </Reveal>
             ))}
           </div>
         </div>

@@ -263,7 +263,7 @@ const AdminDashboard = () => {
       </div>
 
       <header className="sticky top-0 z-50 bg-black/60 backdrop-blur-2xl border-b border-white/5 py-4">
-        <div className="max-w-screen-2xl mx-auto px-8 flex items-center justify-between">
+        <div className="max-w-screen-2xl mx-auto px-4 md:px-8 flex items-center justify-between">
           <div className="flex items-center gap-4">
             <div className="flex items-center gap-2 group cursor-pointer" onClick={() => navigate('/')}>
               <Diamond className="h-6 w-6 text-[#d4af37]" />
@@ -287,7 +287,7 @@ const AdminDashboard = () => {
         </div>
       </header>
 
-      <main className="relative z-10 max-w-screen-2xl mx-auto px-8 py-12">
+      <main className="relative z-10 max-w-screen-2xl mx-auto px-4 md:px-4 md:px-8 py-8 md:py-12">
         
         {/* Lumina AI Executive Insights Card */}
         <div className="mb-12 animate-in fade-in slide-in-from-bottom-4 duration-1000">

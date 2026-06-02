@@ -15,6 +15,10 @@ import { AICopilot } from "./components/AICopilot";
 import { SocialProofToast } from "./components/SocialProofToast";
 import { CookieBanner } from "./components/CookieBanner";
 import { ScrollToTop } from "./components/ScrollToTop";
+import { SmoothScroll } from "./components/animations/SmoothScroll";
+import { PageTransition } from "./components/animations/PageTransition";
+import { MobileBottomNav } from "./components/MobileBottomNav";
+import { IntroLoader } from "./components/animations/IntroLoader";
 
 // ─── lazy page imports ────────────────────────────────────────────────────────
 const Index = lazy(() => import("./pages/Index"));
@@ -65,14 +69,18 @@ const App = () => (
             <TooltipProvider>
               <Toaster />
               <Sonner />
+              <IntroLoader />
               <BrowserRouter>
                 <ScrollToTop />
+                <SmoothScroll>
                 <ErrorBoundary>
                   <ExitIntentPopup />
                   <AICopilot />
                   <SocialProofToast />
                   <CookieBanner />
+                  <MobileBottomNav />
                   <Suspense fallback={<PageLoader />}>
+                    <PageTransition>
                     <Routes>
                       <Route path="/" element={<Index />} />
                       <Route path="/produtos" element={<Products />} />
@@ -106,8 +114,10 @@ const App = () => (
                       <Route path="/perfil/seguranca" element={<Security />} />
                       <Route path="*" element={<NotFound />} />
                     </Routes>
+                    </PageTransition>
                   </Suspense>
                 </ErrorBoundary>
+                </SmoothScroll>
               </BrowserRouter>
             </TooltipProvider>
           </CartProvider>

@@ -120,4 +120,44 @@
   .custom-scrollbar::-webkit-scrollbar-thumb:hover {
     background: #d4af37;
   }
+
+  /* Mobile: alvos de toque mínimos (WCAG 2.5.5) */
+  @media (max-width: 768px) {
+    button:not(.no-tap-fix),
+    a[role="button"]:not(.no-tap-fix),
+    [role="tab"]:not(.no-tap-fix) {
+      min-height: 44px;
+    }
+  }
+
+  /* Premium glow on focus */
+  *:focus-visible {
+    outline: 2px solid rgba(212, 175, 55, 0.6);
+    outline-offset: 3px;
+    border-radius: 8px;
+  }
+
+  /* Smooth letter shimmer for premium headings */
+  @keyframes shimmer-gold {
+    0%, 100% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+  }
+  .text-shimmer-gold {
+    background: linear-gradient(110deg, #d4af37 0%, #f2ca50 25%, #fff5d6 50%, #f2ca50 75%, #d4af37 100%);
+    background-size: 200% 100%;
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+    animation: shimmer-gold 4s ease-in-out infinite;
+  }
+
+  /* Respeita reduced-motion */
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+      scroll-behavior: auto !important;
+    }
+  }
 }
