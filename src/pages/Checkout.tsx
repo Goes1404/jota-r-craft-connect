@@ -289,30 +289,24 @@ const Checkout = () => {
         if (signUpData.user) finalUserId = signUpData.user.id;
       }
 
-      const { data: orderData, error: orderError } = await supabase.from('orders').insert({
-        user_id: finalUserId,
-        customer_name: formData.fullName,
-        customer_phone: formData.phone,
-        customer_email: formData.email,
-        total_amount: finalTotal,
-        status: 'Aguardando Pagamento',
-        shipping_address: `${formData.address}, ${formData.number} ${formData.complement ? '- ' + formData.complement : ''} — ${formData.neighborhood}, ${formData.city}/${formData.state} (${formData.cep})`,
-        payment_method: 'credit_card'
-      } as any).select().single();
-
-      if (orderError) throw orderError;
-
-      const orderId = orderData.id;
-      setCreatedOrderId(orderId);
-
-      await supabase.from('order_items').insert(
-        cartItems.map(item => ({
-          order_id: orderId,
+      const { data: rpcOrderId, error: orderError } = await supabase.rpc('create_order', {
+        p_customer_name: formData.fullName,
+        p_customer_email: formData.email,
+        p_customer_phone: formData.phone,
+        p_shipping_address: `${formData.address}, ${formData.number} ${formData.complement ? '- ' + formData.complement : ''} — ${formData.neighborhood}, ${formData.city}/${formData.state} (${formData.cep})`,
+        p_payment_method: 'credit_card',
+        p_items: cartItems.map(item => ({
           product_id: item.id,
           quantity: item.quantity,
           unit_price: item.price,
-        }))
-      );
+        })),
+        p_total_amount: finalTotal,
+      } as any);
+
+      if (orderError) throw orderError;
+
+      const orderId = rpcOrderId as unknown as string;
+      setCreatedOrderId(orderId);
 
       const { data: stripeResult } = await supabase.functions.invoke('create-stripe-payment', {
         body: { orderId, totalAmount: finalTotal }
@@ -390,27 +384,23 @@ const Checkout = () => {
         }
       }
 
-      const { data: orderData, error: orderError } = await supabase.from('orders').insert({
-        user_id: finalUserId,
-        customer_name: formData.fullName,
-        customer_phone: formData.phone,
-        customer_email: formData.email,
-        total_amount: finalTotal,
-        status: 'Aguardando Pagamento',
-        shipping_address: `${formData.address}, ${formData.number} ${formData.complement ? '- ' + formData.complement : ''} — ${formData.neighborhood}, ${formData.city}/${formData.state} (${formData.cep})`,
-        payment_method: paymentMethod
-      } as any).select().single();
+      const { data: rpcOrderId, error: orderError } = await supabase.rpc('create_order', {
+        p_customer_name: formData.fullName,
+        p_customer_email: formData.email,
+        p_customer_phone: formData.phone,
+        p_shipping_address: `${formData.address}, ${formData.number} ${formData.complement ? '- ' + formData.complement : ''} — ${formData.neighborhood}, ${formData.city}/${formData.state} (${formData.cep})`,
+        p_payment_method: paymentMethod,
+        p_items: cartItems.map(item => ({
+          product_id: item.id,
+          quantity: item.quantity,
+          unit_price: item.price,
+        })),
+        p_total_amount: finalTotal,
+      } as any);
 
       if (orderError) throw orderError;
-      const orderId = orderData.id;
+      const orderId = rpcOrderId as unknown as string;
       setCreatedOrderId(orderId);
-
-      await supabase.from('order_items').insert(cartItems.map(item => ({
-        order_id: orderId,
-        product_id: item.id,
-        quantity: item.quantity,
-        unit_price: item.price,
-      })));
 
       if (paymentMethod === 'pix') {
         const { data: pixResult } = await supabase.functions.invoke('create-pix-payment', {

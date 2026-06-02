@@ -25,3 +25,6 @@ dist-ssr
 
 # Claude / IDE specific files
 .claude/
+
+# Supabase CLI temp files
+supabase/.temp/
