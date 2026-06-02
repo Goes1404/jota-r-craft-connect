@@ -144,7 +144,7 @@ const Coupons: React.FC = () => {
           </div>
           <Button 
             onClick={() => navigate('/produtos')}
-            className="bg-black border border-[#d4af37]/30 hover:border-[#d4af37] text-white font-bold text-[10px] uppercase tracking-widest px-8 py-6 rounded-2xl transition-all relative z-10"
+            className="bg-black border border-[#d4af37]/30 hover:border-[#d4af37] text-white font-bold text-[10px] uppercase tracking-widest px-4 md:px-8 py-6 rounded-2xl transition-all relative z-10"
           >
             Ver Coleção
           </Button>

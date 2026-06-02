@@ -90,7 +90,7 @@ const AdminInventoryIntelligence = () => {
       </div>
 
       <header className="sticky top-0 z-50 bg-black/60 backdrop-blur-2xl border-b border-white/5 py-4">
-        <div className="max-w-screen-2xl mx-auto px-8 flex items-center justify-between">
+        <div className="max-w-screen-2xl mx-auto px-4 md:px-8 flex items-center justify-between">
           <div className="flex items-center gap-6">
             <Button variant="ghost" onClick={() => navigate('/admin/dashboard')} className="text-white/40 hover:text-[#d4af37] transition-colors p-0">
               <ArrowLeft className="h-5 w-5 mr-2" />
@@ -103,7 +103,7 @@ const AdminInventoryIntelligence = () => {
         </div>
       </header>
 
-      <main className="max-w-screen-2xl mx-auto px-8 py-12 relative z-10 space-y-12">
+      <main className="max-w-screen-2xl mx-auto px-4 md:px-4 md:px-8 py-8 md:py-12 relative z-10 space-y-12">
         
         {/* Predictive Summary Cards */}
         <div className="grid grid-cols-1 md:grid-cols-4 gap-6">

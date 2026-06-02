@@ -209,7 +209,7 @@ const AdminProducts = () => {
   return (
     <div className="min-h-screen bg-[#050505] text-[#e2e2e2] font-sans selection:bg-[#f2ca50]/30 selection:text-[#f2ca50]">
       <header className="sticky top-0 z-50 bg-black/60 backdrop-blur-2xl border-b border-white/5 py-4">
-        <div className="max-w-screen-2xl mx-auto px-8 flex items-center justify-between">
+        <div className="max-w-screen-2xl mx-auto px-4 md:px-8 flex items-center justify-between">
           <div className="flex items-center gap-6">
             <Button variant="ghost" onClick={() => navigate('/admin/dashboard')} className="text-white/40 hover:text-[#d4af37] transition-colors p-0">
               <ArrowLeft className="h-5 w-5 mr-2" />
@@ -336,7 +336,7 @@ const AdminProducts = () => {
       </div>
     </header>
 
-      <main className="max-w-screen-2xl mx-auto px-8 py-12">
+      <main className="max-w-screen-2xl mx-auto px-4 md:px-4 md:px-8 py-8 md:py-12">
         {/* Intelligence Cards */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12">
           <div className="bg-[#0f0f0f]/40 backdrop-blur-2xl border border-white/5 rounded-[32px] p-8 relative overflow-hidden group">
