@@ -110,7 +110,7 @@ const Index: React.FC = () => {
   ];
 
   return (
-    <div className="min-h-screen bg-background pb-28">
+    <div className="min-h-screen bg-background pb-28 md:pb-28">
       <SEO />
       <Header />
 
@@ -119,7 +119,7 @@ const Index: React.FC = () => {
         href={WHATSAPP}
         target="_blank"
         rel="noopener noreferrer"
-        className="fixed bottom-6 right-6 z-50 flex items-center gap-2 bg-primary text-primary-foreground font-bold text-sm px-5 py-3 rounded-full shadow-[0_4px_24px_rgba(212,175,55,0.5)] hover:scale-105 transition-transform duration-200 whitespace-nowrap"
+        className="fixed bottom-24 md:bottom-6 right-4 md:right-6 z-50 flex items-center gap-2 bg-primary text-primary-foreground font-bold text-sm px-4 md:px-5 py-3 rounded-full shadow-[0_4px_24px_rgba(212,175,55,0.5)] hover:scale-105 transition-transform duration-200 whitespace-nowrap"
         aria-label="Falar no WhatsApp"
       >
         <MessageCircle className="h-5 w-5 shrink-0" />
