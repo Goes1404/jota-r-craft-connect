@@ -63,6 +63,8 @@ const Checkout = () => {
   const [createdOrderId, setCreatedOrderId] = useState<string | null>(null);
   const [paymentStatus, setPaymentStatus] = useState<'aguardando' | 'pago' | 'expirado'>('aguardando');
   const [pixTimeLeft, setPixTimeLeft] = useState(PIX_EXPIRATION_MINUTES * 60);
+  const [orderTotal, setOrderTotal] = useState(0);
+  const [orderItemCount, setOrderItemCount] = useState(0);
   const pollingRef = useRef<NodeJS.Timeout | null>(null);
   const timerRef = useRef<NodeJS.Timeout | null>(null);
   const numberInputRef = useRef<HTMLInputElement>(null);
@@ -404,7 +406,13 @@ const Checkout = () => {
 
       if (paymentMethod === 'pix') {
         const { data: pixResult } = await supabase.functions.invoke('create-pix-payment', {
-          body: { orderId: orderId, totalAmount: finalTotal, payerEmail: formData.email || user?.email }
+          body: {
+            orderId: orderId,
+            totalAmount: finalTotal,
+            payerEmail: formData.email || user?.email,
+            payerCpf: formData.cpf,
+            payerName: formData.fullName,
+          }
         });
         if (pixResult?.success && pixResult.pix) {
           setPixData({ qrCodeBase64: pixResult.pix.qrCodeBase64, qrCode: pixResult.pix.qrCode });
@@ -428,6 +436,8 @@ const Checkout = () => {
         await (supabase as any).from('abandoned_carts').update({ status: 'purchased' }).eq('id', abandonedCartId);
       }
 
+      setOrderTotal(finalTotal);
+      setOrderItemCount(cartItems.reduce((acc, i) => acc + i.quantity, 0));
       clearCart();
       setOrderSuccess(true);
     } catch (error: any) {
@@ -449,17 +459,54 @@ const Checkout = () => {
           </div>
           <h1 className="text-4xl font-serif font-bold mb-4">{isPaid ? 'Pagamento Confirmado!' : isExpired ? 'PIX Expirado' : 'Aguardando Pagamento'}</h1>
           <p className="text-white/40 max-w-md mb-8 leading-relaxed">
-            {isPaid ? 'Seu pagamento foi recebido! Estamos preparando seu envio.' : isExpired ? 'O PIX expirou. Refaça o pedido.' : 'Pague o PIX abaixo para garantir seu estoque.'}
+            {isPaid ? 'Seu pagamento foi recebido! Estamos preparando seu envio.' : isExpired ? 'O PIX expirou. Refaça o pedido.' : 'Escaneie o QR Code ou copie o código para pagar.'}
           </p>
+
+          {/* Resumo do valor — sempre visível */}
+          <div className="bg-gradient-to-br from-[#d4af37]/10 to-transparent border border-[#d4af37]/20 rounded-3xl px-8 py-6 mb-8 w-full max-w-sm">
+            <p className="text-[9px] font-black uppercase tracking-[0.3em] text-[#d4af37]/60 mb-1">Valor Total</p>
+            <p className="text-4xl font-serif font-black text-[#d4af37] drop-shadow-[0_0_16px_rgba(212,175,55,0.25)]">
+              R$ {orderTotal.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+            </p>
+            {orderItemCount > 0 && (
+              <p className="text-[10px] text-white/30 mt-1 uppercase tracking-wider">
+                {orderItemCount} {orderItemCount === 1 ? 'item' : 'itens'}
+              </p>
+            )}
+          </div>
 
           {paymentMethod === 'pix' && !isPaid && !isExpired && (
             <div className="bg-[#0f0f0f] border border-white/10 p-8 rounded-[40px] mb-10 w-full max-w-sm">
-              <div className="aspect-square bg-white rounded-2xl p-4 flex items-center justify-center mb-6">
-                {pixData?.qrCodeBase64 && <img src={`data:image/png;base64,${pixData.qrCodeBase64}`} alt="QR Code" className="w-full h-full object-contain" />}
+              {/* Timer de expiração */}
+              <div className="flex items-center justify-center gap-2 mb-6 text-[#d4af37]">
+                <Timer className="w-4 h-4" />
+                <span className="text-sm font-bold tabular-nums">
+                  Expira em {String(Math.floor(pixTimeLeft / 60)).padStart(2, '0')}:{String(pixTimeLeft % 60).padStart(2, '0')}
+                </span>
               </div>
-              <Button onClick={() => { navigator.clipboard.writeText(pixData?.qrCode || ''); setCopied(true); setTimeout(() => setCopied(false), 3000); }} className="w-full bg-[#25D366]/10 border border-[#25D366]/20 text-[#25D366] h-12 rounded-xl">
-                {copied ? 'Copiado!' : 'Copiar Código PIX'}
+
+              <div className="aspect-square bg-white rounded-2xl p-4 flex items-center justify-center mb-6">
+                {pixData?.qrCodeBase64
+                  ? <img src={`data:image/png;base64,${pixData.qrCodeBase64}`} alt="QR Code PIX" className="w-full h-full object-contain" />
+                  : <div className="flex flex-col items-center gap-3 text-zinc-400"><Loader2 className="w-8 h-8 animate-spin" /><span className="text-xs font-medium">Gerando QR Code…</span></div>}
+              </div>
+
+              <Button
+                onClick={() => { navigator.clipboard.writeText(pixData?.qrCode || ''); setCopied(true); setTimeout(() => setCopied(false), 3000); }}
+                disabled={!pixData?.qrCode}
+                className="w-full bg-[#25D366]/10 border border-[#25D366]/20 text-[#25D366] h-12 rounded-xl disabled:opacity-40"
+              >
+                {copied ? <><Check className="w-4 h-4 mr-2" /> Código Copiado!</> : <><Copy className="w-4 h-4 mr-2" /> Copiar Código PIX</>}
               </Button>
+
+              <div className="mt-6 space-y-2 text-left">
+                {['Abra o app do seu banco', 'Escolha pagar via PIX (QR Code ou Copia e Cola)', 'Confirme — a aprovação é automática'].map((step, i) => (
+                  <div key={i} className="flex items-center gap-3 text-white/40">
+                    <span className="w-5 h-5 rounded-full bg-[#d4af37]/10 text-[#d4af37] text-[10px] font-black flex items-center justify-center shrink-0">{i + 1}</span>
+                    <span className="text-xs">{step}</span>
+                  </div>
+                ))}
+              </div>
             </div>
           )}
 
@@ -596,6 +643,8 @@ const Checkout = () => {
                   label="JR Acessórios"
                   onCreateOrder={createWalletOrder}
                   onSuccess={() => {
+                    setOrderTotal(finalTotal);
+                    setOrderItemCount(cartItems.reduce((acc, i) => acc + i.quantity, 0));
                     clearCart();
                     setPaymentStatus('pago');
                     setOrderSuccess(true);

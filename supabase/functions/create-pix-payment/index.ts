@@ -28,16 +28,13 @@ serve(async (req) => {
       global: { headers: { Authorization: authHeader } },
     });
 
-    const { data: { user }, error: authError } = await supabase.auth.getUser();
-    // Permite guest checkout (user pode ser null), mas valida o token se presente
-    if (authError && authHeader !== `Bearer ${SUPABASE_ANON_KEY}`) {
-      return new Response(JSON.stringify({ success: false, error: "Invalid token" }), {
-        status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
-    }
+    // Permite guest checkout: o usuário pode ser anônimo (publishable/anon key).
+    // A autorização para chegar aqui já é feita pelo gateway (apikey válida) e a
+    // segurança real vem da validação do pedido no banco (existe + não pago).
+    await supabase.auth.getUser().catch(() => null);
     // ────────────────────────────────────────────────────────────────────────
 
-    const { orderId, payerEmail } = await req.json();
+    const { orderId, payerEmail, payerCpf, payerName } = await req.json();
 
     if (!orderId) {
       return new Response(JSON.stringify({ success: false, error: "orderId obrigatório" }), {
@@ -75,12 +72,27 @@ serve(async (req) => {
       throw new Error("MERCADOPAGO_ACCESS_TOKEN not configured.");
     }
 
+    // Monta o payer com nome e CPF quando disponíveis (o MP exige p/ PIX em muitos casos)
+    const cleanCpf = (payerCpf || "").replace(/\D/g, "");
+    const nameParts = (payerName || "").trim().split(/\s+/);
+    const firstName = nameParts[0] || "Cliente";
+    const lastName = nameParts.slice(1).join(" ") || "JR";
+
+    const payer: Record<string, unknown> = {
+      email: payerEmail || "cliente@jracessorios.com",
+      first_name: firstName,
+      last_name: lastName,
+    };
+    if (cleanCpf.length === 11) {
+      payer.identification = { type: "CPF", number: cleanCpf };
+    }
+
     const paymentBody = {
       transaction_amount: Number(totalAmount),
       description: `Pedido JR Acessórios #${orderId.slice(0, 8)}`,
       payment_method_id: "pix",
       external_reference: orderId,
-      payer: { email: payerEmail || "cliente@jracessorios.com" },
+      payer,
     };
 
     const mpResponse = await fetch("https://api.mercadopago.com/v1/payments", {
