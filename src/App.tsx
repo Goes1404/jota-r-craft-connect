@@ -18,6 +18,7 @@ import { ScrollToTop } from "./components/ScrollToTop";
 import { SmoothScroll } from "./components/animations/SmoothScroll";
 import { PageTransition } from "./components/animations/PageTransition";
 import { MobileBottomNav } from "./components/MobileBottomNav";
+import { IntroLoader } from "./components/animations/IntroLoader";
 
 // ─── lazy page imports ────────────────────────────────────────────────────────
 const Index = lazy(() => import("./pages/Index"));
@@ -68,6 +69,7 @@ const App = () => (
             <TooltipProvider>
               <Toaster />
               <Sonner />
+              <IntroLoader />
               <BrowserRouter>
                 <ScrollToTop />
                 <SmoothScroll>

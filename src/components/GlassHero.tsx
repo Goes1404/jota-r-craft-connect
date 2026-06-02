@@ -83,7 +83,7 @@ export const GlassHero: React.FC = () => {
           <h1 className="text-5xl md:text-6xl font-serif font-black leading-none tracking-tight text-white">
             <TrackingInText
               text="JR"
-              className="text-[#D4AF37] block"
+              className="text-shimmer-gold block"
               stagger={0.1}
               delay={0.3}
             />
