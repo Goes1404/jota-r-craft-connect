@@ -1,1 +1,19 @@
-project_id = "addwuusmjeisegivtacc"
+project_id = "kpjmjwxcpzcipcxunthq"
+
+# ── Edge Functions ───────────────────────────────────────────────────────────
+# Webhooks recebem chamadas externas (Mercado Pago, Stripe) que NÃO enviam o
+# JWT do Supabase, portanto a verificação de JWT precisa ficar desligada nelas.
+# As funções validam a autenticidade por conta própria (assinatura HMAC).
+[functions.mp-webhook]
+verify_jwt = false
+
+[functions.stripe-webhook]
+verify_jwt = false
+
+# Funções chamadas pelo próprio frontend mantêm a verificação de JWT ligada
+# (o cliente envia o token de sessão ou a anon key).
+[functions.create-pix-payment]
+verify_jwt = true
+
+[functions.create-stripe-payment]
+verify_jwt = true
