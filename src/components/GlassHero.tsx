@@ -3,6 +3,7 @@ import { motion, useReducedMotion } from 'framer-motion';
 import { Link } from 'react-router-dom';
 import { ShoppingBag, MessageCircle, Star, Shield, Zap } from 'lucide-react';
 import { GoldenBlob } from '@/components/animations/GoldenBlob';
+import { Magnetic } from '@/components/animations/Magnetic';
 import { TrackingInText } from '@/components/animations/TrackingIn';
 import { MaskReveal } from '@/components/animations/MaskReveal';
 import { HeroCarousel } from '@/components/HeroCarousel';
@@ -110,17 +111,19 @@ export const GlassHero: React.FC = () => {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6, delay: 1.4 }}
           >
-            <Link to="/produtos">
-              <motion.button
-                className="flex items-center gap-3 px-8 py-4 rounded-full bg-[#D4AF37] text-black font-black text-sm uppercase tracking-widest shadow-[0_0_40px_rgba(212,175,55,0.35)] border border-[#D4AF37]/60"
-                whileHover={prefersReducedMotion ? {} : { scale: 1.05, boxShadow: '0 0 60px rgba(212,175,55,0.6)' }}
-                whileTap={{ scale: 0.97 }}
-                transition={{ type: 'spring', stiffness: 400, damping: 20 }}
-              >
-                <ShoppingBag className="w-4 h-4" />
-                Ver Ofertas
-              </motion.button>
-            </Link>
+            <Magnetic strength={0.4}>
+              <Link to="/produtos">
+                <motion.button
+                  className="flex items-center gap-3 px-8 py-4 rounded-full bg-[#D4AF37] text-black font-black text-sm uppercase tracking-widest shadow-[0_0_40px_rgba(212,175,55,0.35)] border border-[#D4AF37]/60"
+                  whileHover={prefersReducedMotion ? {} : { scale: 1.05, boxShadow: '0 0 60px rgba(212,175,55,0.6)' }}
+                  whileTap={{ scale: 0.97 }}
+                  transition={{ type: 'spring', stiffness: 400, damping: 20 }}
+                >
+                  <ShoppingBag className="w-4 h-4" />
+                  Ver Ofertas
+                </motion.button>
+              </Link>
+            </Magnetic>
             <a href={WHATSAPP} target="_blank" rel="noopener noreferrer">
               <motion.button
                 className="flex items-center gap-3 px-8 py-4 rounded-full bg-white/5 backdrop-blur-xl text-white font-bold text-sm uppercase tracking-widest border border-white/10 hover:border-[#D4AF37]/30 transition-colors"

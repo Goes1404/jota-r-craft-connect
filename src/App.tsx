@@ -18,6 +18,7 @@ import { ScrollToTop } from "./components/ScrollToTop";
 import { SmoothScroll } from "./components/animations/SmoothScroll";
 import { PageTransition } from "./components/animations/PageTransition";
 import { MobileBottomNav } from "./components/MobileBottomNav";
+import { AdminMobileMenu } from "./components/AdminMobileMenu";
 import { IntroLoader } from "./components/animations/IntroLoader";
 
 // ─── lazy page imports ────────────────────────────────────────────────────────
@@ -80,6 +81,7 @@ const App = () => (
                   <SocialProofToast />
                   <CookieBanner />
                   <MobileBottomNav />
+                  <AdminMobileMenu />
                   <Suspense fallback={<PageLoader />}>
                     <PageTransition>
                     <Routes>
