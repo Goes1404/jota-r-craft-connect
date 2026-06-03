@@ -95,7 +95,20 @@ const AdminOrders = () => {
           trackingCode: trackingInput.trim(),
         },
       });
-      toast.success('Pedido marcado como Enviado e cliente notificado por e-mail!');
+      // Send shipped WhatsApp
+      const clientPhone = selectedOrder.customer_phone || selectedOrder.user?.phone;
+      if (clientPhone) {
+        await supabase.functions.invoke('send-whatsapp', {
+          body: {
+            type: 'order_shipped',
+            to: clientPhone,
+            customerName: selectedOrder.customer_name,
+            orderId: selectedOrder.id,
+            trackingCode: trackingInput.trim(),
+          },
+        }).catch((err) => console.error('send-whatsapp shipping notification failed:', err));
+      }
+      toast.success('Pedido marcado como Enviado e cliente notificado por e-mail e WhatsApp!');
       setIsTrackingDialogOpen(false);
       setTrackingInput('');
     } catch {

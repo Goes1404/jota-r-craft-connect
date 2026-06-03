@@ -101,7 +101,7 @@ serve(async (req) => {
     // Idempotência: não reprocessar se já está Pago
     const { data: order } = await supabase
       .from("orders")
-      .select("status, customer_email, customer_name, total_amount, shipping_address")
+      .select("status, customer_email, customer_phone, customer_name, total_amount, shipping_address")
       .eq("id", orderId)
       .single();
 
@@ -148,6 +148,18 @@ serve(async (req) => {
           shippingAddress: order.shipping_address,
         },
       }).catch((err) => console.error("send-email failed:", err));
+    }
+
+    // 4. Send confirmation WhatsApp (fire-and-forget)
+    if (order?.customer_phone) {
+      supabase.functions.invoke("send-whatsapp", {
+        body: {
+          to: order.customer_phone,
+          customerName: order.customer_name,
+          orderId,
+          totalAmount: order.total_amount,
+        },
+      }).catch((err) => console.error("send-whatsapp failed:", err));
     }
 
     console.log(`Order ${orderId} marked Pago via MP webhook`);

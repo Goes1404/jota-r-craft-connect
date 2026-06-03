@@ -171,17 +171,41 @@ const Checkout = () => {
   }, [orderSuccess, paymentMethod, paymentStatus]);
 
   useEffect(() => {
-    if (!createdOrderId || !orderSuccess || paymentStatus === 'expirado') return;
-    const checkPaymentStatus = async () => {
+    if (!createdOrderId || !orderSuccess || paymentStatus === 'expirado' || paymentStatus === 'pago') return;
+
+    // Escuta em tempo real mudanças no status do pedido específico
+    const channel = supabase
+      .channel(`order-status-${createdOrderId}`)
+      .on(
+        'postgres_changes',
+        {
+          event: 'UPDATE',
+          schema: 'public',
+          table: 'orders',
+          filter: `id=eq.${createdOrderId}`,
+        },
+        (payload: any) => {
+          const newStatus = payload.new?.status;
+          if (newStatus === 'Pago') {
+            setPaymentStatus('pago');
+            toast.success('Pagamento confirmado com sucesso!');
+          }
+        }
+      )
+      .subscribe();
+
+    // Fallback: faz verificação manual a cada 10 segundos caso a conexão Realtime caia
+    const checkInterval = setInterval(async () => {
       const { data } = await supabase.rpc('get_order_status', { p_order_id: createdOrderId } as any);
       if (data === 'Pago') {
         setPaymentStatus('pago');
-        if (pollingRef.current) clearInterval(pollingRef.current);
-        if (timerRef.current) clearInterval(timerRef.current);
       }
+    }, 10000);
+
+    return () => {
+      supabase.removeChannel(channel);
+      clearInterval(checkInterval);
     };
-    pollingRef.current = setInterval(checkPaymentStatus, 5000);
-    return () => { if (pollingRef.current) clearInterval(pollingRef.current); };
   }, [createdOrderId, orderSuccess, paymentStatus]);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
