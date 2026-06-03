@@ -1,6 +1,16 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
+/** Compara duas strings hex em tempo constante (evita timing attack). */
+function timingSafeEqualHex(a: string, b: string): boolean {
+  if (a.length !== b.length) return false;
+  let mismatch = 0;
+  for (let i = 0; i < a.length; i++) {
+    mismatch |= a.charCodeAt(i) ^ b.charCodeAt(i);
+  }
+  return mismatch === 0;
+}
+
 serve(async (req) => {
   try {
     const MERCADOPAGO_ACCESS_TOKEN = Deno.env.get("MERCADOPAGO_ACCESS_TOKEN");
@@ -16,52 +26,57 @@ serve(async (req) => {
     // Docs: https://www.mercadopago.com.br/developers/pt/docs/your-integrations/notifications/webhooks
     const MP_WEBHOOK_SECRET = Deno.env.get("MP_WEBHOOK_SECRET") || Deno.env.get("MERCADOPAGO_WEBHOOK_SECRET");
 
-    if (MP_WEBHOOK_SECRET) {
-      const xSignature = req.headers.get("x-signature");
-      const xRequestId = req.headers.get("x-request-id");
-      const url = new URL(req.url);
-      const dataId = url.searchParams.get("data.id");
+    // Fail-closed: sem o secret configurado NÃO processamos o webhook. Antes,
+    // a ausência do secret fazia a validação ser pulada (fail-open), permitindo
+    // requisições forjadas. Agora rejeitamos explicitamente.
+    if (!MP_WEBHOOK_SECRET) {
+      console.error("MP Webhook: MP_WEBHOOK_SECRET not configured — rejecting (fail-closed)");
+      return new Response("Webhook secret not configured", { status: 500 });
+    }
 
-      if (!xSignature) {
-        console.warn("MP Webhook: missing x-signature header — rejecting");
-        return new Response("Unauthorized", { status: 401 });
-      }
+    const xSignature = req.headers.get("x-signature");
+    const xRequestId = req.headers.get("x-request-id");
+    const url = new URL(req.url);
+    const dataId = url.searchParams.get("data.id");
 
-      // Extrai ts e v1 do header x-signature
-      const parts = Object.fromEntries(
-        xSignature.split(",").map((p) => p.trim().split("=") as [string, string])
-      );
-      const ts = parts["ts"];
-      const v1 = parts["v1"];
+    if (!xSignature) {
+      console.warn("MP Webhook: missing x-signature header — rejecting");
+      return new Response("Unauthorized", { status: 401 });
+    }
 
-      if (!ts || !v1) {
-        return new Response("Invalid signature format", { status: 401 });
-      }
+    // Extrai ts e v1 do header x-signature
+    const parts = Object.fromEntries(
+      xSignature.split(",").map((p) => p.trim().split("=") as [string, string])
+    );
+    const ts = parts["ts"];
+    const v1 = parts["v1"];
 
-      // Monta o manifest conforme documentação do MP
-      const manifest = `id:${dataId};request-id:${xRequestId ?? ""};ts:${ts};`;
-      const key = await crypto.subtle.importKey(
-        "raw",
-        new TextEncoder().encode(MP_WEBHOOK_SECRET),
-        { name: "HMAC", hash: "SHA-256" },
-        false,
-        ["sign"]
-      );
-      const signatureBuffer = await crypto.subtle.sign(
-        "HMAC",
-        key,
-        new TextEncoder().encode(manifest)
-      );
-      const computedHash = Array.from(new Uint8Array(signatureBuffer))
-        .map((b) => b.toString(16).padStart(2, "0"))
-        .join("");
+    if (!ts || !v1) {
+      return new Response("Invalid signature format", { status: 401 });
+    }
 
-      if (computedHash !== v1) {
-        console.warn("MP Webhook: signature mismatch — rejecting");
-        return new Response("Unauthorized", { status: 401 });
-      }
-    } else {
-      console.warn("MP Webhook: MP_WEBHOOK_SECRET not configured — skipping signature check");
+    // Monta o manifest conforme documentação do MP
+    const manifest = `id:${dataId};request-id:${xRequestId ?? ""};ts:${ts};`;
+    const key = await crypto.subtle.importKey(
+      "raw",
+      new TextEncoder().encode(MP_WEBHOOK_SECRET),
+      { name: "HMAC", hash: "SHA-256" },
+      false,
+      ["sign"]
+    );
+    const signatureBuffer = await crypto.subtle.sign(
+      "HMAC",
+      key,
+      new TextEncoder().encode(manifest)
+    );
+    const computedHash = Array.from(new Uint8Array(signatureBuffer))
+      .map((b) => b.toString(16).padStart(2, "0"))
+      .join("");
+
+    // Comparação em tempo constante para evitar timing side-channel.
+    if (!timingSafeEqualHex(computedHash, v1)) {
+      console.warn("MP Webhook: signature mismatch — rejecting");
+      return new Response("Unauthorized", { status: 401 });
     }
     // ────────────────────────────────────────────────────────────────────────
 
