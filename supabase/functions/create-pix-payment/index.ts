@@ -87,11 +87,17 @@ serve(async (req) => {
       payer.identification = { type: "CPF", number: cleanCpf };
     }
 
+    // notification_url tells MP where to POST the payment approval event.
+    // Without it, the webhook never fires and orders stay "Aguardando Pagamento".
+    const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
+    const notificationUrl = `${SUPABASE_URL}/functions/v1/mp-webhook`;
+
     const paymentBody = {
       transaction_amount: Number(totalAmount),
       description: `Pedido JR Acessórios #${orderId.slice(0, 8)}`,
       payment_method_id: "pix",
       external_reference: orderId,
+      notification_url: notificationUrl,
       payer,
     };
 
