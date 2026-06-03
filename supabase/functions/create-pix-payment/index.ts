@@ -14,28 +14,10 @@ serve(async (req) => {
   }
 
   try {
-    // ── Autenticação obrigatória ─────────────────────────────────────────────
-    const authHeader = req.headers.get("authorization");
-    if (!authHeader) {
-      return new Response(JSON.stringify({ success: false, error: "Unauthorized" }), {
-        status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
-    }
-
+    // Sem checagem de JWT do usuário: a função aceita guest checkout.
+    // Toda a segurança está no banco (lê total_amount do banco, exige status
+    // "Aguardando Pagamento", usa service_role). verify_jwt=false na config.
     const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
-    const SUPABASE_ANON_KEY = Deno.env.get("SUPABASE_ANON_KEY")!;
-    const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
-      global: { headers: { Authorization: authHeader } },
-    });
-
-    const { data: { user }, error: authError } = await supabase.auth.getUser();
-    // Permite guest checkout (user pode ser null), mas valida o token se presente
-    if (authError && authHeader !== `Bearer ${SUPABASE_ANON_KEY}`) {
-      return new Response(JSON.stringify({ success: false, error: "Invalid token" }), {
-        status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
-    }
-    // ────────────────────────────────────────────────────────────────────────
 
     const { orderId, payerEmail } = await req.json();
 

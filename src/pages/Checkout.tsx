@@ -171,8 +171,8 @@ const Checkout = () => {
   useEffect(() => {
     if (!createdOrderId || !orderSuccess || paymentStatus === 'expirado') return;
     const checkPaymentStatus = async () => {
-      const { data } = await supabase.from('orders').select('status').eq('id', createdOrderId).single();
-      if (data?.status === 'Pago') {
+      const { data } = await supabase.rpc('get_order_status', { p_order_id: createdOrderId } as any);
+      if (data === 'Pago') {
         setPaymentStatus('pago');
         if (pollingRef.current) clearInterval(pollingRef.current);
         if (timerRef.current) clearInterval(timerRef.current);
