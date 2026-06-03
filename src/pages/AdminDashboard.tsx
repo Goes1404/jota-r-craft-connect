@@ -399,6 +399,9 @@ const AdminDashboard = () => {
           </div>
           
           <div className="flex flex-wrap gap-4">
+            <Button onClick={() => navigate('/admin/studio')} className="bg-gradient-to-r from-[#d4af37]/20 to-[#d4af37]/5 border border-[#d4af37]/40 hover:from-[#d4af37]/30 text-[#d4af37] font-bold text-[10px] uppercase tracking-widest px-6 h-12 rounded-xl transition-all shadow-[0_0_15px_rgba(212,175,55,0.15)]">
+              <Sparkles className="w-4 h-4 mr-2" /> Estúdio IA
+            </Button>
             <Button onClick={() => navigate('/admin/products')} className="bg-white/5 border border-white/10 hover:border-[#d4af37]/40 hover:bg-[#d4af37]/5 text-white font-bold text-[10px] uppercase tracking-widest px-6 h-12 rounded-xl transition-all">
               <Package className="w-4 h-4 mr-2 text-[#d4af37]" /> Coleção
             </Button>
