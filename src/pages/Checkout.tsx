@@ -403,25 +403,29 @@ const Checkout = () => {
       setCreatedOrderId(orderId);
 
       if (paymentMethod === 'pix') {
-        const { data: pixResult } = await supabase.functions.invoke('create-pix-payment', {
+        const { data: pixResult, error: pixError } = await supabase.functions.invoke('create-pix-payment', {
           body: { orderId: orderId, totalAmount: finalTotal, payerEmail: formData.email || user?.email }
         });
-        if (pixResult?.success && pixResult.pix) {
-          setPixData({ qrCodeBase64: pixResult.pix.qrCodeBase64, qrCode: pixResult.pix.qrCode });
-          await supabase.from('orders').update({
-            pix_qr_code: pixResult.pix.qrCodeBase64,
-            pix_qr_code_text: pixResult.pix.qrCode,
-            payment_intent_id: String(pixResult.pix.paymentId),
-          }).eq('id', orderId);
+        if (pixError) throw new Error(`Falha ao gerar PIX: ${pixError.message}`);
+        if (!pixResult?.success || !pixResult?.pix?.qrCodeBase64) {
+          throw new Error(pixResult?.error || 'Mercado Pago não retornou o QR Code do PIX');
         }
+        setPixData({ qrCodeBase64: pixResult.pix.qrCodeBase64, qrCode: pixResult.pix.qrCode });
+        await supabase.from('orders').update({
+          pix_qr_code: pixResult.pix.qrCodeBase64,
+          pix_qr_code_text: pixResult.pix.qrCode,
+          payment_intent_id: String(pixResult.pix.paymentId),
+        }).eq('id', orderId);
       } else {
-        const { data: stripeResult } = await supabase.functions.invoke('create-stripe-payment', {
+        const { data: stripeResult, error: stripeError } = await supabase.functions.invoke('create-stripe-payment', {
           body: { orderId: orderId, totalAmount: finalTotal }
         });
-        if (stripeResult?.success && stripeResult.clientSecret) {
-          setStripeClientSecret(stripeResult.clientSecret);
-          await supabase.from('orders').update({ payment_intent_id: stripeResult.paymentIntentId }).eq('id', orderId);
+        if (stripeError) throw new Error(`Falha ao iniciar pagamento: ${stripeError.message}`);
+        if (!stripeResult?.success || !stripeResult?.clientSecret) {
+          throw new Error(stripeResult?.error || 'Erro ao criar intenção de pagamento');
         }
+        setStripeClientSecret(stripeResult.clientSecret);
+        await supabase.from('orders').update({ payment_intent_id: stripeResult.paymentIntentId }).eq('id', orderId);
       }
 
       if (abandonedCartId) {
