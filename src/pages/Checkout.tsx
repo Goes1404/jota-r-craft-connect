@@ -438,22 +438,24 @@ const Checkout = () => {
             payerName: formData.fullName,
           }
         });
-        if (pixResult?.success && pixResult.pix) {
-          setPixData({ qrCodeBase64: pixResult.pix.qrCodeBase64, qrCode: pixResult.pix.qrCode });
-          await supabase.from('orders').update({
-            pix_qr_code: pixResult.pix.qrCodeBase64,
-            pix_qr_code_text: pixResult.pix.qrCode,
-            payment_intent_id: String(pixResult.pix.paymentId),
-          }).eq('id', orderId);
+        if (!pixResult?.success || !pixResult.pix?.qrCodeBase64) {
+          throw new Error(pixResult?.error || 'Falha ao gerar QR Code PIX. Tente novamente.');
         }
+        setPixData({ qrCodeBase64: pixResult.pix.qrCodeBase64, qrCode: pixResult.pix.qrCode });
+        await supabase.from('orders').update({
+          pix_qr_code: pixResult.pix.qrCodeBase64,
+          pix_qr_code_text: pixResult.pix.qrCode,
+          payment_intent_id: String(pixResult.pix.paymentId),
+        }).eq('id', orderId);
       } else {
         const { data: stripeResult } = await supabase.functions.invoke('create-stripe-payment', {
           body: { orderId: orderId, totalAmount: finalTotal }
         });
-        if (stripeResult?.success && stripeResult.clientSecret) {
-          setStripeClientSecret(stripeResult.clientSecret);
-          await supabase.from('orders').update({ payment_intent_id: stripeResult.paymentIntentId }).eq('id', orderId);
+        if (!stripeResult?.success || !stripeResult.clientSecret) {
+          throw new Error(stripeResult?.error || 'Falha ao iniciar pagamento via cartão. Tente novamente.');
         }
+        setStripeClientSecret(stripeResult.clientSecret);
+        await supabase.from('orders').update({ payment_intent_id: stripeResult.paymentIntentId }).eq('id', orderId);
       }
 
       if (abandonedCartId) {
@@ -482,9 +484,14 @@ const Checkout = () => {
             {isPaid ? <CheckCircle2 className="w-12 h-12 text-green-500" /> : isExpired ? <AlertTriangle className="w-12 h-12 text-red-400" /> : <Clock className="w-12 h-12 text-[#d4af37] animate-pulse" />}
           </div>
           <h1 className="text-4xl font-serif font-bold mb-4">{isPaid ? 'Pagamento Confirmado!' : isExpired ? 'PIX Expirado' : 'Aguardando Pagamento'}</h1>
-          <p className="text-white/40 max-w-md mb-8 leading-relaxed">
+          <p className="text-white/40 max-w-md mb-2 leading-relaxed">
             {isPaid ? 'Seu pagamento foi recebido! Estamos preparando seu envio.' : isExpired ? 'O PIX expirou. Refaça o pedido.' : 'Escaneie o QR Code ou copie o código para pagar.'}
           </p>
+          {createdOrderId && (
+            <p className="text-[11px] font-black uppercase tracking-[0.25em] text-[#d4af37]/60 mb-8">
+              Pedido #{createdOrderId.slice(0, 8).toUpperCase()}
+            </p>
+          )}
 
           {/* Resumo do valor — sempre visível */}
           <div className="bg-gradient-to-br from-[#d4af37]/10 to-transparent border border-[#d4af37]/20 rounded-3xl px-8 py-6 mb-8 w-full max-w-sm">
@@ -552,7 +559,12 @@ const Checkout = () => {
           )}
 
           <div className="flex flex-col sm:flex-row gap-4">
-            <Button onClick={() => navigate('/pedidos')} className="bg-[#d4af37] text-black h-14 rounded-full px-12 font-bold uppercase tracking-widest text-[10px]">Acompanhar Pedido</Button>
+            <Button
+              onClick={() => navigate(user ? '/pedidos' : `/pedidos?orderId=${createdOrderId}`)}
+              className="bg-[#d4af37] text-black h-14 rounded-full px-12 font-bold uppercase tracking-widest text-[10px]"
+            >
+              Acompanhar Pedido
+            </Button>
             <Button onClick={() => navigate('/')} variant="ghost" className="text-white/40 hover:text-white uppercase tracking-[0.2em] text-[10px] h-14">Voltar para Home</Button>
           </div>
         </main>

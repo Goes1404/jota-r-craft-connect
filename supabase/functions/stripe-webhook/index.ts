@@ -70,7 +70,7 @@ serve(async (req) => {
       }
     }
 
-    // 3. Send confirmation email (fire-and-forget)
+    // 3. Send confirmation email to customer (fire-and-forget)
     if (order?.customer_email) {
       supabase.functions.invoke("send-email", {
         body: {
@@ -81,10 +81,10 @@ serve(async (req) => {
           totalAmount: order.total_amount,
           shippingAddress: order.shipping_address,
         },
-      }).catch((err) => console.error("send-email failed:", err));
+      }).catch((err) => console.error("send-email customer failed:", err));
     }
 
-    // 4. Send confirmation WhatsApp (fire-and-forget)
+    // 4. Send confirmation WhatsApp to customer (fire-and-forget)
     if (order?.customer_phone) {
       supabase.functions.invoke("send-whatsapp", {
         body: {
@@ -94,6 +94,22 @@ serve(async (req) => {
           totalAmount: order.total_amount,
         },
       }).catch((err) => console.error("send-whatsapp failed:", err));
+    }
+
+    // 5. Notify admin (fire-and-forget)
+    const ADMIN_EMAIL = Deno.env.get("ADMIN_EMAIL");
+    if (ADMIN_EMAIL) {
+      supabase.functions.invoke("send-email", {
+        body: {
+          type: "admin_new_order",
+          to: ADMIN_EMAIL,
+          customerName: order.customer_name,
+          customerEmail: order.customer_email,
+          orderId,
+          totalAmount: order.total_amount,
+          shippingAddress: order.shipping_address,
+        },
+      }).catch((err) => console.error("send-email admin failed:", err));
     }
 
     console.log(`Order ${orderId} marked Pago via Stripe`);

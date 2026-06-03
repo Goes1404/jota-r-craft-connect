@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
@@ -6,32 +6,62 @@ import { Header } from '@/components/Header';
 import { Footer } from '@/components/Footer';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { 
-  Package, 
-  Truck, 
-  CheckCircle2, 
-  Clock, 
-  Search, 
-  ShoppingBag, 
-  ChevronRight,
-  ArrowRight,
+import {
+  Package,
+  Truck,
+  CheckCircle2,
+  Clock,
+  ShoppingBag,
   Box,
   MapPin,
-  Calendar,
   Zap,
   ShieldCheck,
-  Star,
   Sparkles,
-  Diamond
+  Diamond,
+  Loader2,
+  Search,
+  AlertCircle,
 } from 'lucide-react';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useSearchParams } from 'react-router-dom';
+import { Input } from '@/components/ui/input';
 
 const Orders = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const guestOrderId = searchParams.get('orderId');
+
   const [selectedOrderId, setSelectedOrderId] = useState<string | null>(null);
+  const [guestOrder, setGuestOrder] = useState<any>(null);
+  const [guestLoading, setGuestLoading] = useState(false);
+  const [guestLookupId, setGuestLookupId] = useState('');
+  const [guestError, setGuestError] = useState('');
+
+  // Fetch guest order from URL param on mount
+  useEffect(() => {
+    if (!user && guestOrderId) {
+      fetchGuestOrder(guestOrderId);
+    }
+  }, [user, guestOrderId]);
+
+  const fetchGuestOrder = async (orderId: string) => {
+    setGuestLoading(true);
+    setGuestError('');
+    try {
+      const { data } = await (supabase as any).rpc('get_guest_order_summary', { p_order_id: orderId });
+      if (data) {
+        setGuestOrder(data);
+      } else {
+        setGuestError('Pedido não encontrado. Verifique o número e tente novamente.');
+      }
+    } catch {
+      setGuestError('Não foi possível buscar o pedido. Tente novamente.');
+    } finally {
+      setGuestLoading(false);
+    }
+  };
 
   const { data: orders = [], isLoading } = useQuery({
     queryKey: ['user-orders', user?.id],
@@ -42,14 +72,14 @@ const Orders = () => {
         .select('*, items:order_items(quantity, total_price, product:products(name, image))')
         .eq('user_id', user.id)
         .order('created_at', { ascending: false });
-      
+
       if (error) throw error;
       return data;
     },
     enabled: !!user,
   });
 
-  const selectedOrder = orders.find(o => o.id === selectedOrderId);
+  const selectedOrder = guestOrder ?? orders.find(o => o.id === selectedOrderId);
 
   const getStatusStep = (status: string) => {
     switch (status) {
@@ -57,7 +87,7 @@ const Orders = () => {
       case 'Em Preparação': return 2;
       case 'Enviado': return 3;
       case 'Entregue': return 4;
-      default: return 1;
+      default: return 0;
     }
   };
 
@@ -76,13 +106,77 @@ const Orders = () => {
     );
   }
 
+  // ── Guest (not logged in) ─────────────────────────────────────────────────
+  if (!user) {
+    return (
+      <div className="min-h-screen bg-black text-[#e2e2e2] font-sans">
+        <Header />
+        <main className="max-w-2xl mx-auto px-6 py-32 relative z-10 text-center">
+          <div className="mb-12">
+            <Box className="w-16 h-16 text-[#d4af37]/20 mx-auto mb-6" />
+            <h1 className="text-3xl font-serif font-black text-white uppercase tracking-wider mb-4">
+              Acompanhar Pedido
+            </h1>
+            <p className="text-white/40 text-sm leading-relaxed max-w-md mx-auto">
+              Informe o número do seu pedido para ver o status. Você também pode{' '}
+              <Link to="/auth" className="text-[#d4af37] hover:underline">fazer login</Link>{' '}
+              para ver todo seu histórico.
+            </p>
+          </div>
+
+          {guestLoading ? (
+            <div className="flex justify-center py-12">
+              <Loader2 className="w-8 h-8 text-[#d4af37] animate-spin" />
+            </div>
+          ) : guestOrder ? (
+            <GuestOrderDetail order={guestOrder} steps={steps} getStatusStep={getStatusStep} onClear={() => { setGuestOrder(null); navigate('/pedidos'); }} />
+          ) : (
+            <div className="bg-[#0a0a0a] border border-white/5 p-8 rounded-[40px] space-y-6 text-left">
+              <div className="space-y-3">
+                <label className="text-[9px] font-black uppercase tracking-widest text-white/30">
+                  Número do Pedido
+                </label>
+                <Input
+                  value={guestLookupId}
+                  onChange={(e) => setGuestLookupId(e.target.value)}
+                  placeholder="Ex: a1b2c3d4-..."
+                  className="bg-white/5 border-white/10 h-14 rounded-2xl font-mono text-sm"
+                  onKeyDown={(e) => e.key === 'Enter' && guestLookupId.trim() && fetchGuestOrder(guestLookupId.trim())}
+                />
+              </div>
+              {guestError && (
+                <div className="flex items-center gap-2 text-red-400 text-xs">
+                  <AlertCircle className="w-4 h-4 shrink-0" />
+                  <span>{guestError}</span>
+                </div>
+              )}
+              <Button
+                disabled={!guestLookupId.trim()}
+                onClick={() => fetchGuestOrder(guestLookupId.trim())}
+                className="w-full h-14 bg-[#d4af37] text-black font-black uppercase tracking-widest text-[11px] rounded-2xl"
+              >
+                <Search className="w-4 h-4 mr-2" />
+                Buscar Pedido
+              </Button>
+              <p className="text-[10px] text-white/20 text-center">
+                O número do pedido foi enviado para o seu e-mail e aparece na tela de confirmação.
+              </p>
+            </div>
+          )}
+        </main>
+        <Footer />
+      </div>
+    );
+  }
+
+  // ── Authenticated user ────────────────────────────────────────────────────
   return (
     <div className="min-h-screen bg-black text-[#e2e2e2] font-sans">
       <Header />
-      
+
       <main className="max-w-7xl mx-auto px-6 py-32 relative z-10">
         <div className="flex flex-col lg:flex-row gap-16">
-          
+
           {/* Orders Sidebar */}
           <div className="w-full lg:w-[400px] space-y-8">
             <div className="flex items-center justify-between mb-4">
@@ -96,8 +190,8 @@ const Orders = () => {
                   key={order.id}
                   onClick={() => setSelectedOrderId(order.id)}
                   className={`w-full text-left p-6 rounded-[32px] border transition-all duration-500 group relative overflow-hidden ${
-                    selectedOrderId === order.id 
-                      ? 'bg-[#d4af37]/10 border-[#d4af37]/40 shadow-[0_0_30px_rgba(212,175,55,0.05)]' 
+                    selectedOrderId === order.id
+                      ? 'bg-[#d4af37]/10 border-[#d4af37]/40 shadow-[0_0_30px_rgba(212,175,55,0.05)]'
                       : 'bg-white/[0.02] border-white/5 hover:border-white/20'
                   }`}
                 >
@@ -113,7 +207,7 @@ const Orders = () => {
                       {format(new Date(order.created_at), "dd 'de' MMMM", { locale: ptBR })}
                     </span>
                     <div className="flex items-center gap-2">
-                      <div className={`w-2 h-2 rounded-full ${order.status === 'Pago' || order.status === 'Entregue' ? 'bg-green-500' : 'bg-[#d4af37]'} animate-pulse`}></div>
+                      <div className={`w-2 h-2 rounded-full ${order.status === 'Entregue' ? 'bg-green-500' : 'bg-[#d4af37]'} animate-pulse`}></div>
                       <span className="text-[9px] font-black uppercase tracking-widest text-white/60">{order.status}</span>
                     </div>
                   </div>
@@ -130,103 +224,10 @@ const Orders = () => {
             </div>
           </div>
 
-          {/* Luxury Timeline Experience */}
+          {/* Order Detail */}
           <div className="flex-1">
             {selectedOrder ? (
-              <div className="bg-[#0a0a0a] border border-white/5 rounded-[48px] overflow-hidden shadow-2xl animate-in fade-in zoom-in-95 duration-700">
-                {/* Header Section */}
-                <div className="p-10 md:p-16 bg-gradient-to-br from-[#d4af37]/5 to-transparent border-b border-white/5 relative">
-                  <div className="absolute top-10 right-10 opacity-10">
-                    <Zap className="w-32 h-32 text-[#d4af37]" />
-                  </div>
-                  <div className="relative z-10 flex flex-col md:flex-row justify-between items-end gap-8">
-                    <div>
-                      <h2 className="text-4xl font-serif font-black text-white mb-4 tracking-tighter">Status da <span className="text-[#d4af37]">Experiência</span></h2>
-                      <div className="flex items-center gap-4 text-white/40 text-xs font-bold uppercase tracking-widest">
-                        <span>Ref: {selectedOrder.id.slice(0, 12)}</span>
-                        <span>•</span>
-                        <span className="text-[#d4af37]">Tracking: {selectedOrder.tracking_code || 'Em processamento'}</span>
-                      </div>
-                    </div>
-                    <div className="w-full md:w-auto p-4 bg-white/5 rounded-3xl border border-white/5 flex items-center gap-4">
-                      <div className="w-12 h-12 rounded-2xl bg-[#d4af37] flex items-center justify-center shadow-lg">
-                        <Box className="w-6 h-6 text-black" />
-                      </div>
-                      <div>
-                        <p className="text-[10px] font-black text-white/40 uppercase tracking-widest">Método</p>
-                        <p className="text-sm font-bold text-white uppercase">{selectedOrder.payment_method === 'pix' ? 'PIX' : 'Cartão'}</p>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Timeline */}
-                <div className="p-10 md:p-16 bg-black/40">
-                  <div className="relative space-y-12 before:absolute before:left-7 before:top-2 before:bottom-2 before:w-[2px] before:bg-white/5">
-                    {steps.map((step) => {
-                      const isActive = getStatusStep(selectedOrder.status) >= step.id;
-                      const isCurrent = getStatusStep(selectedOrder.status) === step.id;
-                      
-                      return (
-                        <div key={step.id} className={`relative pl-20 transition-all duration-1000 ${isActive ? 'opacity-100' : 'opacity-20'}`}>
-                          <div className={`absolute left-0 top-0 w-14 h-14 rounded-2xl border-2 flex items-center justify-center transition-all duration-700 ${
-                            isActive 
-                              ? 'bg-[#d4af37]/10 border-[#d4af37] text-[#d4af37] shadow-[0_0_20px_rgba(212,175,55,0.2)]' 
-                              : 'bg-black border-white/10 text-white/20'
-                          }`}>
-                            <step.icon className={`w-6 h-6 ${isCurrent ? 'animate-pulse' : ''}`} />
-                            {isCurrent && (
-                              <div className="absolute inset-0 rounded-2xl border-2 border-[#d4af37] animate-ping opacity-20"></div>
-                            )}
-                          </div>
-                          <div className="space-y-1">
-                            <h4 className={`text-lg font-serif font-black uppercase tracking-wider ${isActive ? 'text-white' : 'text-white/20'}`}>{step.label}</h4>
-                            <p className="text-xs text-white/40 leading-relaxed font-medium">{step.desc}</p>
-                          </div>
-                        </div>
-                      );
-                    })}
-                  </div>
-                </div>
-
-                {/* Shipping Info */}
-                <div className="p-10 md:p-16 border-t border-white/5 bg-[#0a0a0a] grid grid-cols-1 md:grid-cols-2 gap-12">
-                  <div className="space-y-6">
-                    <div className="flex items-center gap-3">
-                      <MapPin className="w-4 h-4 text-[#d4af37]" />
-                      <h4 className="text-[10px] font-black text-white/40 uppercase tracking-widest">Destino do Envio</h4>
-                    </div>
-                    <p className="text-sm text-white/60 font-medium leading-relaxed">{selectedOrder.shipping_address}</p>
-                  </div>
-                  <div className="space-y-6">
-                    <div className="flex items-center gap-3">
-                      <ShoppingBag className="w-4 h-4 text-[#d4af37]" />
-                      <h4 className="text-[10px] font-black text-white/40 uppercase tracking-widest">Itens da Coleção</h4>
-                    </div>
-                    <div className="space-y-3">
-                      {selectedOrder.items?.map((item: any, i: number) => (
-                        <div key={i} className="flex items-center gap-4">
-                          <div className="w-8 h-8 rounded-lg bg-white/5 p-1 border border-white/5">
-                            <img src={item.product?.image} className="w-full h-full object-contain" />
-                          </div>
-                          <span className="text-[10px] font-bold text-white/80">{item.product?.name} <span className="text-[#d4af37]">x{item.quantity}</span></span>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                </div>
-
-                {/* Footer Action */}
-                <div className="p-10 border-t border-white/5 bg-black/60 flex flex-col md:flex-row justify-between items-center gap-8">
-                  <div className="flex items-center gap-4">
-                    <ShieldCheck className="w-5 h-5 text-green-500" />
-                    <p className="text-[9px] font-black uppercase tracking-widest text-white/30">Garantia de Autenticidade Ativada</p>
-                  </div>
-                  <Button variant="outline" className="border-white/10 text-white/40 hover:text-white rounded-full px-10 h-14 text-[9px] font-black uppercase tracking-widest">
-                    Solicitar Suporte Concierge
-                  </Button>
-                </div>
-              </div>
+              <OrderDetail order={selectedOrder} steps={steps} getStatusStep={getStatusStep} />
             ) : (
               <div className="h-full min-h-[500px] bg-white/[0.01] border border-white/5 border-dashed rounded-[48px] flex flex-col items-center justify-center text-center p-20">
                 <Box className="w-16 h-16 text-white/5 mb-8" />
@@ -243,5 +244,125 @@ const Orders = () => {
     </div>
   );
 };
+
+// Shared order detail component
+function OrderDetail({ order, steps, getStatusStep }: { order: any; steps: any[]; getStatusStep: (s: string) => number }) {
+  return (
+    <div className="bg-[#0a0a0a] border border-white/5 rounded-[48px] overflow-hidden shadow-2xl animate-in fade-in zoom-in-95 duration-700">
+      {/* Header */}
+      <div className="p-10 md:p-16 bg-gradient-to-br from-[#d4af37]/5 to-transparent border-b border-white/5 relative">
+        <div className="absolute top-10 right-10 opacity-10">
+          <Zap className="w-32 h-32 text-[#d4af37]" />
+        </div>
+        <div className="relative z-10 flex flex-col md:flex-row justify-between items-end gap-8">
+          <div>
+            <h2 className="text-4xl font-serif font-black text-white mb-4 tracking-tighter">Status da <span className="text-[#d4af37]">Experiência</span></h2>
+            <div className="flex items-center gap-4 text-white/40 text-xs font-bold uppercase tracking-widest">
+              <span>Ref: {order.id?.slice(0, 12)}</span>
+              <span>•</span>
+              <span className="text-[#d4af37]">Tracking: {order.tracking_code || 'Em processamento'}</span>
+            </div>
+          </div>
+          <div className="w-full md:w-auto p-4 bg-white/5 rounded-3xl border border-white/5 flex items-center gap-4">
+            <div className="w-12 h-12 rounded-2xl bg-[#d4af37] flex items-center justify-center shadow-lg">
+              <Box className="w-6 h-6 text-black" />
+            </div>
+            <div>
+              <p className="text-[10px] font-black text-white/40 uppercase tracking-widest">Método</p>
+              <p className="text-sm font-bold text-white uppercase">{order.payment_method === 'pix' ? 'PIX' : 'Cartão'}</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Timeline */}
+      <div className="p-10 md:p-16 bg-black/40">
+        <div className="relative space-y-12 before:absolute before:left-7 before:top-2 before:bottom-2 before:w-[2px] before:bg-white/5">
+          {steps.map((step) => {
+            const isActive = getStatusStep(order.status) >= step.id;
+            const isCurrent = getStatusStep(order.status) === step.id;
+
+            return (
+              <div key={step.id} className={`relative pl-20 transition-all duration-1000 ${isActive ? 'opacity-100' : 'opacity-20'}`}>
+                <div className={`absolute left-0 top-0 w-14 h-14 rounded-2xl border-2 flex items-center justify-center transition-all duration-700 ${
+                  isActive
+                    ? 'bg-[#d4af37]/10 border-[#d4af37] text-[#d4af37] shadow-[0_0_20px_rgba(212,175,55,0.2)]'
+                    : 'bg-black border-white/10 text-white/20'
+                }`}>
+                  <step.icon className={`w-6 h-6 ${isCurrent ? 'animate-pulse' : ''}`} />
+                  {isCurrent && (
+                    <div className="absolute inset-0 rounded-2xl border-2 border-[#d4af37] animate-ping opacity-20"></div>
+                  )}
+                </div>
+                <div className="space-y-1">
+                  <h4 className={`text-lg font-serif font-black uppercase tracking-wider ${isActive ? 'text-white' : 'text-white/20'}`}>{step.label}</h4>
+                  <p className="text-xs text-white/40 leading-relaxed font-medium">{step.desc}</p>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      </div>
+
+      {/* Shipping + Items */}
+      <div className="p-10 md:p-16 border-t border-white/5 bg-[#0a0a0a] grid grid-cols-1 md:grid-cols-2 gap-12">
+        <div className="space-y-6">
+          <div className="flex items-center gap-3">
+            <MapPin className="w-4 h-4 text-[#d4af37]" />
+            <h4 className="text-[10px] font-black text-white/40 uppercase tracking-widest">Destino do Envio</h4>
+          </div>
+          <p className="text-sm text-white/60 font-medium leading-relaxed">{order.shipping_address}</p>
+        </div>
+        <div className="space-y-6">
+          <div className="flex items-center gap-3">
+            <ShoppingBag className="w-4 h-4 text-[#d4af37]" />
+            <h4 className="text-[10px] font-black text-white/40 uppercase tracking-widest">Itens da Coleção</h4>
+          </div>
+          <div className="space-y-3">
+            {(order.items || []).map((item: any, i: number) => (
+              <div key={i} className="flex items-center gap-4">
+                {item.product?.image || item.image ? (
+                  <div className="w-8 h-8 rounded-lg bg-white/5 p-1 border border-white/5">
+                    <img src={item.product?.image ?? item.image} className="w-full h-full object-contain" />
+                  </div>
+                ) : null}
+                <span className="text-[10px] font-bold text-white/80">
+                  {item.product?.name ?? item.name} <span className="text-[#d4af37]">x{item.quantity}</span>
+                </span>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+
+      {/* Footer */}
+      <div className="p-10 border-t border-white/5 bg-black/60 flex flex-col md:flex-row justify-between items-center gap-8">
+        <div className="flex items-center gap-4">
+          <ShieldCheck className="w-5 h-5 text-green-500" />
+          <p className="text-[9px] font-black uppercase tracking-widest text-white/30">Garantia de Autenticidade Ativada</p>
+        </div>
+        <Button variant="outline" className="border-white/10 text-white/40 hover:text-white rounded-full px-10 h-14 text-[9px] font-black uppercase tracking-widest">
+          Solicitar Suporte Concierge
+        </Button>
+      </div>
+    </div>
+  );
+}
+
+function GuestOrderDetail({ order, steps, getStatusStep, onClear }: { order: any; steps: any[]; getStatusStep: (s: string) => number; onClear: () => void }) {
+  return (
+    <div className="space-y-6">
+      <div className="flex items-center justify-between">
+        <p className="text-[10px] font-black uppercase tracking-widest text-white/40">
+          Pedido #{order.id?.slice(0, 8).toUpperCase()}
+        </p>
+        <Button variant="ghost" onClick={onClear} className="text-white/20 hover:text-white text-[10px] uppercase font-black">
+          Buscar outro
+        </Button>
+      </div>
+      <OrderDetail order={order} steps={steps} getStatusStep={getStatusStep} />
+    </div>
+  );
+}
 
 export default Orders;

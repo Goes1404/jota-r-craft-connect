@@ -78,6 +78,26 @@ function orderShippedHtml(name: string, orderId: string, trackingCode: string) {
   `);
 }
 
+function adminNewOrderHtml(customerName: string, customerEmail: string, orderId: string, total: number, shippingAddress: string) {
+  const shortId = orderId.slice(0, 8).toUpperCase();
+  return baseTemplate(`
+    <span class="tag" style="background:#1a0d2e;color:#c084fc;border:1px solid #7c3aed">🔔 Novo Pedido Pago</span>
+    <h1 style="margin-top:20px">Novo pedido recebido!</h1>
+    <p>Um pagamento foi confirmado e o pedido precisa ser preparado.</p>
+    <div class="box">
+      <p class="label">Número do Pedido</p>
+      <p class="highlight">#${shortId}</p>
+      <p class="label" style="margin-top:16px!important">Cliente</p>
+      <p>${customerName} — ${customerEmail}</p>
+      <p class="label" style="margin-top:16px!important">Valor Total</p>
+      <p class="highlight">${formatBRL(total)}</p>
+      <p class="label" style="margin-top:16px!important">Endereço de Entrega</p>
+      <p>${shippingAddress}</p>
+    </div>
+    <a href="https://jracessorios.com/admin/orders" class="btn">Gerenciar Pedido</a>
+  `);
+}
+
 serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response("ok", { headers: corsHeaders });
@@ -92,7 +112,7 @@ serve(async (req) => {
       });
     }
 
-    const { type, to, customerName, orderId, totalAmount, shippingAddress, trackingCode } = await req.json();
+    const { type, to, customerName, customerEmail, orderId, totalAmount, shippingAddress, trackingCode } = await req.json();
 
     let subject = "";
     let html = "";
@@ -103,6 +123,9 @@ serve(async (req) => {
     } else if (type === "order_shipped") {
       subject = `🚚 Seu pedido #${orderId?.slice(0, 8).toUpperCase()} foi enviado — ${BRAND}`;
       html = orderShippedHtml(customerName, orderId, trackingCode);
+    } else if (type === "admin_new_order") {
+      subject = `🔔 Novo pedido #${orderId?.slice(0, 8).toUpperCase()} — ${formatBRL(totalAmount)}`;
+      html = adminNewOrderHtml(customerName, customerEmail || "—", orderId, totalAmount, shippingAddress);
     } else {
       return new Response(JSON.stringify({ error: "Unknown email type" }), {
         status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" },

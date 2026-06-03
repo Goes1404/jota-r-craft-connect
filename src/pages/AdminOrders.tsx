@@ -125,7 +125,7 @@ const AdminOrders = () => {
                       'foi entregue! Esperamos que você ame sua nova peça. 💎';
     
     const text = `Olá ${firstName}! Seu pedido da JR Acessórios ${statusText}`;
-    const phone = order.user?.phone?.replace(/\D/g, '') || order.shipping_address?.match(/\d{10,11}/)?.[0];
+    const phone = order.customer_phone?.replace(/\D/g, '') || order.user?.phone?.replace(/\D/g, '') || order.shipping_address?.match(/\d{10,11}/)?.[0];
     
     if (phone) {
       window.open(`https://wa.me/55${phone}?text=${encodeURIComponent(text)}`, '_blank');
@@ -134,11 +134,16 @@ const AdminOrders = () => {
     }
   };
 
-  const filteredOrders = orders.filter(o => 
-    o.id.toLowerCase().includes(searchTerm.toLowerCase()) || 
-    o.user?.full_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    o.status.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  const filteredOrders = orders.filter(o => {
+    const term = searchTerm.toLowerCase();
+    return (
+      o.id.toLowerCase().includes(term) ||
+      o.user?.full_name?.toLowerCase().includes(term) ||
+      o.customer_name?.toLowerCase().includes(term) ||
+      o.customer_email?.toLowerCase().includes(term) ||
+      o.status.toLowerCase().includes(term)
+    );
+  });
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -210,7 +215,7 @@ const AdminOrders = () => {
                           <p className="text-sm font-black text-white uppercase tracking-widest">#{order.id.slice(0, 8)}</p>
                           <Badge className={`${getStatusColor(order.status)} border text-[8px] font-black px-2 py-0.5`}>{order.status}</Badge>
                         </div>
-                        <p className="text-xs font-bold text-white/40">{order.user?.full_name || 'Cliente'} • {format(new Date(order.created_at), "dd MMM, HH:mm", { locale: ptBR })}</p>
+                        <p className="text-xs font-bold text-white/40">{order.user?.full_name || order.customer_name || 'Cliente'} • {format(new Date(order.created_at), "dd MMM, HH:mm", { locale: ptBR })}</p>
                       </div>
                     </div>
                     <div className="text-right">
@@ -241,14 +246,15 @@ const AdminOrders = () => {
                     </div>
 
                     <div className="flex items-center gap-4 p-4 bg-black/40 rounded-2xl border border-white/5">
-                      <div className="w-10 h-10 rounded-full bg-[#d4af37] flex items-center justify-center text-black">
+                      <div className="w-10 h-10 rounded-full bg-[#d4af37] flex items-center justify-center text-black shrink-0">
                         <User className="w-5 h-5" />
                       </div>
-                      <div>
-                        <p className="text-xs font-black text-white uppercase tracking-widest">{selectedOrder.user?.full_name}</p>
-                        <p className="text-[10px] text-white/40 font-bold">{selectedOrder.user?.phone}</p>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-xs font-black text-white uppercase tracking-widest truncate">{selectedOrder.user?.full_name || selectedOrder.customer_name || 'Cliente'}</p>
+                        <p className="text-[10px] text-white/40 font-bold">{selectedOrder.customer_phone || selectedOrder.user?.phone || '—'}</p>
+                        <p className="text-[10px] text-white/30 font-bold truncate">{selectedOrder.customer_email || selectedOrder.user?.email || '—'}</p>
                       </div>
-                      <Button variant="ghost" onClick={() => notifyWhatsApp(selectedOrder)} className="ml-auto text-[#25D366] hover:bg-[#25D366]/10 p-2">
+                      <Button variant="ghost" onClick={() => notifyWhatsApp(selectedOrder)} className="ml-auto text-[#25D366] hover:bg-[#25D366]/10 p-2 shrink-0">
                         <MessageCircle className="w-5 h-5" />
                       </Button>
                     </div>
@@ -260,7 +266,7 @@ const AdminOrders = () => {
                     {/* Status Actions */}
                     <div className="space-y-4">
                       <p className="text-[9px] font-black text-white/20 uppercase tracking-widest">Ações de Logística</p>
-                      <div className="grid grid-cols-2 gap-3">
+                      <div className="grid grid-cols-3 gap-3">
                         <Button
                           onClick={() => updateStatusMutation.mutate({ id: selectedOrder.id, status: 'Em Preparação' })}
                           className="bg-white/5 hover:bg-blue-500/20 border border-white/10 text-white text-[9px] font-black uppercase h-10 rounded-xl"
@@ -302,6 +308,12 @@ const AdminOrders = () => {
                             </div>
                           </DialogContent>
                         </Dialog>
+                        <Button
+                          onClick={() => updateStatusMutation.mutate({ id: selectedOrder.id, status: 'Entregue' })}
+                          className="bg-white/5 hover:bg-green-500/20 border border-white/10 text-white text-[9px] font-black uppercase h-10 rounded-xl"
+                        >
+                          Entregue
+                        </Button>
                       </div>
                     </div>
 
