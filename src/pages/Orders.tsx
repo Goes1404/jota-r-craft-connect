@@ -67,10 +67,13 @@ const Orders = () => {
     queryKey: ['user-orders', user?.id],
     queryFn: async () => {
       if (!user) return [];
+      // Include orders linked by user_id OR created as guest with the same email.
+      // This is the industry-standard approach (Shopify, Amazon) for linking past
+      // guest purchases to an account.
       const { data, error } = await supabase
         .from('orders')
         .select('*, items:order_items(quantity, total_price, product:products(name, image))')
-        .eq('user_id', user.id)
+        .or(`user_id.eq.${user.id},and(customer_email.eq.${user.email},user_id.is.null)`)
         .order('created_at', { ascending: false });
 
       if (error) throw error;
