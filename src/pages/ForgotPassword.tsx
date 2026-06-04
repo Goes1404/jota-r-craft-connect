@@ -114,7 +114,7 @@ const ForgotPassword = () => {
           )}
         </div>
         
-        <p className="mt-8 text-center text-white/10 text-[9px] uppercase tracking-[0.3em] font-medium">Lumina Tech — Luxury Access Control</p>
+        <p className="mt-8 text-center text-white/10 text-[9px] uppercase tracking-[0.3em] font-medium">JR Acessórios</p>
       </div>
     </div>
   );

@@ -135,7 +135,7 @@ const Payments: React.FC = () => {
             <h3 className="text-lg font-serif font-bold text-white">Segurança de Nível Bancário</h3>
             <p className="text-white/30 text-sm max-w-xl">
               Seus dados de pagamento são criptografados e processados seguindo os mais rigorosos padrões de segurança (PCI-DSS). 
-              A Lumina Tech nunca armazena o número completo do seu cartão.
+              A JR Acessórios nunca armazena o número completo do seu cartão.
             </p>
           </div>
           <ChevronRight className="w-6 h-6 text-white/10 hidden md:block" />

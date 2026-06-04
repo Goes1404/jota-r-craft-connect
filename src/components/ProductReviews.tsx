@@ -8,7 +8,6 @@ import { Textarea } from '@/components/ui/textarea';
 import { toast } from 'sonner';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
-import { Sparkles, Bot, Loader2 } from 'lucide-react';
 
 interface Review {
   id: string;
@@ -31,8 +30,6 @@ export const ProductReviews: React.FC<ProductReviewsProps> = ({ productId }) => 
   const [rating, setRating] = useState(5);
   const [comment, setComment] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [aiSummary, setAiSummary] = useState<string | null>(null);
-  const [isGeneratingAi, setIsGeneratingAi] = useState(false);
 
   const { data: reviews = [], isLoading } = useQuery({
     queryKey: ['product-reviews', productId],
@@ -86,28 +83,6 @@ export const ProductReviews: React.FC<ProductReviewsProps> = ({ productId }) => 
   const averageRating = reviews.length > 0 
     ? reviews.reduce((acc, r) => acc + r.rating, 0) / reviews.length 
     : 0;
-
-  const handleGenerateAiSummary = async () => {
-    if (reviews.length === 0) return;
-    setIsGeneratingAi(true);
-    try {
-      const comments = reviews.map(r => `Nota ${r.rating}: ${r.comment}`).join(' | ');
-      const { data, error } = await supabase.functions.invoke('ai-assistant', {
-        body: { 
-          message: `Analise as seguintes avaliações de clientes e gere um "Veredito Executivo" destacando os principais prós e possíveis pontos de atenção. Seja direto, luxuoso e persuasivo. Máximo de 3 parágrafos curtos. Avaliações: ${comments}`,
-          context: "Você é o Lumina Review Genius, um especialista em análise de sentimentos para produtos de luxo."
-        }
-      });
-
-      if (error) throw error;
-      setAiSummary(data.reply);
-    } catch (err: any) {
-      toast.error('Não foi possível gerar o veredito agora.');
-      console.error(err);
-    } finally {
-      setIsGeneratingAi(false);
-    }
-  };
 
   return (
     <section className="mt-24 space-y-16 animate-in fade-in slide-in-from-bottom-8 duration-1000">
@@ -192,52 +167,6 @@ export const ProductReviews: React.FC<ProductReviewsProps> = ({ productId }) => 
         {/* Reviews List — first on mobile */}
         <div className="lg:col-span-7 space-y-8 order-1 lg:order-2">
           
-          {/* Lumina Review Genius */}
-          {reviews.length > 0 && (
-            <div className="bg-gradient-to-r from-[#d4af37]/10 to-transparent border border-[#d4af37]/20 rounded-[32px] p-8 relative overflow-hidden group">
-              <div className="absolute -right-10 -top-10 w-40 h-40 bg-[#d4af37]/10 blur-[50px] rounded-full pointer-events-none"></div>
-              
-              <div className="flex items-center justify-between mb-6 relative z-10">
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-full bg-[#d4af37]/20 flex items-center justify-center">
-                    <Bot className="w-5 h-5 text-[#d4af37]" />
-                  </div>
-                  <div>
-                    <h3 className="text-sm font-black text-white uppercase tracking-widest">Lumina Review Genius</h3>
-                    <p className="text-[10px] text-[#d4af37] font-bold uppercase tracking-wider">Inteligência de Sentimento</p>
-                  </div>
-                </div>
-                
-                {!aiSummary && !isGeneratingAi && (
-                  <Button 
-                    onClick={handleGenerateAiSummary}
-                    variant="outline"
-                    className="border-[#d4af37]/30 text-[#d4af37] hover:bg-[#d4af37] hover:text-black rounded-full text-[9px] font-black uppercase tracking-widest h-10"
-                  >
-                    <Sparkles className="w-3 h-3 mr-2" />
-                    Solicitar Veredito
-                  </Button>
-                )}
-              </div>
-
-              {isGeneratingAi && (
-                <div className="flex items-center gap-4 text-white/40 p-4">
-                  <Loader2 className="w-5 h-5 animate-spin text-[#d4af37]" />
-                  <span className="text-xs font-bold uppercase tracking-widest">Analisando {reviews.length} avaliações...</span>
-                </div>
-              )}
-
-              {aiSummary && (
-                <div className="space-y-4 animate-in fade-in slide-in-from-top-4 duration-700 relative z-10">
-                  <div className="h-[1px] w-full bg-gradient-to-r from-[#d4af37]/30 to-transparent mb-6"></div>
-                  <div className="text-sm text-white/80 leading-relaxed font-medium whitespace-pre-wrap">
-                    {aiSummary}
-                  </div>
-                </div>
-              )}
-            </div>
-          )}
-
           {isLoading ? (
             [1, 2].map(i => <div key={i} className="h-40 bg-white/5 rounded-3xl animate-pulse"></div>)
           ) : reviews.length > 0 ? (

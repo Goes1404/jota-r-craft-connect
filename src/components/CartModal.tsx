@@ -146,7 +146,7 @@ export const CartModal: React.FC<CartModalProps> = ({ isOpen, onClose }) => {
                       </h4>
                       <p className="text-xs text-white/40 font-bold">
                         {isFreeShipping ? (
-                          'Cortesia Lumina aplicada.'
+                          'Frete grátis aplicado!'
                         ) : (
                           <>Faltam <span className="text-[#d4af37]">R$ {amountToFreeShipping.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</span></>
                         )}
@@ -212,7 +212,7 @@ export const CartModal: React.FC<CartModalProps> = ({ isOpen, onClose }) => {
                 <div className={styles.upsellSection}>
                   <div className={styles.upsellHeader}>
                     <Sparkles className="w-3 h-3 text-[#d4af37]" />
-                    <span className="text-[9px] font-black uppercase tracking-[0.3em] text-[#d4af37]">Sugestão Lumina</span>
+                    <span className="text-[9px] font-black uppercase tracking-[0.3em] text-[#d4af37]">Você também pode gostar</span>
                   </div>
                   <div className={styles.upsellCard}>
                     <div className={styles.upsellThumb}>

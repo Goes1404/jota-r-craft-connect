@@ -752,12 +752,12 @@ const Checkout = () => {
                 ))}
               </div>
 
-              {/* Lumina Upsell Intelligence Section */}
+              {/* Sugestão de produtos complementares */}
               {upsellProducts.length > 0 && (
                 <div className="mt-8 pt-8 border-t border-white/5 animate-in fade-in duration-1000">
                   <div className="flex items-center gap-2 mb-6">
                     <Sparkles className="w-3 h-3 text-[#d4af37]" />
-                    <span className="text-[9px] font-black uppercase tracking-[0.3em] text-[#d4af37]">Lumina Recommendations</span>
+                    <span className="text-[9px] font-black uppercase tracking-[0.3em] text-[#d4af37]">Combine com</span>
                   </div>
                   <div className="space-y-4">
                     {upsellProducts.map(product => (

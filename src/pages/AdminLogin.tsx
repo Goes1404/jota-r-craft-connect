@@ -281,7 +281,7 @@ const AdminLogin: React.FC = () => {
 
       {/* Footer */}
       <footer className="relative z-10 py-6 px-8 flex flex-col sm:flex-row justify-between items-center gap-4 border-t border-white/5">
-        <span className="text-[9px] tracking-[0.3em] uppercase text-white/15">JR Acessórios — Lumina Tech Experience</span>
+        <span className="text-[9px] tracking-[0.3em] uppercase text-white/15">JR Acessórios © 2025</span>
         <div className="flex gap-6">
           {['Privacidade', 'Termos', 'Suporte'].map((item) => (
             <button key={item} className="text-[9px] tracking-widest uppercase text-white/15 hover:text-white/40 transition-colors">

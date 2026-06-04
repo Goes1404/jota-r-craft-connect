@@ -202,8 +202,8 @@ const Index: React.FC = () => {
         <div className="container mx-auto px-4">
           <Reveal y={32}>
             <SmartShowcase
-              title="Lumina Selection"
-              subtitle="Nossa inteligência identificou estas peças como as mais desejadas da semana."
+              title="Mais Vendidos"
+              subtitle="Os acessórios mais escolhidos pelos nossos clientes esta semana."
               mode="trending"
               limit={4}
               TitleComponent={TrackingInText}

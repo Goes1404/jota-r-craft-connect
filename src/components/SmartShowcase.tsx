@@ -90,17 +90,6 @@ export const SmartShowcase: React.FC<SmartShowcaseProps> = ({
         ))}
       </div>
       
-      {/* Premium AI Badge Overlay - Simulated */}
-      <div className="pt-8 border-t border-white/5 flex items-center justify-center gap-6 opacity-30 grayscale hover:grayscale-0 transition-all duration-700">
-        <div className="flex items-center gap-2">
-          <Diamond className="w-3 h-3 text-[#d4af37]" />
-          <span className="text-[8px] font-black uppercase tracking-[0.3em]">Lumina AI Engine</span>
-        </div>
-        <div className="h-1 w-1 rounded-full bg-white/20"></div>
-        <div className="flex items-center gap-2">
-          <span className="text-[8px] font-black uppercase tracking-[0.3em]">Curadoria por Dados</span>
-        </div>
-      </div>
     </div>
   );
 };

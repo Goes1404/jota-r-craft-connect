@@ -31,7 +31,7 @@ const Contact: React.FC = () => {
   usePageVisit('contact');
   
   const [messages, setMessages] = useState<Message[]>([
-    { id: '1', role: 'assistant', content: 'Bem-vindo à área de atendimento exclusivo da JR Acessórios. Eu sou a Lumina, sua assistente pessoal de luxo. Como posso elevar sua experiência hoje?' }
+    { id: '1', role: 'assistant', content: 'Olá! Bem-vindo à JR Acessórios. Posso te ajudar com dúvidas sobre produtos, prazos de entrega, trocas e muito mais. Como posso ajudar?' }
   ]);
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
@@ -121,8 +121,8 @@ const Contact: React.FC = () => {
                       <div className="absolute bottom-0 right-0 w-3.5 h-3.5 bg-green-500 border-2 border-black rounded-full"></div>
                     </div>
                     <div>
-                      <h2 className="font-serif text-lg font-bold text-white leading-tight">Concierge Lumina</h2>
-                      <p className="text-[9px] font-black text-[#d4af37] uppercase tracking-[0.2em]">Guia de Vendas & Estilo</p>
+                      <h2 className="font-serif text-lg font-bold text-white leading-tight">Atendimento JR</h2>
+                      <p className="text-[9px] font-black text-[#d4af37] uppercase tracking-[0.2em]">Assistente virtual · online</p>
                     </div>
                   </div>
                   <Sparkles className="w-5 h-5 text-white/10" />
@@ -178,7 +178,7 @@ const Contact: React.FC = () => {
                       type="text"
                       value={input}
                       onChange={(e) => setInput(e.target.value)}
-                      placeholder="Faça sua pergunta para a Lumina..."
+                      placeholder="Como posso ajudar você?"
                       className="w-full bg-white/5 border border-white/10 rounded-full h-14 pl-6 pr-16 text-sm text-white placeholder:text-white/30 focus:border-[#d4af37]/50 focus:bg-white/10 outline-none transition-all"
                       disabled={isLoading}
                     />

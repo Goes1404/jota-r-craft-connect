@@ -108,8 +108,13 @@ export const Header: React.FC = () => {
             <Diamond className={styles.logoIcon} />
             <div className={styles.logoGlow} />
           </div>
-          <span className={styles.logoText}>
-            JR <span className={styles.logoSub}>acessorios</span>
+          <span className="flex items-baseline gap-1.5 leading-none">
+            <span className="font-sans font-bold text-[#d4af37] text-xl md:text-2xl tracking-[0.18em] uppercase">
+              JR
+            </span>
+            <span className="font-serif font-light italic text-white/70 text-xl md:text-2xl tracking-wide lowercase">
+              acessorios
+            </span>
           </span>
         </Link>
 
@@ -160,8 +165,9 @@ export const Header: React.FC = () => {
                 <SheetTitle className="text-left">
                   <div className="flex items-center gap-2">
                     <Diamond className="h-5 w-5 text-primary" />
-                    <span className="text-lg font-serif font-black text-primary uppercase tracking-[0.2em]">
-                      JR <span className={styles.logoSub}>acessorios</span>
+                    <span className="flex items-baseline gap-1.5 leading-none">
+                      <span className="font-sans font-bold text-[#d4af37] text-lg tracking-[0.18em] uppercase">JR</span>
+                      <span className="font-serif font-light italic text-white/70 text-lg tracking-wide lowercase">acessorios</span>
                     </span>
                   </div>
                 </SheetTitle>
@@ -179,7 +185,7 @@ export const Header: React.FC = () => {
                 </Link>
               </div>
               <div className={styles.drawerFooter}>
-                <p className={styles.drawerFooterText}>Lumina Tech Experience</p>
+                <p className={styles.drawerFooterText}>JR Acessórios © 2025</p>
               </div>
             </SheetContent>
           </Sheet>

@@ -129,7 +129,7 @@ const Products: React.FC = () => {
 
   return (
     <div className="lumina-grain relative min-h-screen bg-[#050505] text-[#e2e2e2] overflow-hidden selection:bg-[#f2ca50]/30 selection:text-[#f2ca50]">
-      <SEO title="Coleção" description="Curadoria digital com Lumina AI." />
+      <SEO title="Produtos" description="Acessórios premium para iPhone, Apple Watch, AirPods e mais." />
       <Header />
 
       {/* ── Layered background ── */}
@@ -153,14 +153,14 @@ const Products: React.FC = () => {
           className="inline-flex items-center gap-2 px-3.5 h-8 rounded-full border border-[#d4af37]/25 bg-[#d4af37]/[0.06] backdrop-blur-md"
         >
           <Sparkles className="w-3 h-3 text-[#d4af37]" />
-          <span className="text-[10px] font-black uppercase tracking-[0.3em] text-[#d4af37]">Lumina Selection</span>
+          <span className="text-[10px] font-black uppercase tracking-[0.3em] text-[#d4af37]">JR Acessórios</span>
         </motion.span>
 
         <h1 className="mt-5 font-serif font-bold leading-[0.95] tracking-tight text-white text-[clamp(2.4rem,9vw,5.5rem)]">
-          <TrackingIn text="A coleção" stagger={0.04} />
+          <TrackingIn text="Acessórios" stagger={0.04} />
           <br />
           <span className="text-[#d4af37] italic font-light">
-            <TrackingIn text="que define você" stagger={0.03} delay={0.25} />
+            <TrackingIn text="para quem exige o melhor" stagger={0.03} delay={0.25} />
           </span>
         </h1>
 
@@ -170,7 +170,7 @@ const Products: React.FC = () => {
           transition={{ delay: 0.6, duration: 0.8 }}
           className="mx-auto mt-5 max-w-md text-sm text-white/40 leading-relaxed"
         >
-          Curadoria digital com inteligência artificial. Cada peça, uma declaração.
+          Capas, cabos, fones e acessórios premium para iPhone, Apple Watch e mais — com envio rápido para todo o Brasil.
         </motion.p>
 
         {/* Thin gold rule */}
@@ -278,7 +278,7 @@ const Products: React.FC = () => {
               {filteredProducts.length === 1 ? 'produto' : 'produtos'}
               {filters.category && <span className="text-[#d4af37]/60"> · {filters.category}</span>}
               {aiMatchIds && filters.search && (
-                <span className="ml-2 text-[#d4af37]/50">via Lumina AI</span>
+                <span className="ml-2 text-[#d4af37]/50">· busca inteligente</span>
               )}
             </p>
 
@@ -304,9 +304,9 @@ const Products: React.FC = () => {
               : <Bot className="w-3.5 h-3.5 text-[#d4af37] shrink-0" />}
             <p className="text-[11px] text-white/50 flex-1">
               {isAiSearching
-                ? 'Lumina AI analisando sua busca…'
+                ? 'Buscando…'
                 : aiMatchIds
-                  ? `Resultados otimizados por intenção para "${filters.search}"`
+                  ? `Resultados para "${filters.search}"`
                   : `Buscando por "${filters.search}"`}
             </p>
             <button
