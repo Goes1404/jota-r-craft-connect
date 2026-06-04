@@ -420,14 +420,14 @@ const ProductDetails = () => {
           />
 
           {/* ── Info panel ── */}
-          <div className="lg:sticky lg:top-24 lg:self-start space-y-0">
+          <div className="lg:sticky lg:top-24 lg:self-start">
 
             {/* Category */}
             <motion.p
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.5 }}
-              className="text-[10px] font-black uppercase tracking-[0.3em] text-[#d4af37] mb-2"
+              className="text-[10px] font-black uppercase tracking-[0.3em] text-[#d4af37] mb-2.5"
             >
               {product.category || 'Coleção Exclusiva'}
             </motion.p>
@@ -437,13 +437,13 @@ const ProductDetails = () => {
               initial={{ opacity: 0, y: 16, filter: 'blur(6px)' }}
               animate={{ opacity: 1, y: 0, filter: 'blur(0px)' }}
               transition={{ duration: 0.7, delay: 0.08, ease: [0.22, 1, 0.36, 1] }}
-              className="font-serif text-2xl sm:text-3xl font-bold text-white leading-tight tracking-tight mb-3"
+              className="font-serif text-3xl sm:text-4xl font-bold text-white leading-[1.1] tracking-tight mb-4"
             >
               {product.name}
             </motion.h1>
 
             {/* Rating + stock */}
-            <div className="flex items-center flex-wrap gap-x-3 gap-y-1.5 mb-4">
+            <div className="flex items-center flex-wrap gap-x-3 gap-y-1.5 mb-5">
               {hasReviews ? (
                 <>
                   <div className="flex items-center gap-0.5">
@@ -469,7 +469,7 @@ const ProductDetails = () => {
               </span>
             </div>
 
-            <div className="h-px bg-gradient-to-r from-white/10 via-white/5 to-transparent mb-5" />
+            <div className="h-px bg-gradient-to-r from-white/10 via-white/5 to-transparent mb-6" />
 
             {/* Price block */}
             <motion.div
@@ -532,7 +532,7 @@ const ProductDetails = () => {
 
             {/* Qty selector */}
             {!isOutOfStock && (
-              <div className="flex items-center gap-4 mb-4">
+              <div className="flex items-center gap-4 mb-5">
                 <span className="text-[10px] font-black uppercase tracking-[0.2em] text-white/40">Qtd.</span>
                 <div className="flex items-center gap-1 bg-white/[0.04] border border-white/[0.08] rounded-full px-1 py-1">
                   <button
@@ -562,7 +562,7 @@ const ProductDetails = () => {
             )}
 
             {/* CTAs — desktop */}
-            <div className="hidden lg:flex flex-col gap-2.5 mb-5">
+            <div className="hidden lg:flex flex-col gap-3 mb-6">
               <Magnetic strength={0.2} className="w-full">
                 <button
                   onClick={handleBuyNow}
@@ -590,7 +590,7 @@ const ProductDetails = () => {
               </button>
               <button
                 onClick={handleWhatsApp}
-                className="flex w-full items-center justify-center gap-2.5 py-3 rounded-2xl
+                className="flex w-full items-center justify-center gap-2.5 h-12 rounded-2xl
                   border border-[#25D366]/20 text-[#25D366]/70 font-bold text-[10px] uppercase tracking-[0.2em]
                   hover:bg-[#25D366]/5 hover:text-[#25D366] hover:border-[#25D366]/40 transition-all"
               >
@@ -600,25 +600,25 @@ const ProductDetails = () => {
             </div>
 
             {/* Trust badges */}
-            <div className="grid grid-cols-2 gap-2 mb-5">
+            <div className="grid grid-cols-2 gap-2.5 mb-5">
               {[
                 { icon: Truck,     label: 'Entrega Rápida',   sub: 'Todo o Brasil' },
                 { icon: RefreshCw, label: 'Troca em 7 dias',  sub: 'Garantido CDC' },
                 { icon: FileText,  label: 'Nota Fiscal',      sub: 'Todos os pedidos' },
                 { icon: Shield,    label: 'Pagamento Seguro', sub: 'SSL 256-bit' },
               ].map(({ icon: Icon, label, sub }) => (
-                <div key={label} className="flex items-center gap-2.5 px-3 py-2.5 rounded-xl bg-white/[0.02] border border-white/[0.05]">
-                  <Icon className="w-3.5 h-3.5 text-[#d4af37]/60 shrink-0" />
-                  <div>
-                    <p className="text-[10px] font-bold text-white/60">{label}</p>
-                    <p className="text-[9px] text-white/25">{sub}</p>
+                <div key={label} className="flex items-center gap-3 px-3.5 py-3 rounded-xl bg-white/[0.02] border border-white/[0.05]">
+                  <Icon className="w-4 h-4 text-[#d4af37]/60 shrink-0" />
+                  <div className="min-w-0">
+                    <p className="text-[11px] font-bold text-white/70 leading-tight">{label}</p>
+                    <p className="text-[9px] text-white/30 leading-tight mt-0.5">{sub}</p>
                   </div>
                 </div>
               ))}
             </div>
 
             {/* Shipping eta */}
-            <div className="flex items-center gap-3 px-4 py-3 rounded-xl bg-emerald-500/[0.04] border border-emerald-500/10 mb-5">
+            <div className="flex items-center gap-3 px-4 py-3.5 rounded-xl bg-emerald-500/[0.04] border border-emerald-500/10 mb-6">
               <Package className="w-4 h-4 text-emerald-400/60 shrink-0" />
               <div>
                 <p className="text-[10px] font-black uppercase tracking-widest text-emerald-400/70">
@@ -639,7 +639,7 @@ const ProductDetails = () => {
                   <button
                     key={tab.key}
                     onClick={() => setActiveTab(tab.key)}
-                    className={`flex-1 py-3 text-[9px] font-black uppercase tracking-widest transition-all
+                    className={`flex-1 py-3.5 text-[10px] font-black uppercase tracking-widest transition-all
                       ${activeTab === tab.key
                         ? 'text-[#d4af37] bg-[#d4af37]/[0.04] border-b-2 border-[#d4af37]'
                         : 'text-white/30 hover:text-white/60 border-b-2 border-transparent'}`}
@@ -648,7 +648,7 @@ const ProductDetails = () => {
                   </button>
                 ))}
               </div>
-              <div className="p-4 min-h-[90px]">
+              <div className="p-5 min-h-[96px]">
                 {activeTab === 'descricao' && (
                   <p className="text-sm text-white/50 leading-relaxed animate-in fade-in duration-200">
                     {product.description || 'Sem descrição disponível.'}
@@ -681,7 +681,7 @@ const ProductDetails = () => {
             </div>
 
             {/* Security note */}
-            <div className="flex items-center gap-2.5 mt-3 px-4 py-3 rounded-xl bg-white/[0.02] border border-white/[0.05]">
+            <div className="flex items-center gap-2.5 mt-5 px-4 py-3.5 rounded-xl bg-white/[0.02] border border-white/[0.05]">
               <CheckCircle2 className="w-4 h-4 text-[#d4af37]/60 shrink-0" />
               <p className="text-[10px] text-white/35 leading-relaxed">
                 <span className="text-white/55 font-bold">Compra 100% segura.</span>{' '}
