@@ -17,7 +17,9 @@ export const MobileBottomNav = () => {
   const { getTotalItems } = useCart();
   const totalItems = getTotalItems();
   const path = location.pathname;
-  const hidden = path.startsWith('/admin') || path === '/checkout';
+  // Esconde onde há barra de ação fixa própria (evita colisão com o CTA):
+  // checkout, admin e a página de detalhes do produto.
+  const hidden = path.startsWith('/admin') || path === '/checkout' || path.startsWith('/produto/');
   if (hidden) return null;
 
   return (

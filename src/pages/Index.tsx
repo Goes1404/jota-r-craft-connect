@@ -1,13 +1,12 @@
 import React, { useEffect, useState, useRef } from 'react';
 import { Link } from 'react-router-dom';
-import { Shield, Diamond, Star, MessageCircle, Users, Package, Award, Smartphone, Watch, Headphones, Zap, Plus, Truck, RefreshCw, FileText, Lock } from 'lucide-react';
+import { Diamond, MessageCircle, Smartphone, Watch, Zap, Plus, Truck, RefreshCw, FileText, Lock } from 'lucide-react';
 import { Header } from '@/components/Header';
 import { Footer } from '@/components/Footer';
 import SEO from '@/components/SEO';
 import { Button } from '@/components/ui/button';
 import { useAnalytics } from '@/hooks/useAnalytics';
 import { GlassHero } from '@/components/GlassHero';
-import { Testimonials } from '@/components/ui/twitter-testimonial-cards';
 import { WHATSAPP_LINK } from '@/config/constants';
 import { SmartShowcase } from '@/components/SmartShowcase';
 import { TrackingInText } from '@/components/animations/TrackingIn';
@@ -104,10 +103,10 @@ const Index: React.FC = () => {
   const WHATSAPP = `${WHATSAPP_LINK}?text=Ol%C3%A1%2C%20vim%20pelo%20site%20e%20gostaria%20de%20mais%20informa%C3%A7%C3%B5es!`;
 
   const stats = [
-    { icon: Users, value: '500+', label: 'Clientes Satisfeitos' },
-    { icon: Star, value: '4.9★', label: 'Avaliação Média' },
-    { icon: Package, value: '1.200+', label: 'Produtos Vendidos' },
-    { icon: Award, value: '3 Anos', label: 'No Mercado' },
+    { icon: Truck, value: 'Mesmo dia', label: 'Entrega em Osasco/SP' },
+    { icon: Zap, value: '5% OFF', label: 'Pagando no PIX' },
+    { icon: RefreshCw, value: '7 dias', label: 'Troca garantida' },
+    { icon: Lock, value: '100% seguro', label: 'PIX e cartão' },
   ];
 
   return (
@@ -120,7 +119,7 @@ const Index: React.FC = () => {
         href={WHATSAPP}
         target="_blank"
         rel="noopener noreferrer"
-        className="fixed bottom-24 md:bottom-6 right-4 md:right-6 z-50 flex items-center gap-2 bg-primary text-primary-foreground font-bold text-sm px-4 md:px-5 py-3 rounded-full shadow-[0_4px_24px_rgba(212,175,55,0.5)] hover:scale-105 transition-transform duration-200 whitespace-nowrap"
+        className="fixed bottom-24 left-4 md:bottom-6 md:left-6 z-50 flex items-center gap-2 bg-primary text-primary-foreground font-bold text-sm px-4 md:px-5 py-3 rounded-full shadow-[0_4px_24px_rgba(212,175,55,0.5)] hover:scale-105 transition-transform duration-200 whitespace-nowrap"
         aria-label="Falar no WhatsApp"
       >
         <MessageCircle className="h-5 w-5 shrink-0" />
@@ -253,22 +252,22 @@ const Index: React.FC = () => {
               </div>
             </Link>
 
-            {/* Stats card — gold accent */}
+            {/* PIX highlight card — gold accent */}
             <div className="h-48 md:h-56 rounded-2xl bg-gradient-to-br from-primary/10 via-primary/5 to-transparent border border-primary/25 p-5 flex flex-col justify-between overflow-hidden relative">
               <div className="absolute -right-8 -top-8 w-28 h-28 rounded-full bg-primary/15 blur-3xl pointer-events-none" />
               <div className="relative z-10">
-                <span className="text-[8px] font-black uppercase tracking-[0.3em] text-primary/50">Lumina Index</span>
-                <p className="text-4xl font-serif font-black text-primary mt-1 drop-shadow-[0_0_12px_rgba(212,175,55,0.3)]">4.9★</p>
-                <p className="text-[9px] text-white/35 font-bold mt-0.5 uppercase tracking-wider">Avaliação Média</p>
+                <span className="text-[8px] font-black uppercase tracking-[0.3em] text-primary/50">Pagamento</span>
+                <p className="text-4xl font-serif font-black text-primary mt-1 drop-shadow-[0_0_12px_rgba(212,175,55,0.3)]">5% OFF</p>
+                <p className="text-[9px] text-white/35 font-bold mt-0.5 uppercase tracking-wider">Pagando no PIX</p>
               </div>
               <div className="relative z-10 space-y-2 border-t border-white/5 pt-3">
                 <div className="flex items-center justify-between">
-                  <span className="text-[9px] text-white/30 uppercase tracking-wider">Clientes</span>
-                  <span className="text-sm font-black text-white">500+</span>
+                  <span className="text-[9px] text-white/30 uppercase tracking-wider">Cartão</span>
+                  <span className="text-sm font-black text-white">até 10×</span>
                 </div>
                 <div className="flex items-center justify-between">
-                  <span className="text-[9px] text-white/30 uppercase tracking-wider">Vendidos</span>
-                  <span className="text-sm font-black text-white">1.2k+</span>
+                  <span className="text-[9px] text-white/30 uppercase tracking-wider">Aprovação</span>
+                  <span className="text-sm font-black text-white">imediata</span>
                 </div>
               </div>
             </div>
@@ -309,37 +308,6 @@ const Index: React.FC = () => {
               </div>
             </Link>
 
-          </div>
-        </div>
-      </section>
-
-      {/* ═══ Depoimentos ═══ */}
-      <section className="py-12 md:py-16 bg-muted/30 border-y overflow-hidden">
-        <div className="container mx-auto px-4">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
-            {/* Left: info */}
-            <div className="space-y-6 text-center lg:text-left">
-              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full border border-primary/30 bg-primary/10 text-primary text-xs font-bold uppercase tracking-widest">
-                <Star className="h-3 w-3 fill-primary" /> Avaliações Reais
-              </div>
-              <h2 className="text-2xl md:text-4xl font-serif font-black text-foreground leading-tight">
-                <TrackingInText text="O que nossos" className="block" stagger={0.05} />
-                <TrackingInText text="clientes dizem" className="block text-primary italic" stagger={0.05} delay={0.4} />
-              </h2>
-              <div className="flex items-center gap-2 justify-center lg:justify-start">
-                {[...Array(5)].map((_, i) => <Star key={i} className="h-5 w-5 fill-primary text-primary" />)}
-                <span className="ml-2 font-black text-foreground text-lg">4.9</span>
-                <span className="text-muted-foreground text-sm">/5 — mais de 200 avaliações</span>
-              </div>
-              <p className="text-muted-foreground text-sm leading-relaxed max-w-md mx-auto lg:mx-0">
-                Clientes reais, experiências reais com a JR acessorios.
-              </p>
-            </div>
-
-            {/* Right: stacked cards */}
-            <div className="flex justify-center items-center min-h-[320px] sm:min-h-[380px]">
-              <Testimonials />
-            </div>
           </div>
         </div>
       </section>

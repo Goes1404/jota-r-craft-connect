@@ -183,6 +183,7 @@ const Register: React.FC = () => {
                 'Ofertas exclusivas para cadastrados',
                 'Frete grátis acima de R$ 500',
                 'Garantia total · Troca em 7 dias',
+                'Acompanhe seus pedidos em tempo real',
               ].map((b) => (
                 <li key={b} className="flex items-center gap-3 text-sm text-white/60">
                   <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-[#d4af37]/15 text-[#d4af37]">
@@ -192,22 +193,6 @@ const Register: React.FC = () => {
                 </li>
               ))}
             </ul>
-
-            <div className="flex items-center gap-4 pt-2">
-              <div className="flex -space-x-2">
-                {['Rafaela', 'Carlos', 'Marcos'].map((seed) => (
-                  <img
-                    key={seed}
-                    src={`https://api.dicebear.com/7.x/avataaars/svg?seed=${seed}`}
-                    alt={seed}
-                    className="w-9 h-9 rounded-full border-2 border-black bg-[#1a1a1a]"
-                  />
-                ))}
-              </div>
-              <p className="text-xs text-white/30">
-                <span className="text-white font-bold">+500 clientes</span> já fazem parte
-              </p>
-            </div>
           </div>
 
           <p className="text-xs text-white/15 tracking-widest uppercase">© 2025 JR Acessórios</p>

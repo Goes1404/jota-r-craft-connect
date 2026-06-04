@@ -12,7 +12,6 @@ import { ErrorBoundary } from "./components/ErrorBoundary";
 import ProtectedAdminRoute from "./components/ProtectedAdminRoute";
 import { ExitIntentPopup } from "./components/ExitIntentPopup";
 import { AICopilot } from "./components/AICopilot";
-import { SocialProofToast } from "./components/SocialProofToast";
 import { CookieBanner } from "./components/CookieBanner";
 import { ScrollToTop } from "./components/ScrollToTop";
 import { SmoothScroll } from "./components/animations/SmoothScroll";
@@ -78,7 +77,6 @@ const App = () => (
                 <ErrorBoundary>
                   <ExitIntentPopup />
                   <AICopilot />
-                  <SocialProofToast />
                   <CookieBanner />
                   <MobileBottomNav />
                   <AdminMobileMenu />

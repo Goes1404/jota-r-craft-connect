@@ -108,7 +108,7 @@ export const AICopilot: React.FC = () => {
       <button
         onClick={() => setIsOpen(true)}
         aria-label="Abrir assistente Lumina AI"
-        className="fixed bottom-8 right-8 z-[100] w-16 h-16 bg-[#0a0a0a] border border-[#d4af37]/40 rounded-full shadow-[0_0_40px_rgba(212,175,55,0.2)] flex items-center justify-center group hover:scale-110 transition-all duration-500 hover:border-[#d4af37]"
+        className="fixed bottom-24 right-4 md:bottom-8 md:right-8 z-[100] w-14 h-14 md:w-16 md:h-16 bg-[#0a0a0a] border border-[#d4af37]/40 rounded-full shadow-[0_0_40px_rgba(212,175,55,0.2)] flex items-center justify-center group hover:scale-110 transition-all duration-500 hover:border-[#d4af37]"
       >
         <Sparkles className="w-8 h-8 text-[#d4af37] group-hover:rotate-12 transition-transform" />
         <div className="absolute -top-2 -right-2 bg-[#d4af37] text-black text-[7px] font-black px-2 py-0.5 rounded-full uppercase tracking-widest shadow-[0_0_10px_rgba(212,175,55,0.5)]">Lumina</div>
@@ -117,7 +117,7 @@ export const AICopilot: React.FC = () => {
   }
 
   return (
-    <div className={`fixed bottom-8 right-8 z-[100] w-[380px] md:w-[420px] flex flex-col transition-all duration-500 ${isMinimized ? 'h-20' : 'h-[600px] max-h-[80vh]'} bg-[#0a0a0a]/95 backdrop-blur-3xl border border-white/10 rounded-[40px] shadow-[0_30px_100px_rgba(0,0,0,1)] overflow-hidden animate-in zoom-in-95 duration-300`}>
+    <div className={`fixed bottom-4 right-4 left-4 md:bottom-8 md:right-8 md:left-auto z-[100] w-auto md:w-[420px] flex flex-col transition-all duration-500 ${isMinimized ? 'h-20' : 'h-[600px] max-h-[80vh]'} bg-[#0a0a0a]/95 backdrop-blur-3xl border border-white/10 rounded-[32px] md:rounded-[40px] shadow-[0_30px_100px_rgba(0,0,0,1)] overflow-hidden animate-in zoom-in-95 duration-300`}>
       {/* Header */}
       <div className="p-6 bg-gradient-to-r from-[#d4af37]/10 to-transparent border-b border-white/5 flex items-center justify-between relative overflow-hidden">
         <div className="absolute inset-0 bg-grid-white/5 opacity-10"></div>
