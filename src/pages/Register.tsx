@@ -131,13 +131,16 @@ const Register: React.FC = () => {
         phone: form.phone,
       });
       if (error) {
-        toast({ variant: 'destructive', title: 'Erro ao criar conta', description: error.message });
+        const msg = error.message?.includes('already registered')
+          ? 'Este e-mail já possui uma conta. Faça login ou recupere sua senha.'
+          : error.message;
+        toast({ variant: 'destructive', title: 'Erro ao criar conta', description: msg });
       } else {
         toast({
           title: 'Conta criada! ✨',
-          description: 'Verifique seu e-mail para confirmar o cadastro.',
+          description: 'Bem-vindo(a) à JR Acessórios.',
         });
-        navigate('/login');
+        navigate('/perfil');
       }
     } catch {
       toast({ variant: 'destructive', title: 'Erro inesperado', description: 'Tente novamente.' });
