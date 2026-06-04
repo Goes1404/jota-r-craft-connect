@@ -123,6 +123,27 @@
 
   /* ─── Lumina Atelier effects ─────────────────────────────────────────── */
 
+  .text-shimmer-gold {
+    background: linear-gradient(
+      135deg,
+      #D4AF37 0%,
+      #F2EA7E 40%,
+      #B8860B 60%,
+      #D4AF37 100%
+    );
+    background-size: 200% auto;
+    color: transparent;
+    -webkit-background-clip: text;
+    background-clip: text;
+    animation: shimmerGold 4s linear infinite;
+  }
+  
+  @keyframes shimmerGold {
+    to {
+      background-position: 200% center;
+    }
+  }
+
   /* Hide scrollbar but keep scroll (category pills, thumbnails) */
   .scrollbar-hide::-webkit-scrollbar { display: none; }
   .scrollbar-hide { -ms-overflow-style: none; scrollbar-width: none; }
