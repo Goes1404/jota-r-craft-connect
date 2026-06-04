@@ -51,9 +51,6 @@ const AdminStudio = lazy(() => import("./pages/AdminStudio"));
 const Terms = lazy(() => import("./pages/Terms"));
 const Privacy = lazy(() => import("./pages/Privacy"));
 const Security = lazy(() => import("./pages/Security"));
-const Demo = lazy(() => import("./pages/Demo"));
-const DemoBackground = lazy(() => import("./pages/DemoBackground"));
-const DemoSmoke = lazy(() => import("./pages/DemoSmoke"));
 const NotFound = lazy(() => import("./pages/NotFound"));
 // ─────────────────────────────────────────────────────────────────────────────
 
@@ -119,9 +116,6 @@ const App = () => (
                       <Route path="/termos" element={<Terms />} />
                       <Route path="/privacidade" element={<Privacy />} />
                       <Route path="/perfil/seguranca" element={<Security />} />
-                      <Route path="/demo" element={<Demo />} />
-                      <Route path="/demo-paths" element={<DemoBackground />} />
-                      <Route path="/demo-smoke" element={<DemoSmoke />} />
                       <Route path="*" element={<NotFound />} />
                     </Routes>
                     </PageTransition>

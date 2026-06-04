@@ -144,8 +144,9 @@ const Index: React.FC = () => {
                 <p className="text-white font-bold text-sm md:text-base">{bannerText}</p>
               </div>
             </div>
-            <div className="flex items-center gap-2">
-              <p className="text-white/60 text-xs uppercase tracking-wider mr-2">Termina em:</p>
+            {/* Timer + CTA — não estoura no mobile (wrap + botão full-width) */}
+            <div className="flex flex-wrap items-center justify-center gap-2 w-full sm:w-auto">
+              <p className="hidden sm:block text-white/60 text-xs uppercase tracking-wider mr-2">Termina em:</p>
               {[
                 { val: String(countdown.h).padStart(2, '0'), label: 'h' },
                 { val: String(countdown.m).padStart(2, '0'), label: 'm' },
@@ -153,14 +154,14 @@ const Index: React.FC = () => {
               ].map((t, i) => (
                 <React.Fragment key={i}>
                   {i > 0 && <span className="text-primary font-black text-lg">:</span>}
-                  <div className="flex flex-col items-center bg-primary/10 border border-primary/30 rounded-lg px-3 py-1.5 min-w-[48px]">
+                  <div className="flex flex-col items-center bg-primary/10 border border-primary/30 rounded-lg px-3 py-1.5 min-w-[44px]">
                     <span className="text-primary font-black text-xl leading-none tabular-nums">{t.val}</span>
                     <span className="text-white/40 text-[9px] uppercase">{t.label}</span>
                   </div>
                 </React.Fragment>
               ))}
-              <Link to="/produtos">
-                <Button size="sm" className="ml-3 rounded-full h-9 px-5 text-xs font-black shadow-lg shadow-primary/30">
+              <Link to="/produtos" className="w-full sm:w-auto sm:ml-3">
+                <Button size="sm" className="w-full rounded-full h-10 px-5 text-xs font-black shadow-lg shadow-primary/30">
                   Ver Ofertas
                 </Button>
               </Link>

@@ -1,10 +1,15 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
-const corsHeaders = {
-  "Access-Control-Allow-Origin": Deno.env.get("ALLOWED_ORIGIN") || "https://jracessorios.com",
-  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
-};
+const ALLOWED_ORIGINS = ["https://jracessorios.com", "https://www.jracessorios.com"];
+
+function makeCors(origin: string | null) {
+  const allowed = (origin && ALLOWED_ORIGINS.includes(origin)) ? origin : ALLOWED_ORIGINS[0];
+  return {
+    "Access-Control-Allow-Origin": allowed,
+    "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
+  };
+}
 
 // Presets de estilo de comercial — viram parte do prompt enviado à IA.
 const STYLE_PRESETS: Record<string, string> = {
@@ -16,6 +21,8 @@ const STYLE_PRESETS: Record<string, string> = {
 };
 
 serve(async (req) => {
+  const corsHeaders = makeCors(req.headers.get("origin"));
+
   if (req.method === "OPTIONS") {
     return new Response("ok", { headers: corsHeaders });
   }
