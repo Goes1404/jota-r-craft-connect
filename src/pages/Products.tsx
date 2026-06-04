@@ -32,11 +32,12 @@ const Products: React.FC = () => {
 
   const [searchParams] = useSearchParams();
   const initialCategory = searchParams.get('category') || '';
+  const initialQuery = searchParams.get('q') || '';
 
   const { data: products = [], isLoading } = useProducts();
 
   const [filters, setFilters] = useState<FilterState>({
-    search: '',
+    search: initialQuery,
     category: initialCategory,
     priceRange: [0, 15000],
     sortBy: 'created_at_desc',

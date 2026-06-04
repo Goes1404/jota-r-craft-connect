@@ -4,7 +4,8 @@ import { Product } from '@/types/database';
 import { useCart } from '@/contexts/CartContext';
 import { useWishlist, saveWishlistPrice } from '@/contexts/WishlistContext';
 import { useToast } from '@/hooks/use-toast';
-import { Heart, Plus, Zap } from 'lucide-react';
+import { useProductRatings } from '@/hooks/useProductRatings';
+import { Heart, Plus, Zap, Star } from 'lucide-react';
 
 // ─── Skeleton ─────────────────────────────────────────────────────────────────
 export const ProductCardSkeleton = () => (
@@ -23,13 +24,26 @@ interface ProductCardProps {
   className?: string;
 }
 
+// ─── Compact rating row (real data) ───────────────────────────────────────────
+const RatingInline: React.FC<{ avg: number; count: number; light?: boolean }> = ({ avg, count, light }) => (
+  <span className="flex items-center gap-1">
+    <Star className="w-3 h-3 text-[#d4af37] fill-[#d4af37]" />
+    <span className={`text-[10px] font-bold ${light ? 'text-white/70' : 'text-white/50'}`}>
+      {avg.toFixed(1)}
+    </span>
+    <span className="text-[10px] text-white/25">({count})</span>
+  </span>
+);
+
 // ─── Small Card ───────────────────────────────────────────────────────────────
 export const ProductCard: React.FC<ProductCardProps> = ({ product, onViewDetails, className = '' }) => {
   const { addToCart } = useCart();
   const { toggleWishlist, isInWishlist } = useWishlist();
   const { toast } = useToast();
   const navigate = useNavigate();
+  const { data: ratings } = useProductRatings();
 
+  const rating = ratings?.[product.id];
   const isFavorite = isInWishlist(product.id);
   const isOutOfStock = product.stock === 0;
   const isLowStock = !isOutOfStock && product.stock > 0 && product.stock <= 5;
@@ -122,6 +136,11 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product, onViewDetails
               <h3 className="text-white font-serif font-bold text-lg leading-tight line-clamp-2 max-w-[220px]">
                 {product.name}
               </h3>
+              {rating && rating.review_count > 0 && (
+                <div className="mt-1.5">
+                  <RatingInline avg={rating.avg_rating} count={rating.review_count} light />
+                </div>
+              )}
             </div>
 
             <div className="text-right ml-4 shrink-0">
@@ -251,11 +270,14 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product, onViewDetails
       </div>
 
       {/* ── Info section ── */}
-      <div className="px-3 pt-2.5 pb-3 flex-1 flex flex-col gap-0.5">
+      <div className="px-3 pt-2.5 pb-3 flex-1 flex flex-col gap-1">
         <h3 className="text-white/90 font-semibold text-sm leading-tight line-clamp-2 group-hover:text-white transition-colors">
           {product.name}
         </h3>
-        <p className="text-white/25 text-[10px] font-medium">
+        {rating && rating.review_count > 0 && (
+          <RatingInline avg={rating.avg_rating} count={rating.review_count} />
+        )}
+        <p className="text-white/25 text-[10px] font-medium mt-auto">
           {product.category && <span className="text-white/35">{product.category} · </span>}
           10× R$ {installment}
         </p>

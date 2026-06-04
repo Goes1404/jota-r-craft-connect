@@ -14,6 +14,7 @@ import { ProductReviews } from '@/components/ProductReviews';
 import { useCart } from '@/contexts/CartContext';
 import { useToast } from '@/hooks/use-toast';
 import { useProduct, useAppSettings } from '@/hooks/useProducts';
+import { useProductRatings } from '@/hooks/useProductRatings';
 import { useAnalytics } from '@/hooks/useAnalytics';
 import { SmartShowcase } from '@/components/SmartShowcase';
 import { WHATSAPP_LINK } from '@/config/constants';
@@ -266,6 +267,7 @@ const ProductDetails = () => {
   const { trackProductView } = useAnalytics();
   const { data: product, isLoading } = useProduct(id!);
   const { data: settings } = useAppSettings();
+  const { data: ratings } = useProductRatings();
 
   useEffect(() => {
     if (product?.id) trackProductView(product.id);
@@ -297,6 +299,17 @@ const ProductDetails = () => {
   const pixPrice = product.price * 0.95;
   const installment = (product.price / 10).toLocaleString('pt-BR', { minimumFractionDigits: 2 });
   const fmt = (v: number) => v.toLocaleString('pt-BR', { minimumFractionDigits: 2 });
+
+  // Rating real (agregado das reviews); fallback elegante quando ainda não há avaliações.
+  const productRating = ratings?.[product.id];
+  const hasReviews = !!productRating && productRating.review_count > 0;
+
+  // Frete grátis: barra de progresso para incentivar a compra (gatilho antecipado).
+  const freeShippingThreshold = Number(settings?.free_shipping_threshold) || 500;
+  const subtotalForShipping = product.price * qty;
+  const qualifiesFreeShipping = subtotalForShipping >= freeShippingThreshold;
+  const amountToFreeShipping = Math.max(0, freeShippingThreshold - subtotalForShipping);
+  const freeShippingProgress = Math.min((subtotalForShipping / freeShippingThreshold) * 100, 100);
 
   const handleAddToCart = () => {
     for (let i = 0; i < qty; i++) addToCart(product);
@@ -406,12 +419,23 @@ const ProductDetails = () => {
 
             {/* Rating + stock */}
             <div className="flex items-center flex-wrap gap-x-3 gap-y-1.5 mb-4">
-              <div className="flex items-center gap-0.5">
-                {[1,2,3,4,5].map(s => (
-                  <Star key={s} className="w-3 h-3 text-[#d4af37] fill-[#d4af37]" />
-                ))}
-              </div>
-              <span className="text-xs text-white/30 font-medium">4.9 · 48 avaliações</span>
+              {hasReviews ? (
+                <>
+                  <div className="flex items-center gap-0.5">
+                    {[1,2,3,4,5].map(s => (
+                      <Star key={s} className={`w-3 h-3 ${s <= Math.round(productRating!.avg_rating) ? 'text-[#d4af37] fill-[#d4af37]' : 'text-white/15'}`} />
+                    ))}
+                  </div>
+                  <a href="#avaliacoes" className="text-xs text-white/30 font-medium hover:text-[#d4af37] transition-colors">
+                    {productRating!.avg_rating.toFixed(1)} · {productRating!.review_count}{' '}
+                    {productRating!.review_count === 1 ? 'avaliação' : 'avaliações'}
+                  </a>
+                </>
+              ) : (
+                <a href="#avaliacoes" className="text-xs text-white/30 font-medium hover:text-[#d4af37] transition-colors">
+                  Seja o primeiro a avaliar
+                </a>
+              )}
               <span className="w-px h-3 bg-white/10" />
               <span className={`flex items-center gap-1 text-[10px] font-black uppercase tracking-widest
                 ${isOutOfStock ? 'text-red-400' : 'text-emerald-400'}`}>
@@ -445,6 +469,35 @@ const ProductDetails = () => {
                 ))}
               </div>
             </div>
+
+            {/* Free shipping progress — gatilho de upsell */}
+            {!isOutOfStock && (
+              <div className={`rounded-2xl p-4 mb-5 border transition-colors
+                ${qualifiesFreeShipping
+                  ? 'bg-emerald-500/[0.06] border-emerald-500/20'
+                  : 'bg-white/[0.02] border-white/[0.06]'}`}>
+                <div className="flex items-center gap-2 mb-2.5">
+                  <Truck className={`w-4 h-4 shrink-0 ${qualifiesFreeShipping ? 'text-emerald-400' : 'text-[#d4af37]'}`} />
+                  {qualifiesFreeShipping ? (
+                    <p className="text-[11px] font-bold text-emerald-400">
+                      🎉 Você ganhou <span className="uppercase tracking-wide">frete grátis</span>!
+                    </p>
+                  ) : (
+                    <p className="text-[11px] text-white/55 leading-snug">
+                      Faltam <span className="font-black text-white">R$ {fmt(amountToFreeShipping)}</span> para
+                      <span className="text-[#d4af37] font-bold"> frete grátis</span>
+                    </p>
+                  )}
+                </div>
+                <div className="h-1.5 w-full rounded-full bg-white/[0.06] overflow-hidden">
+                  <div
+                    className={`h-full rounded-full transition-all duration-500
+                      ${qualifiesFreeShipping ? 'bg-emerald-400' : 'bg-gradient-to-r from-[#d4af37] to-[#f2ca50]'}`}
+                    style={{ width: `${freeShippingProgress}%` }}
+                  />
+                </div>
+              </div>
+            )}
 
             {/* Qty selector */}
             {!isOutOfStock && (

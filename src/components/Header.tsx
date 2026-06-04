@@ -1,6 +1,6 @@
-import React, { useState, useEffect } from 'react';
-import { Link, useLocation } from 'react-router-dom';
-import { ShoppingCart, User, Menu, Search, Diamond, Home, ShoppingBag, Phone } from 'lucide-react';
+import React, { useState, useEffect, useRef } from 'react';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
+import { ShoppingCart, User, Menu, Search, Diamond, Home, ShoppingBag, Phone, X } from 'lucide-react';
 import { useCart } from '@/contexts/CartContext';
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
 import { CartModal } from './CartModal';
@@ -30,7 +30,7 @@ const styles = {
     }`,
   actions: 'flex items-center gap-1 md:gap-4 text-primary',
   iconBtn: 'hover:bg-white/5 transition-all duration-300 p-2.5 rounded-full active:scale-90 flex items-center justify-center relative group',
-  searchBtn: 'hidden sm:flex hover:bg-white/5 transition-all duration-300 p-2.5 rounded-full active:scale-90 items-center justify-center relative',
+  searchBtn: 'hover:bg-white/5 transition-all duration-300 p-2.5 rounded-full active:scale-90 flex items-center justify-center relative',
   cartBadge: 'absolute top-1 right-1 bg-primary text-background text-[9px] font-black w-4 h-4 rounded-full flex items-center justify-center border border-black shadow-[0_0_10px_rgba(212,175,55,0.5)]',
   iconGlow: 'absolute inset-0 bg-primary/5 rounded-full opacity-0 group-hover:opacity-100 transition-opacity',
   mobileBtn: 'md:hidden hover:bg-white/5 transition-all duration-300 p-2.5 rounded-full active:scale-90 flex items-center justify-center',
@@ -60,8 +60,12 @@ export const Header: React.FC = () => {
   const { getTotalItems } = useCart();
   const totalItems = getTotalItems();
   const location = useLocation();
+  const navigate = useNavigate();
   const [isScrolled, setIsScrolled] = useState(false);
   const [isCartOpen, setIsCartOpen] = useState(false);
+  const [isSearchOpen, setIsSearchOpen] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
+  const searchInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     const handleScroll = () => setIsScrolled(window.scrollY > 20);
@@ -69,7 +73,31 @@ export const Header: React.FC = () => {
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
+  // Focus the input when the search panel opens
+  useEffect(() => {
+    if (isSearchOpen) {
+      const t = setTimeout(() => searchInputRef.current?.focus(), 80);
+      return () => clearTimeout(t);
+    }
+  }, [isSearchOpen]);
+
+  // Close search on Escape
+  useEffect(() => {
+    if (!isSearchOpen) return;
+    const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') setIsSearchOpen(false); };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [isSearchOpen]);
+
   const isActive = (path: string) => location.pathname === path;
+
+  const submitSearch = (e: React.FormEvent) => {
+    e.preventDefault();
+    const q = searchQuery.trim();
+    setIsSearchOpen(false);
+    navigate(q ? `/produtos?q=${encodeURIComponent(q)}` : '/produtos');
+    setSearchQuery('');
+  };
 
   return (
     <header className={styles.header(isScrolled)}>
@@ -97,7 +125,11 @@ export const Header: React.FC = () => {
 
         {/* Action icons */}
         <div className={styles.actions}>
-          <button className={styles.searchBtn} aria-label="Buscar">
+          <button
+            onClick={() => setIsSearchOpen(true)}
+            className={styles.searchBtn}
+            aria-label="Buscar produtos"
+          >
             <Search className="h-5 w-5 text-white/40" />
           </button>
 
@@ -153,6 +185,67 @@ export const Header: React.FC = () => {
           </Sheet>
         </div>
       </div>
+
+      {/* ── Search overlay ── */}
+      {isSearchOpen && (
+        <div
+          className="fixed inset-0 z-[60] bg-black/80 backdrop-blur-md animate-in fade-in duration-200"
+          onClick={() => setIsSearchOpen(false)}
+        >
+          <div
+            className="absolute top-0 inset-x-0 bg-black/95 border-b border-primary/20 p-4 sm:p-6 animate-in slide-in-from-top duration-300"
+            onClick={(e) => e.stopPropagation()}
+            style={{ paddingTop: 'max(1rem, env(safe-area-inset-top))' }}
+          >
+            <form onSubmit={submitSearch} className="max-w-screen-md mx-auto flex items-center gap-3">
+              <div className="relative flex-1">
+                <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-primary/50 pointer-events-none" />
+                <input
+                  ref={searchInputRef}
+                  type="search"
+                  inputMode="search"
+                  enterKeyHint="search"
+                  placeholder="O que você procura? (ex: capa, fone, carregador)"
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="w-full h-13 bg-white/[0.06] border border-white/10 focus:border-primary/40
+                    pl-12 pr-4 rounded-2xl text-white placeholder:text-white/25 outline-none transition-all text-base"
+                  style={{ height: '3.25rem' }}
+                />
+              </div>
+              <button
+                type="submit"
+                className="shrink-0 h-13 px-6 rounded-2xl bg-primary text-black font-black text-[11px] uppercase tracking-widest hover:bg-[#f2ca50] active:scale-95 transition-all"
+                style={{ height: '3.25rem' }}
+              >
+                Buscar
+              </button>
+              <button
+                type="button"
+                onClick={() => setIsSearchOpen(false)}
+                aria-label="Fechar busca"
+                className="shrink-0 w-13 h-13 rounded-2xl border border-white/10 text-white/50 flex items-center justify-center hover:text-white hover:border-white/30 active:scale-95 transition-all"
+                style={{ width: '3.25rem', height: '3.25rem' }}
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </form>
+
+            {/* Quick category shortcuts */}
+            <div className="max-w-screen-md mx-auto mt-3 flex flex-wrap gap-2">
+              {['Smartphone', 'Watch', 'Audio', 'Protection', 'Power'].map((c) => (
+                <button
+                  key={c}
+                  onClick={() => { setIsSearchOpen(false); navigate(`/produtos?category=${c}`); }}
+                  className="px-3.5 h-8 rounded-full bg-white/[0.04] border border-white/[0.08] text-white/50 text-[10px] font-black uppercase tracking-widest hover:text-primary hover:border-primary/30 transition-all"
+                >
+                  {c}
+                </button>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
 
       <CartModal isOpen={isCartOpen} onClose={() => setIsCartOpen(false)} />
     </header>
