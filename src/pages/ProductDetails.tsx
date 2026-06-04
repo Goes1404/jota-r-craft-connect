@@ -343,7 +343,7 @@ const ProductDetails = () => {
   };
 
   return (
-    <div className="min-h-screen bg-[#050505] text-[#e2e2e2] selection:bg-[#f2ca50]/30 selection:text-[#f2ca50]">
+    <div className="lumina-grain relative min-h-screen bg-[#050505] text-[#e2e2e2] overflow-hidden selection:bg-[#f2ca50]/30 selection:text-[#f2ca50]">
       <SEO
         title={product.name}
         description={product.description}
@@ -359,14 +359,16 @@ const ProductDetails = () => {
       />
       <Header />
 
-      {/* Ambient golden blobs */}
+      {/* Layered background */}
       <div className="fixed inset-0 pointer-events-none z-0 overflow-hidden" aria-hidden="true">
-        <GoldenBlob className="top-[2%] -right-[10%]" size={560} opacity={0.08} duration={16} />
-        <GoldenBlob className="bottom-[10%] -left-[12%]" size={460} opacity={0.06} duration={20}
+        <div className="absolute inset-x-0 top-0 h-[55vh] bg-[radial-gradient(ellipse_65%_55%_at_70%_-5%,rgba(212,175,55,0.10),transparent_70%)]" />
+        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,transparent_55%,rgba(0,0,0,0.55)_100%)]" />
+        <GoldenBlob className="top-[2%] -right-[10%]" size={560} opacity={0.07} duration={18} />
+        <GoldenBlob className="bottom-[10%] -left-[12%]" size={460} opacity={0.05} duration={22}
           xPath={[0, -50, 40, -20, 0]} yPath={[0, 40, -30, 20, 0]} />
       </div>
 
-      <main className="relative z-10 max-w-screen-xl mx-auto px-4 sm:px-6 pt-20 pb-36 lg:pt-24 lg:pb-20">
+      <main className="relative z-10 max-w-screen-xl mx-auto px-4 sm:px-6 pt-20 pb-36 lg:pt-28 lg:pb-24">
 
         {/* ── Back + Share row (mobile) ── */}
         <div className="flex items-center justify-between mb-4 lg:mb-6">
@@ -405,7 +407,7 @@ const ProductDetails = () => {
         </div>
 
         {/* ── Main grid ── */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 xl:gap-16 mb-20">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-10 lg:gap-12 xl:gap-20 mb-24 lg:mb-32">
 
           {/* Gallery */}
           <Gallery
@@ -691,7 +693,7 @@ const ProductDetails = () => {
         </div>
 
         {/* ── Related ── */}
-        <Reveal y={40} className="mb-20">
+        <Reveal y={40} className="mb-24 lg:mb-28">
           <SmartShowcase
             title="Complete seu Estilo"
             subtitle="Selecionamos peças que combinam com este item."

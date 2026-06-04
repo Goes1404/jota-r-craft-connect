@@ -128,19 +128,24 @@ const Products: React.FC = () => {
   const activeFilterCount = [filters.inStockOnly, filters.featuredOnly, !!filters.category].filter(Boolean).length;
 
   return (
-    <div className="relative min-h-screen bg-[#060606] text-[#e2e2e2] overflow-hidden selection:bg-[#f2ca50]/30 selection:text-[#f2ca50]">
+    <div className="lumina-grain relative min-h-screen bg-[#050505] text-[#e2e2e2] overflow-hidden selection:bg-[#f2ca50]/30 selection:text-[#f2ca50]">
       <SEO title="Coleção" description="Curadoria digital com Lumina AI." />
       <Header />
 
-      {/* ── Ambient golden blobs ── */}
-      <div className="pointer-events-none fixed inset-0 z-0">
-        <GoldenBlob className="-top-[10%] -left-[15%]" size={520} opacity={0.10} duration={14} />
-        <GoldenBlob className="top-[55%] -right-[20%]" size={620} opacity={0.07} duration={18}
+      {/* ── Layered background ── */}
+      <div aria-hidden="true" className="pointer-events-none fixed inset-0 z-0">
+        {/* Top gold wash */}
+        <div className="absolute inset-x-0 top-0 h-[60vh] bg-[radial-gradient(ellipse_70%_60%_at_50%_-10%,rgba(212,175,55,0.10),transparent_70%)]" />
+        {/* Bottom vignette for depth */}
+        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,transparent_55%,rgba(0,0,0,0.6)_100%)]" />
+        {/* Animated golden blobs */}
+        <GoldenBlob className="-top-[10%] -left-[15%]" size={520} opacity={0.08} duration={16} />
+        <GoldenBlob className="top-[55%] -right-[20%]" size={620} opacity={0.05} duration={20}
           xPath={[0, -60, 50, -30, 0]} yPath={[0, 50, -40, 30, 0]} />
       </div>
 
       {/* ── Editorial hero band ── */}
-      <header className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 pt-24 pb-8 md:pt-28 md:pb-10 text-center">
+      <header className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 pt-28 pb-10 md:pt-36 md:pb-14 text-center">
         <motion.span
           initial={{ opacity: 0, y: 12 }}
           animate={{ opacity: 1, y: 0 }}
@@ -263,11 +268,11 @@ const Products: React.FC = () => {
       </div>
 
       {/* ── Main content ── */}
-      <main className="relative z-10 max-w-7xl mx-auto px-3 sm:px-6 pt-5 pb-32">
+      <main className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 pt-7 sm:pt-9 pb-36">
 
         {/* Result count + sort */}
         {!isLoading && (
-          <div className="flex items-center justify-between mb-4">
+          <div className="flex items-center justify-between mb-5 sm:mb-7">
             <p className="text-[11px] font-bold uppercase tracking-widest text-white/25">
               {filteredProducts.length}{' '}
               {filteredProducts.length === 1 ? 'produto' : 'produtos'}
@@ -315,11 +320,11 @@ const Products: React.FC = () => {
 
         {/* Grid */}
         {isLoading ? (
-          <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-3">
+          <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-3 sm:gap-4 lg:gap-5">
             {[...Array(8)].map((_, i) => <ProductCardSkeleton key={i} />)}
           </div>
         ) : filteredProducts.length > 0 ? (
-          <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-3">
+          <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-3 sm:gap-4 lg:gap-5">
             {filteredProducts.map((product, index) => (
               <ProductCard
                 key={product.id}
