@@ -1,16 +1,21 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
-const ALLOWED_ORIGIN = Deno.env.get("ALLOWED_ORIGIN") || "https://jracessorios.com";
+const ALLOWED_ORIGINS = ["https://jracessorios.com", "https://www.jracessorios.com"];
 
-const corsHeaders = {
-  "Access-Control-Allow-Origin": ALLOWED_ORIGIN,
-  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
-};
+function corsHeaders(origin: string | null): Record<string, string> {
+  const allowed = (origin && ALLOWED_ORIGINS.includes(origin)) ? origin : ALLOWED_ORIGINS[0];
+  return {
+    "Access-Control-Allow-Origin": allowed,
+    "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
+  };
+}
 
 serve(async (req) => {
+  const origin = req.headers.get("origin");
+
   if (req.method === "OPTIONS") {
-    return new Response("ok", { headers: corsHeaders });
+    return new Response("ok", { headers: corsHeaders(origin) });
   }
 
   try {
@@ -18,7 +23,7 @@ serve(async (req) => {
     const authHeader = req.headers.get("authorization");
     if (!authHeader) {
       return new Response(JSON.stringify({ success: false, error: "Unauthorized" }), {
-        status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" },
+        status: 401, headers: { ...corsHeaders(origin), "Content-Type": "application/json" },
       });
     }
     // ────────────────────────────────────────────────────────────────────────
@@ -27,7 +32,7 @@ serve(async (req) => {
 
     if (!orderId) {
       return new Response(JSON.stringify({ success: false, error: "orderId obrigatório" }), {
-        status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" },
+        status: 400, headers: { ...corsHeaders(origin), "Content-Type": "application/json" },
       });
     }
 
@@ -50,13 +55,13 @@ serve(async (req) => {
 
     if (orderError || !order) {
       return new Response(JSON.stringify({ success: false, error: "Pedido não encontrado" }), {
-        status: 404, headers: { ...corsHeaders, "Content-Type": "application/json" },
+        status: 404, headers: { ...corsHeaders(origin), "Content-Type": "application/json" },
       });
     }
 
     if (order.status !== "Aguardando Pagamento") {
       return new Response(JSON.stringify({ success: false, error: "Pedido já processado" }), {
-        status: 409, headers: { ...corsHeaders, "Content-Type": "application/json" },
+        status: 409, headers: { ...corsHeaders(origin), "Content-Type": "application/json" },
       });
     }
 
@@ -93,14 +98,14 @@ serve(async (req) => {
         clientSecret: stripeData.client_secret,
         paymentIntentId: stripeData.id,
       }),
-      { headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      { headers: { ...corsHeaders(origin), "Content-Type": "application/json" } }
     );
 
   } catch (error) {
     console.error("Stripe PaymentIntent error:", error.message);
     return new Response(
       JSON.stringify({ success: false, error: error.message }),
-      { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      { status: 500, headers: { ...corsHeaders(origin), "Content-Type": "application/json" } }
     );
   }
 });

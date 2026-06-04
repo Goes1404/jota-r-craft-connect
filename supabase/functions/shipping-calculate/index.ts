@@ -6,15 +6,20 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
 // ─── CORS ─────────────────────────────────────────────────────────────────────
 
-const CORS = {
-  "Access-Control-Allow-Origin": Deno.env.get("ALLOWED_ORIGIN") || "https://jracessorios.com",
-  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
-};
+const ALLOWED_ORIGINS = ["https://jracessorios.com", "https://www.jracessorios.com"];
 
-function json(body: unknown, status = 200) {
+function corsHeaders(origin: string | null) {
+  const allowed = (origin && ALLOWED_ORIGINS.includes(origin)) ? origin : ALLOWED_ORIGINS[0];
+  return {
+    "Access-Control-Allow-Origin": allowed,
+    "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
+  };
+}
+
+function json(body: unknown, status = 200, origin: string | null = null) {
   return new Response(JSON.stringify(body), {
     status,
-    headers: { ...CORS, "Content-Type": "application/json" },
+    headers: { ...corsHeaders(origin), "Content-Type": "application/json" },
   });
 }
 
@@ -176,14 +181,15 @@ function buildFlatRateOptions(uf: string, productValue: number, cfg: ShippingCon
 // ─── Handler ──────────────────────────────────────────────────────────────────
 
 serve(async (req) => {
-  if (req.method === "OPTIONS") return new Response("ok", { headers: CORS });
+  const origin = req.headers.get("origin");
+  if (req.method === "OPTIONS") return new Response("ok", { headers: corsHeaders(origin) });
 
   try {
     // 1. Parse and validate input
     const { cep, productValue = 0 } = await req.json();
     const rawCep = String(cep ?? "").replace(/\D/g, "");
     if (rawCep.length !== 8) {
-      return json({ error: "CEP inválido. Informe os 8 dígitos." }, 400);
+      return json({ error: "CEP inválido. Informe os 8 dígitos." }, 400, origin);
     }
 
     // 2. Supabase service-role client (token never leaves this function)
@@ -203,9 +209,9 @@ serve(async (req) => {
 
     // 4. Validate CEP via ViaCEP (public API, no key needed)
     const viaCepRes = await fetch(`https://viacep.com.br/ws/${rawCep}/json/`);
-    if (!viaCepRes.ok) return json({ error: "CEP não encontrado." }, 404);
+    if (!viaCepRes.ok) return json({ error: "CEP não encontrado." }, 404, origin);
     const viaCepData = await viaCepRes.json();
-    if (viaCepData.erro) return json({ error: "CEP não encontrado." }, 404);
+    if (viaCepData.erro) return json({ error: "CEP não encontrado." }, 404, origin);
 
     const city: string = viaCepData.localidade;
     const state: string = viaCepData.uf;
@@ -232,10 +238,10 @@ serve(async (req) => {
     }).then().catch((e: Error) => console.error("quote_log_error:", e.message));
 
     // 7. Return result
-    return json({ city, state, options, freeThreshold: cfg.free_shipping_threshold });
+    return json({ city, state, options, freeThreshold: cfg.free_shipping_threshold }, 200, origin);
 
   } catch (err: any) {
     console.error("shipping-calculate error:", err?.message);
-    return json({ error: "Erro ao calcular frete. Tente novamente." }, 500);
+    return json({ error: "Erro ao calcular frete. Tente novamente." }, 500, origin);
   }
 });
