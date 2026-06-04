@@ -1,5 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
+import { motion } from 'framer-motion';
 import {
   ArrowLeft, Heart, Share2, ShoppingBag, MessageCircle, Shield,
   RefreshCw, Truck, FileText, Star, Zap, ChevronDown, Minus, Plus,
@@ -11,6 +12,9 @@ import { Header } from '@/components/Header';
 import { Footer } from '@/components/Footer';
 import SEO from '@/components/SEO';
 import { ProductReviews } from '@/components/ProductReviews';
+import { GoldenBlob } from '@/components/animations/GoldenBlob';
+import { Magnetic } from '@/components/animations/Magnetic';
+import { Reveal } from '@/components/animations/Reveal';
 import { useCart } from '@/contexts/CartContext';
 import { useToast } from '@/hooks/use-toast';
 import { useProduct, useAppSettings } from '@/hooks/useProducts';
@@ -139,10 +143,16 @@ function Gallery({
   };
 
   return (
-    <div className="space-y-3 select-none">
+    <div className="relative space-y-3 select-none">
+      {/* Glow behind gallery */}
+      <div aria-hidden="true" className="pointer-events-none absolute -inset-6 z-0 rounded-[40px] bg-[#d4af37]/[0.07] blur-[60px]" />
+
       {/* Main image */}
-      <div
-        className="relative overflow-hidden rounded-2xl lg:rounded-3xl bg-[#0a0a0a] border border-white/[0.06] cursor-grab active:cursor-grabbing"
+      <motion.div
+        initial={{ opacity: 0, scale: 0.96 }}
+        animate={{ opacity: 1, scale: 1 }}
+        transition={{ duration: 0.8, ease: [0.22, 1, 0.36, 1] }}
+        className="lumina-ring group relative z-[1] overflow-hidden rounded-2xl lg:rounded-3xl bg-[#0a0a0a] border border-white/[0.06] cursor-grab active:cursor-grabbing"
         style={{ aspectRatio: '1 / 1' }}
         onTouchStart={onTouchStart}
         onTouchMove={onTouchMove}
@@ -152,6 +162,8 @@ function Gallery({
         onMouseUp={onMouseUp}
         onMouseLeave={() => { if (isDragging) { setIsDragging(false); setDragOffset(0); } }}
       >
+        {/* Shine sweep */}
+        <div className="lumina-shine pointer-events-none absolute inset-0 z-[5]" />
         {/* Track */}
         <div
           className="flex h-full transition-transform"
@@ -222,7 +234,7 @@ function Gallery({
             </span>
           </div>
         )}
-      </div>
+      </motion.div>
 
       {/* Thumbnails */}
       {images.length > 1 && (
@@ -347,10 +359,11 @@ const ProductDetails = () => {
       />
       <Header />
 
-      {/* Ambient glow */}
-      <div className="fixed inset-0 pointer-events-none z-0" aria-hidden="true">
-        <div className="absolute top-[5%] right-0 w-[45%] h-[45%] rounded-full bg-[#d4af37] opacity-[0.02] blur-[160px]" />
-        <div className="absolute bottom-[20%] left-0 w-[30%] h-[35%] rounded-full bg-[#d4af37] opacity-[0.015] blur-[120px]" />
+      {/* Ambient golden blobs */}
+      <div className="fixed inset-0 pointer-events-none z-0 overflow-hidden" aria-hidden="true">
+        <GoldenBlob className="top-[2%] -right-[10%]" size={560} opacity={0.08} duration={16} />
+        <GoldenBlob className="bottom-[10%] -left-[12%]" size={460} opacity={0.06} duration={20}
+          xPath={[0, -50, 40, -20, 0]} yPath={[0, 40, -30, 20, 0]} />
       </div>
 
       <main className="relative z-10 max-w-screen-xl mx-auto px-4 sm:px-6 pt-20 pb-36 lg:pt-24 lg:pb-20">
@@ -408,14 +421,24 @@ const ProductDetails = () => {
           <div className="lg:sticky lg:top-24 lg:self-start space-y-0">
 
             {/* Category */}
-            <p className="text-[10px] font-black uppercase tracking-[0.3em] text-[#d4af37] mb-2">
+            <motion.p
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5 }}
+              className="text-[10px] font-black uppercase tracking-[0.3em] text-[#d4af37] mb-2"
+            >
               {product.category || 'Coleção Exclusiva'}
-            </p>
+            </motion.p>
 
             {/* Name */}
-            <h1 className="font-serif text-2xl sm:text-3xl font-bold text-white leading-tight tracking-tight mb-3">
+            <motion.h1
+              initial={{ opacity: 0, y: 16, filter: 'blur(6px)' }}
+              animate={{ opacity: 1, y: 0, filter: 'blur(0px)' }}
+              transition={{ duration: 0.7, delay: 0.08, ease: [0.22, 1, 0.36, 1] }}
+              className="font-serif text-2xl sm:text-3xl font-bold text-white leading-tight tracking-tight mb-3"
+            >
               {product.name}
-            </h1>
+            </motion.h1>
 
             {/* Rating + stock */}
             <div className="flex items-center flex-wrap gap-x-3 gap-y-1.5 mb-4">
@@ -447,9 +470,15 @@ const ProductDetails = () => {
             <div className="h-px bg-gradient-to-r from-white/10 via-white/5 to-transparent mb-5" />
 
             {/* Price block */}
-            <div className="bg-white/[0.02] border border-white/[0.06] rounded-2xl p-4 mb-5">
-              <div className="flex items-baseline gap-3">
-                <span className="text-3xl font-black text-white leading-none">
+            <motion.div
+              initial={{ opacity: 0, y: 14 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.6, delay: 0.16 }}
+              className="relative bg-white/[0.02] border border-white/[0.06] rounded-2xl p-4 mb-5 overflow-hidden"
+            >
+              <div className="pointer-events-none absolute -top-8 -right-8 w-28 h-28 rounded-full bg-[#d4af37]/10 blur-2xl" />
+              <div className="relative flex items-baseline gap-3">
+                <span className="text-3xl font-black text-white leading-none drop-shadow-[0_0_18px_rgba(212,175,55,0.25)]">
                   R$ {fmt(product.price)}
                 </span>
               </div>
@@ -468,7 +497,7 @@ const ProductDetails = () => {
                   </span>
                 ))}
               </div>
-            </div>
+            </motion.div>
 
             {/* Free shipping progress — gatilho de upsell */}
             {!isOutOfStock && (
@@ -532,18 +561,21 @@ const ProductDetails = () => {
 
             {/* CTAs — desktop */}
             <div className="hidden lg:flex flex-col gap-2.5 mb-5">
-              <button
-                onClick={handleBuyNow}
-                disabled={isOutOfStock}
-                className="flex w-full items-center justify-center gap-2.5 h-14 rounded-2xl
-                  bg-[#d4af37] text-black font-black text-[11px] uppercase tracking-[0.2em]
-                  shadow-[0_8px_40px_-8px_rgba(212,175,55,0.45)]
-                  hover:bg-[#f2ca50] active:scale-[0.985] transition-all
-                  disabled:opacity-30 disabled:cursor-not-allowed"
-              >
-                <Zap className="w-4 h-4" />
-                {isOutOfStock ? 'Item Esgotado' : 'Comprar Agora'}
-              </button>
+              <Magnetic strength={0.2} className="w-full">
+                <button
+                  onClick={handleBuyNow}
+                  disabled={isOutOfStock}
+                  className="group relative flex w-full items-center justify-center gap-2.5 h-14 rounded-2xl overflow-hidden
+                    bg-[#d4af37] text-black font-black text-[11px] uppercase tracking-[0.2em]
+                    shadow-[0_8px_40px_-8px_rgba(212,175,55,0.45)]
+                    hover:shadow-[0_14px_50px_-10px_rgba(242,202,80,0.6)] active:scale-[0.985] transition-all
+                    disabled:opacity-30 disabled:cursor-not-allowed"
+                >
+                  <span className="lumina-shine pointer-events-none absolute inset-0" />
+                  <Zap className="w-4 h-4 relative z-10" />
+                  <span className="relative z-10">{isOutOfStock ? 'Item Esgotado' : 'Comprar Agora'}</span>
+                </button>
+              </Magnetic>
               <button
                 onClick={handleAddToCart}
                 disabled={isOutOfStock}
@@ -659,7 +691,7 @@ const ProductDetails = () => {
         </div>
 
         {/* ── Related ── */}
-        <section className="mb-20">
+        <Reveal y={40} className="mb-20">
           <SmartShowcase
             title="Complete seu Estilo"
             subtitle="Selecionamos peças que combinam com este item."
@@ -668,12 +700,14 @@ const ProductDetails = () => {
             excludeProductId={product.id}
             limit={4}
           />
-        </section>
+        </Reveal>
 
         {/* ── Reviews ── */}
-        <div id="avaliacoes">
-          <ProductReviews productId={product.id} />
-        </div>
+        <Reveal y={40} className="scroll-mt-24" >
+          <div id="avaliacoes">
+            <ProductReviews productId={product.id} />
+          </div>
+        </Reveal>
 
       </main>
 

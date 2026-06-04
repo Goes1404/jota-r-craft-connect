@@ -9,9 +9,13 @@ import { useAnalytics } from '@/hooks/useAnalytics';
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
 import { Button } from '@/components/ui/button';
 import { supabase } from '@/integrations/supabase/client';
+import { motion } from 'framer-motion';
+import { GoldenBlob } from '@/components/animations/GoldenBlob';
+import { Magnetic } from '@/components/animations/Magnetic';
+import { TrackingIn } from '@/components/animations/Reveal';
 import {
   Search, SlidersHorizontal, Phone, Watch, Headphones,
-  Shield, Zap, LayoutGrid, Bot, X, RefreshCcw,
+  Shield, Zap, LayoutGrid, Bot, X, RefreshCcw, Sparkles,
 } from 'lucide-react';
 import { useSearchParams } from 'react-router-dom';
 
@@ -124,12 +128,57 @@ const Products: React.FC = () => {
   const activeFilterCount = [filters.inStockOnly, filters.featuredOnly, !!filters.category].filter(Boolean).length;
 
   return (
-    <div className="min-h-screen bg-[#060606] text-[#e2e2e2] selection:bg-[#f2ca50]/30 selection:text-[#f2ca50]">
+    <div className="relative min-h-screen bg-[#060606] text-[#e2e2e2] overflow-hidden selection:bg-[#f2ca50]/30 selection:text-[#f2ca50]">
       <SEO title="Coleção" description="Curadoria digital com Lumina AI." />
       <Header />
 
+      {/* ── Ambient golden blobs ── */}
+      <div className="pointer-events-none fixed inset-0 z-0">
+        <GoldenBlob className="-top-[10%] -left-[15%]" size={520} opacity={0.10} duration={14} />
+        <GoldenBlob className="top-[55%] -right-[20%]" size={620} opacity={0.07} duration={18}
+          xPath={[0, -60, 50, -30, 0]} yPath={[0, 50, -40, 30, 0]} />
+      </div>
+
+      {/* ── Editorial hero band ── */}
+      <header className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 pt-24 pb-8 md:pt-28 md:pb-10 text-center">
+        <motion.span
+          initial={{ opacity: 0, y: 12 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.7, ease: [0.22, 1, 0.36, 1] }}
+          className="inline-flex items-center gap-2 px-3.5 h-8 rounded-full border border-[#d4af37]/25 bg-[#d4af37]/[0.06] backdrop-blur-md"
+        >
+          <Sparkles className="w-3 h-3 text-[#d4af37]" />
+          <span className="text-[10px] font-black uppercase tracking-[0.3em] text-[#d4af37]">Lumina Selection</span>
+        </motion.span>
+
+        <h1 className="mt-5 font-serif font-bold leading-[0.95] tracking-tight text-white text-[clamp(2.4rem,9vw,5.5rem)]">
+          <TrackingIn text="A coleção" stagger={0.04} />
+          <br />
+          <span className="text-[#d4af37] italic font-light">
+            <TrackingIn text="que define você" stagger={0.03} delay={0.25} />
+          </span>
+        </h1>
+
+        <motion.p
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 0.6, duration: 0.8 }}
+          className="mx-auto mt-5 max-w-md text-sm text-white/40 leading-relaxed"
+        >
+          Curadoria digital com inteligência artificial. Cada peça, uma declaração.
+        </motion.p>
+
+        {/* Thin gold rule */}
+        <motion.div
+          initial={{ scaleX: 0 }}
+          animate={{ scaleX: 1 }}
+          transition={{ delay: 0.8, duration: 0.9, ease: [0.22, 1, 0.36, 1] }}
+          className="mx-auto mt-8 h-px w-40 origin-center bg-gradient-to-r from-transparent via-[#d4af37]/60 to-transparent"
+        />
+      </header>
+
       {/* ── Sticky top bar (search + filters) ── */}
-      <div className="sticky top-14 md:top-16 z-30 bg-[#060606]/90 backdrop-blur-xl border-b border-white/[0.06]">
+      <div className="sticky top-14 md:top-16 z-30 bg-[#060606]/85 backdrop-blur-xl border-y border-white/[0.06]">
         <div className="max-w-7xl mx-auto px-3 sm:px-6 py-3 flex items-center gap-2">
 
           {/* Search */}
@@ -187,21 +236,26 @@ const Products: React.FC = () => {
         {/* ── Category pills ── */}
         <div className="overflow-x-auto scrollbar-hide">
           <div className="flex gap-2 px-3 sm:px-6 pb-3 w-max min-w-full">
-            {CATEGORIES.map(({ label, value, icon: Icon }) => {
+            {CATEGORIES.map(({ label, value, icon: Icon }, i) => {
               const active = filters.category === value;
               return (
-                <button
+                <motion.button
                   key={value}
+                  initial={{ opacity: 0, y: 8 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.05 * i, duration: 0.4 }}
+                  whileHover={{ scale: 1.06 }}
+                  whileTap={{ scale: 0.94 }}
                   onClick={() => setFilters(prev => ({ ...prev, category: prev.category === value ? '' : value }))}
                   className={`shrink-0 flex items-center gap-1.5 h-8 px-3.5 rounded-full text-[11px] font-black uppercase tracking-widest
-                    transition-all active:scale-95 border
+                    border
                     ${active
-                      ? 'bg-[#d4af37] text-black border-[#d4af37] shadow-[0_4px_16px_-4px_rgba(212,175,55,0.5)]'
-                      : 'bg-white/[0.04] border-white/[0.08] text-white/50 hover:text-white/80 hover:border-white/20'}`}
+                      ? 'bg-[#d4af37] text-black border-[#d4af37] shadow-[0_4px_20px_-2px_rgba(212,175,55,0.6)]'
+                      : 'bg-white/[0.04] border-white/[0.08] text-white/50 hover:text-white/80 hover:border-[#d4af37]/30'}`}
                 >
-                  <Icon className="w-3 h-3" />
+                  <Icon className={`w-3 h-3 ${active ? '' : 'text-[#d4af37]/70'}`} />
                   {label}
-                </button>
+                </motion.button>
               );
             })}
           </div>
@@ -209,7 +263,7 @@ const Products: React.FC = () => {
       </div>
 
       {/* ── Main content ── */}
-      <main className="max-w-7xl mx-auto px-3 sm:px-6 pt-5 pb-32">
+      <main className="relative z-10 max-w-7xl mx-auto px-3 sm:px-6 pt-5 pb-32">
 
         {/* Result count + sort */}
         {!isLoading && (
@@ -270,6 +324,7 @@ const Products: React.FC = () => {
               <ProductCard
                 key={product.id}
                 product={product}
+                index={index}
                 className={
                   // First featured product gets a wide bento card (spans 2 cols)
                   index === 0 && !filters.search && !filters.category && product.is_featured
