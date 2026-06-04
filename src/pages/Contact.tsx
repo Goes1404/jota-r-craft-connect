@@ -2,6 +2,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import { Header } from '@/components/Header';
 import { Footer } from '@/components/Footer';
 import { Button } from '@/components/ui/button';
+import { SmokeBackground } from '@/components/ui/spooky-smoke-animation';
 import { 
   MapPin, 
   Phone, 
@@ -57,7 +58,7 @@ const Contact: React.FC = () => {
       const { data, error } = await supabase.functions.invoke('ai-assistant', {
         body: { 
           message: userMessage,
-          context: "Você é a Lumina, a concierge de luxo virtual da JR Acessórios. Você responde dúvidas sobre produtos Apple, capas premium, envios e a marca. Seja extremamente polida, use um tom sofisticado e responda de forma concisa. Se a pergunta for muito complexa, sugira que o cliente clique no botão 'Atendimento Humano' para falar com um consultor via WhatsApp."
+          context: "Você é a Lumina, a concierge de luxo virtual da JR Acessórios. Você responde dúvidas sobre iPhones, Apple Watches, AirPods, cases premium, prazos de envio e a marca JR Acessórios. Seja extremamente polida, use um tom sofisticado e responda de forma concisa. Se a pergunta envolver compras diretas ou estoque imediato, sugira que o cliente clique em 'Falar com Consultor' para iniciar atendimento humano no WhatsApp."
         }
       });
 
@@ -80,10 +81,9 @@ const Contact: React.FC = () => {
     <div className="min-h-screen bg-black text-[#e2e2e2] font-sans selection:bg-[#f2ca50]/30 selection:text-[#f2ca50]">
       <Header />
       
-      {/* Background Ambient Glow */}
-      <div className="fixed inset-0 pointer-events-none z-0">
-        <div className="absolute top-[10%] -left-[10%] w-[50%] h-[50%] rounded-full bg-[#d4af37] opacity-[0.03] blur-[120px]"></div>
-        <div className="absolute bottom-[10%] -right-[10%] w-[40%] h-[60%] rounded-full bg-[#d4af37] opacity-[0.02] blur-[150px]"></div>
+      {/* Background Smoke Animation */}
+      <div className="fixed inset-0 pointer-events-none z-0 opacity-25">
+        <SmokeBackground smokeColor="#d4af37" />
       </div>
 
       <main className="relative z-10 pt-32 pb-20">
@@ -92,13 +92,13 @@ const Contact: React.FC = () => {
           <div className="max-w-4xl mx-auto text-center mb-16">
             <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full border border-[#d4af37]/30 bg-[#d4af37]/10 font-bold text-[10px] uppercase tracking-[0.3em] text-[#d4af37] mb-8 animate-in fade-in slide-in-from-bottom-4 duration-700">
               <Diamond className="w-3 h-3 fill-[#d4af37]" />
-              Atendimento Exclusivo
+              Suporte & Concierge
             </div>
             <h1 className="font-serif text-5xl md:text-6xl font-black text-white mb-6 tracking-tight leading-tight animate-in fade-in slide-in-from-bottom-6 duration-700 delay-100">
-              Lumina Virtual <span className="text-[#d4af37] italic">Concierge.</span>
+              Experiência & <span className="text-[#d4af37] italic">Atendimento JR.</span>
             </h1>
             <p className="text-sm text-white/40 max-w-xl mx-auto font-bold uppercase tracking-widest leading-relaxed animate-in fade-in slide-in-from-bottom-8 duration-700 delay-200">
-              Inteligência Artificial de ponta dedicada a resolver suas necessidades instantaneamente, 24 horas por dia.
+              Consulte nossa assistente inteligente sobre iPhones e acessórios premium, ou conecte-se com nossa equipe especializada.
             </p>
           </div>
 
@@ -121,8 +121,8 @@ const Contact: React.FC = () => {
                       <div className="absolute bottom-0 right-0 w-3.5 h-3.5 bg-green-500 border-2 border-black rounded-full"></div>
                     </div>
                     <div>
-                      <h2 className="font-serif text-lg font-bold text-white leading-tight">Lumina AI</h2>
-                      <p className="text-[9px] font-black text-[#d4af37] uppercase tracking-[0.2em]">Online e Pronta</p>
+                      <h2 className="font-serif text-lg font-bold text-white leading-tight">Concierge Lumina</h2>
+                      <p className="text-[9px] font-black text-[#d4af37] uppercase tracking-[0.2em]">Guia de Vendas & Estilo</p>
                     </div>
                   </div>
                   <Sparkles className="w-5 h-5 text-white/10" />
@@ -201,15 +201,15 @@ const Contact: React.FC = () => {
                   <MessageCircle className="w-40 h-40" />
                 </div>
                 <div className="relative z-10">
-                  <h3 className="text-sm font-black uppercase tracking-widest mb-2">Atendimento Humano</h3>
-                  <p className="text-2xl font-serif font-black mb-6 leading-tight">Prefere falar com um especialista?</p>
+                  <h3 className="text-sm font-black uppercase tracking-widest mb-2">Canal Direto</h3>
+                  <p className="text-2xl font-serif font-black mb-6 leading-tight">Deseja comprar ou encomendar peças?</p>
                   <a 
                     href={WHATSAPP_LINK} 
                     target="_blank" 
                     rel="noopener noreferrer"
                     className="inline-flex items-center justify-between w-full py-4 px-6 rounded-2xl bg-black text-white font-bold text-[10px] uppercase tracking-widest hover:bg-black/80 transition-all"
                   >
-                    Chamar no WhatsApp
+                    Iniciar Atendimento
                     <ArrowRight className="w-4 h-4 text-[#d4af37]" />
                   </a>
                 </div>
@@ -221,8 +221,8 @@ const Contact: React.FC = () => {
                     <Mail className="w-4 h-4" />
                   </div>
                   <div>
-                    <h3 className="text-[9px] font-black text-white/40 uppercase tracking-[0.2em]">Email Corporativo</h3>
-                    <p className="text-sm font-bold text-white">contato@jr-acessorios.com</p>
+                    <h3 className="text-[9px] font-black text-white/40 uppercase tracking-[0.2em]">Email de Suporte</h3>
+                    <p className="text-sm font-bold text-white">contato@jracessorios.com.br</p>
                   </div>
                 </div>
                 <div className="h-[1px] w-full bg-white/5 my-4"></div>
@@ -231,8 +231,8 @@ const Contact: React.FC = () => {
                     <Clock className="w-4 h-4" />
                   </div>
                   <div>
-                    <h3 className="text-[9px] font-black text-white/40 uppercase tracking-[0.2em]">Horário de Operação</h3>
-                    <p className="text-sm font-bold text-white">Seg-Sex: 9h às 18h</p>
+                    <h3 className="text-[9px] font-black text-white/40 uppercase tracking-[0.2em]">Horário de Atendimento</h3>
+                    <p className="text-sm font-bold text-white">Seg-Sáb: 9h às 19h</p>
                   </div>
                 </div>
               </div>

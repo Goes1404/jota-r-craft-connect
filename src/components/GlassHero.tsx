@@ -27,18 +27,35 @@ const pills = [
 export const GlassHero: React.FC = () => {
   const prefersReducedMotion = useReducedMotion();
 
+  const VIDEO_URL =
+    "https://d8j0ntlcm91z4.cloudfront.net/user_38xzZboKViGWJOttwIXH07lWA1P/hf_20260210_031346_d87182fb-b0af-4273-84d1-c6fd17d6bf0f.mp4";
+
   return (
     <section
       className="relative w-full min-h-[90svh] md:min-h-[100svh] overflow-hidden bg-[#0A0A0A] flex items-center"
       aria-label="Hero principal"
     >
+      {/* ── Video Background ── */}
+      <video
+        autoPlay
+        loop
+        muted
+        playsInline
+        className="absolute inset-0 w-full h-full object-cover z-0 opacity-30 brightness-[0.6] mix-blend-lighten"
+      >
+        <source src={VIDEO_URL} type="video/mp4" />
+      </video>
+
+      {/* ── Marcante Feixe Dourado / Glowing Golden Ray ── */}
+      <div className="absolute top-0 left-[20%] w-[350px] h-[150%] bg-gradient-to-b from-[#D4AF37]/35 via-[#D4AF37]/10 to-transparent rotate-[38deg] transform origin-top-left blur-[110px] pointer-events-none z-0 mix-blend-color-dodge opacity-80" />
+
       {/* ── Decorative golden gradient line at bottom ── */}
       <div className="absolute bottom-0 left-0 w-full h-[1px] bg-gradient-to-r from-transparent via-[#D4AF37]/40 to-transparent z-20" />
 
       {/* ── Animated blobs ── */}
       <GoldenBlob
         size={700}
-        opacity={0.3}
+        opacity={0.45}
         duration={9}
         className="-top-60 -left-40"
         xPath={[0, 100, -60, 50, 0]}
@@ -46,7 +63,7 @@ export const GlassHero: React.FC = () => {
       />
       <GoldenBlob
         size={400}
-        opacity={0.15}
+        opacity={0.25}
         duration={12}
         className="top-1/2 right-0"
         xPath={[0, -70, 30, -50, 0]}

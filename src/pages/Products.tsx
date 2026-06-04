@@ -2,6 +2,7 @@ import React, { useState, useMemo, useEffect, useRef, useCallback } from 'react'
 import { Header } from '@/components/Header';
 import { Footer } from '@/components/Footer';
 import SEO from '@/components/SEO';
+import { BackgroundPaths } from '@/components/ui/background-paths';
 import { ProductCard, ProductCardSkeleton } from '@/components/ProductCard';
 import { ProductFilters, FilterState } from '@/components/ProductFilters';
 import { useProducts } from '@/hooks/useProducts';
@@ -152,9 +153,12 @@ const Products: React.FC = () => {
   ];
 
   return (
-    <div className="min-h-screen bg-black text-[#e2e2e2] font-sans selection:bg-[#f2ca50]/30 selection:text-[#f2ca50]">
+    <div className="min-h-screen bg-black text-[#e2e2e2] font-sans selection:bg-[#f2ca50]/30 selection:text-[#f2ca50] relative overflow-hidden">
       <SEO title="Coleção Inteligente" description="Busca semântica automática ativada por Lumina AI." />
       <Header />
+      
+      {/* ── Background Path Animations ── */}
+      <BackgroundPaths onlyBackground colorClass="text-[#d4af37]/22" />
 
       <main className="relative z-10">
         <section className="relative w-full h-[300px] md:h-[400px] overflow-hidden pt-20">

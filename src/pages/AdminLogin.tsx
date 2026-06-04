@@ -3,6 +3,7 @@ import { Navigate, useNavigate, Link } from 'react-router-dom';
 import { Eye, EyeOff, Mail, Lock, ArrowLeft, Loader2 } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
+import { SmokeBackground } from '@/components/ui/spooky-smoke-animation';
 
 // ─── Subcomponente: Field ─────────────────────────────────────────────────────
 
@@ -146,8 +147,11 @@ const AdminLogin: React.FC = () => {
         </aside>
 
         {/* ── Lado direito: Formulário ── */}
-        <section className="flex flex-col justify-center px-6 py-10 sm:px-10 lg:px-14">
-          <div className="mx-auto w-full max-w-md">
+        <section className="flex flex-col justify-center px-6 py-10 sm:px-10 lg:px-14 relative overflow-hidden">
+          <div className="absolute inset-0 z-0 pointer-events-none opacity-20">
+            <SmokeBackground smokeColor="#d4af37" />
+          </div>
+          <div className="mx-auto w-full max-w-md relative z-10">
 
             {/* Back + Logo mobile */}
             <div className="flex items-center justify-between mb-10 lg:mb-8">
