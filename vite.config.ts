@@ -15,6 +15,7 @@ export default defineConfig(({ mode }) => ({
     mode === 'development' && componentTagger(),
     VitePWA({
       registerType: 'autoUpdate',
+      useCredentials: true,
       manifest: {
         name: 'JR Acessórios',
         short_name: 'JR',
