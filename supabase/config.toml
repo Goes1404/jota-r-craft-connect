@@ -10,10 +10,19 @@ verify_jwt = false
 [functions.stripe-webhook]
 verify_jwt = false
 
-# Funções chamadas pelo próprio frontend mantêm a verificação de JWT ligada
-# (o cliente envia o token de sessão ou a anon key).
+# Funções chamadas pelo frontend em checkout de convidado (guest).
+# O projeto usa o NOVO formato de API key do Supabase (sb_publishable_…), que
+# NÃO é um JWT. Com verify_jwt = true o gateway rejeita a chamada do convidado
+# antes da função rodar (UNAUTHORIZED_INVALID_JWT_FORMAT / "Invalid JWT").
+# Por isso a verificação fica desligada: a segurança real é feita DENTRO da
+# função — exige header de authorization, valida que o pedido existe e está
+# "Aguardando Pagamento", e usa o total vindo do banco (não confia no frontend).
 [functions.create-pix-payment]
-verify_jwt = true
+verify_jwt = false
 
 [functions.create-stripe-payment]
-verify_jwt = true
+verify_jwt = false
+
+# Cálculo de frete também é chamado por convidado no checkout.
+[functions.shipping-calculate]
+verify_jwt = false
