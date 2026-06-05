@@ -512,35 +512,61 @@ const Checkout = () => {
 
           {paymentMethod === 'pix' && !isPaid && !isExpired && (
             <div className="bg-[#0f0f0f] border border-white/10 p-8 rounded-[40px] mb-10 w-full max-w-sm">
-              {/* Timer de expiração */}
-              <div className="flex items-center justify-center gap-2 mb-6 text-[#d4af37]">
-                <Timer className="w-4 h-4" />
-                <span className="text-sm font-bold tabular-nums">
-                  Expira em {String(Math.floor(pixTimeLeft / 60)).padStart(2, '0')}:{String(pixTimeLeft % 60).padStart(2, '0')}
-                </span>
+              {/* Timer */}
+              <div className="flex items-center justify-center gap-2 mb-6">
+                <div className="flex items-center gap-2 px-4 py-2 rounded-full bg-[#d4af37]/10 border border-[#d4af37]/20">
+                  <Timer className="w-3.5 h-3.5 text-[#d4af37]" />
+                  <span className="text-sm font-bold tabular-nums text-[#d4af37]">
+                    Expira em {String(Math.floor(pixTimeLeft / 60)).padStart(2, '0')}:{String(pixTimeLeft % 60).padStart(2, '0')}
+                  </span>
+                </div>
               </div>
 
-              <div className="aspect-square bg-white rounded-2xl p-4 flex items-center justify-center mb-6">
+              {/* QR Code */}
+              <div className="aspect-square bg-white rounded-2xl p-4 flex items-center justify-center mb-4 shadow-[0_0_40px_rgba(212,175,55,0.08)]">
                 {pixData?.qrCodeBase64
                   ? <img src={`data:image/png;base64,${pixData.qrCodeBase64}`} alt="QR Code PIX" className="w-full h-full object-contain" />
                   : <div className="flex flex-col items-center gap-3 text-zinc-400"><Loader2 className="w-8 h-8 animate-spin" /><span className="text-xs font-medium">Gerando QR Code…</span></div>}
               </div>
 
+              <p className="text-center text-[10px] text-white/20 font-medium mb-4 uppercase tracking-widest">ou use o código abaixo</p>
+
+              {/* Botão Copiar */}
               <Button
                 onClick={() => { navigator.clipboard.writeText(pixData?.qrCode || ''); setCopied(true); setTimeout(() => setCopied(false), 3000); }}
                 disabled={!pixData?.qrCode}
-                className="w-full bg-[#25D366]/10 border border-[#25D366]/20 text-[#25D366] h-12 rounded-xl disabled:opacity-40"
+                className="w-full bg-[#25D366]/10 border border-[#25D366]/20 text-[#25D366] h-12 rounded-xl disabled:opacity-40 hover:bg-[#25D366]/20 transition-all"
               >
-                {copied ? <><Check className="w-4 h-4 mr-2" /> Código Copiado!</> : <><Copy className="w-4 h-4 mr-2" /> Copiar Código PIX</>}
+                {copied
+                  ? <><Check className="w-4 h-4 mr-2" /> Código PIX Copiado!</>
+                  : <><Copy className="w-4 h-4 mr-2" /> Copiar Código PIX (Copia e Cola)</>}
               </Button>
 
-              <div className="mt-6 space-y-2 text-left">
-                {['Abra o app do seu banco', 'Escolha pagar via PIX (QR Code ou Copia e Cola)', 'Confirme — a aprovação é automática'].map((step, i) => (
-                  <div key={i} className="flex items-center gap-3 text-white/40">
-                    <span className="w-5 h-5 rounded-full bg-[#d4af37]/10 text-[#d4af37] text-[10px] font-black flex items-center justify-center shrink-0">{i + 1}</span>
-                    <span className="text-xs">{step}</span>
+              {/* Passo a passo */}
+              <div className="mt-6 pt-6 border-t border-white/5 space-y-4">
+                <p className="text-[9px] font-black uppercase tracking-[0.2em] text-white/20">Como pagar</p>
+                {[
+                  { icon: '📱', title: 'Abra o app do seu banco', desc: 'Acesse a área PIX no menu principal' },
+                  { icon: '📷', title: 'Escaneie o QR Code', desc: 'Ou escolha "PIX Copia e Cola" e cole o código copiado' },
+                  { icon: '✅', title: 'Confirme o pagamento', desc: 'Revise o valor e o destinatário, depois confirme' },
+                  { icon: '⚡', title: 'Aprovação automática', desc: 'Seu pedido é confirmado em segundos — sem espera' },
+                ].map((step, i) => (
+                  <div key={i} className="flex gap-3 items-start">
+                    <div className="w-8 h-8 rounded-xl bg-[#d4af37]/10 border border-[#d4af37]/10 flex items-center justify-center text-sm shrink-0">
+                      {step.icon}
+                    </div>
+                    <div>
+                      <p className="text-[11px] font-bold text-white/70 leading-tight">{step.title}</p>
+                      <p className="text-[10px] text-white/30 mt-0.5 leading-relaxed">{step.desc}</p>
+                    </div>
                   </div>
                 ))}
+              </div>
+
+              {/* Nota de segurança */}
+              <div className="mt-6 flex items-center gap-2 text-white/20">
+                <Lock className="w-3 h-3 shrink-0" />
+                <p className="text-[9px] leading-relaxed">Transação 100% segura. O valor exibido acima é o único que será cobrado.</p>
               </div>
             </div>
           )}
