@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { Header } from '@/components/Header';
+import { AdminShell } from '@/components/admin/AdminShell';
 import { Footer } from '@/components/Footer';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -151,12 +152,8 @@ const AdminSettings = () => {
   }
 
   return (
-    <div className="min-h-screen bg-black text-[#e2e2e2] font-sans">
-      <Header />
-      <div className="max-w-3xl mx-auto px-6 py-32 space-y-16">
-        <button onClick={() => navigate('/admin/dashboard')} className="flex items-center gap-2 text-[#d4af37] uppercase text-xs tracking-widest font-bold">
-          <ArrowLeft className="w-4 h-4" /> Voltar ao Painel
-        </button>
+    <AdminShell eyebrow="Sistema" title="Configurações">
+      <div className="max-w-3xl space-y-16">
 
         {/* ── Store Settings ── */}
         <section>
@@ -338,8 +335,7 @@ const AdminSettings = () => {
           </form>
         </section>
       </div>
-      <Footer />
-    </div>
+    </AdminShell>
   );
 };
 

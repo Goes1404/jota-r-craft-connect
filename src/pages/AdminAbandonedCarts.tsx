@@ -3,6 +3,7 @@ import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { Header } from '@/components/Header';
+import { AdminShell } from '@/components/admin/AdminShell';
 import { Footer } from '@/components/Footer';
 import { Button } from '@/components/ui/button';
 import { 
@@ -91,27 +92,16 @@ const AdminAbandonedCarts = () => {
   };
 
   return (
-    <div className="min-h-screen bg-[#050505] text-[#e2e2e2] font-sans selection:bg-[#f2ca50]/30 selection:text-[#f2ca50]">
-      <Header />
-      <main className="max-w-screen-xl mx-auto px-6 py-32">
-        <button onClick={() => navigate('/admin/dashboard')} className="flex items-center gap-2 text-[#d4af37] mb-8 uppercase text-xs tracking-widest font-bold hover:text-[#f2ca50] transition-colors">
-          <ArrowLeft className="w-4 h-4" /> Voltar ao Painel
-        </button>
-        
-        <div className="flex items-center justify-between mb-12">
-          <div className="flex items-center gap-4">
-            <div className="w-12 h-12 rounded-2xl bg-orange-500/10 flex items-center justify-center border border-orange-500/20">
-              <ShoppingCart className="w-6 h-6 text-orange-500" />
-            </div>
-            <div>
-              <h1 className="text-4xl font-serif font-bold text-white">Carrinhos Abandonados</h1>
-              <p className="text-[10px] uppercase tracking-widest text-white/40 mt-1 font-bold">Lumina AI Sales Recovery</p>
-            </div>
-          </div>
-          <Button onClick={() => refetch()} variant="ghost" className="text-white/40 hover:text-white">
-            <RefreshCw className="w-4 h-4 mr-2" /> Atualizar
-          </Button>
-        </div>
+    <AdminShell
+      eyebrow="Recuperação"
+      title="Carrinhos Abandonados"
+      subtitle="Lumina AI Sales Recovery"
+      actions={
+        <Button onClick={() => refetch()} variant="ghost" className="text-white/40 hover:text-white">
+          <RefreshCw className="w-4 h-4 mr-2" /> Atualizar
+        </Button>
+      }
+    >
 
         <div className="grid gap-6">
           {isLoading ? (
@@ -218,9 +208,7 @@ const AdminAbandonedCarts = () => {
             })
           )}
         </div>
-      </main>
-      <Footer />
-    </div>
+    </AdminShell>
   );
 };
 

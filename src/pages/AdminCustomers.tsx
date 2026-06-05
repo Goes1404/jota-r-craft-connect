@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
+import { AdminShell } from '@/components/admin/AdminShell';
 import { Header } from '@/components/Header';
 import { Footer } from '@/components/Footer';
 import { 
@@ -160,29 +161,21 @@ const AdminCustomers = () => {
   );
 
   return (
-    <div className="min-h-screen bg-[#050505] text-[#e2e2e2] font-sans selection:bg-[#f2ca50]/30 selection:text-[#f2ca50]">
-      <header className="sticky top-0 z-50 bg-black/60 backdrop-blur-2xl border-b border-white/5 py-4">
-        <div className="max-w-screen-2xl mx-auto px-4 md:px-8 flex items-center justify-between">
-          <div className="flex items-center gap-6">
-            <Button variant="ghost" onClick={() => navigate('/admin/dashboard')} className="text-white/40 hover:text-[#d4af37] transition-colors p-0">
-              <ArrowLeft className="h-5 w-5 mr-2" />
-              <span className="text-[10px] font-bold uppercase tracking-widest">Painel</span>
-            </Button>
-            <div className="h-6 w-[1px] bg-white/10"></div>
-            <h1 className="text-xl font-serif font-black text-white uppercase tracking-[0.2em]">Visão 360 <span className="text-[#d4af37]">CRM</span></h1>
-          </div>
-          
-          <div className="relative w-full max-w-xs">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-white/20" />
-            <Input 
-              placeholder="Buscar por nome ou e-mail..." 
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="bg-white/5 border-white/10 pl-10 rounded-full h-10 text-xs focus:border-[#d4af37]/40 transition-all"
-            />
-          </div>
+    <AdminShell
+      eyebrow="CRM"
+      title="Visão 360"
+      actions={
+        <div className="relative w-full sm:w-72">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-white/20" />
+          <Input
+            placeholder="Buscar por nome ou e-mail..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            className="bg-white/5 border-white/10 pl-10 rounded-full h-11 text-xs focus:border-[#d4af37]/40 transition-all"
+          />
         </div>
-      </header>
+      }
+    >
 
       {/* Customer Profile Modal */}
       <Dialog open={!!selectedCustomer} onOpenChange={(open) => !open && setSelectedCustomer(null)}>
@@ -323,7 +316,7 @@ const AdminCustomers = () => {
         </DialogContent>
       </Dialog>
 
-      <main className="max-w-screen-2xl mx-auto px-4 md:px-4 md:px-8 py-8 md:py-12">
+      <div>
         <div className="flex flex-col lg:flex-row gap-8">
           
           {/* CRM 360 Table */}
@@ -437,12 +430,8 @@ const AdminCustomers = () => {
             </div>
           </div>
         </div>
-      </main>
-      
-      <footer className="py-12 text-center border-t border-white/5 mt-12">
-        <p className="text-[10px] font-black uppercase tracking-[0.5em] text-white/10">LUMINA TECH — CRM 360</p>
-      </footer>
-    </div>
+      </div>
+    </AdminShell>
   );
 };
 

@@ -3,6 +3,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { Header } from '@/components/Header';
+import { AdminShell } from '@/components/admin/AdminShell';
 import { Footer } from '@/components/Footer';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -63,17 +64,8 @@ const AdminCoupons = () => {
   }
 
   return (
-    <div className="min-h-screen bg-black text-[#e2e2e2] font-sans">
-      <Header />
-      <div className="max-w-4xl mx-auto px-6 py-32">
-        <button onClick={() => navigate('/admin/dashboard')} className="flex items-center gap-2 text-[#d4af37] mb-8 uppercase text-xs tracking-widest font-bold">
-          <ArrowLeft className="w-4 h-4" /> Voltar ao Painel
-        </button>
-        
-        <div className="flex items-center gap-4 mb-8">
-          <Ticket className="w-10 h-10 text-[#d4af37]" />
-          <h1 className="text-4xl font-serif font-bold text-white">Gestão de Cupons</h1>
-        </div>
+    <AdminShell eyebrow="Marketing" title="Gestão de Cupons">
+      <div className="max-w-4xl">
 
         <div className="bg-[#0f0f0f]/60 p-8 rounded-3xl border border-white/10 mb-12 flex gap-4">
           <Input placeholder="CÓDIGO" value={code} onChange={e => setCode(e.target.value)} className="bg-black/50 border-white/10 h-12" />
@@ -97,8 +89,7 @@ const AdminCoupons = () => {
           ))}
         </div>
       </div>
-      <Footer />
-    </div>
+    </AdminShell>
   );
 };
 

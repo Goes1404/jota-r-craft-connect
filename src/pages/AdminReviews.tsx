@@ -3,6 +3,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { Header } from '@/components/Header';
+import { AdminShell } from '@/components/admin/AdminShell';
 import { Footer } from '@/components/Footer';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
@@ -43,17 +44,8 @@ const AdminReviews = () => {
   }
 
   return (
-    <div className="min-h-screen bg-black text-[#e2e2e2] font-sans">
-      <Header />
-      <div className="max-w-4xl mx-auto px-6 py-32">
-        <button onClick={() => navigate('/admin/dashboard')} className="flex items-center gap-2 text-[#d4af37] mb-8 uppercase text-xs tracking-widest font-bold">
-          <ArrowLeft className="w-4 h-4" /> Voltar ao Painel
-        </button>
-        
-        <div className="flex items-center gap-4 mb-8">
-          <Star className="w-10 h-10 text-[#d4af37]" />
-          <h1 className="text-4xl font-serif font-bold text-white">Moderação de Avaliações</h1>
-        </div>
+    <AdminShell eyebrow="Comunidade" title="Moderação de Avaliações">
+      <div className="max-w-4xl">
 
         <div className="grid gap-6">
           {isLoading ? <p>Carregando...</p> : reviews?.length === 0 ? <p className="text-white/40">Nenhuma avaliação encontrada.</p> : reviews?.map((r: any) => (
@@ -77,8 +69,7 @@ const AdminReviews = () => {
           ))}
         </div>
       </div>
-      <Footer />
-    </div>
+    </AdminShell>
   );
 };
 

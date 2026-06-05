@@ -2,6 +2,7 @@ import React, { useRef, useState } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { Header } from '@/components/Header';
+import { AdminShell } from '@/components/admin/AdminShell';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
 import { useNavigate, Navigate } from 'react-router-dom';
@@ -97,28 +98,7 @@ const AdminStudio = () => {
   };
 
   return (
-    <div className="min-h-screen bg-[#050505] text-[#e2e2e2] font-sans pb-24">
-      <Header />
-
-      {/* glow decor */}
-      <div className="fixed inset-0 pointer-events-none z-0">
-        <div className="absolute top-0 right-0 w-[40%] h-[40%] rounded-full bg-[#d4af37] opacity-[0.03] blur-[150px]" />
-      </div>
-
-      <main className="relative z-10 max-w-screen-xl mx-auto px-4 md:px-8 py-24 md:py-28">
-        <button onClick={() => navigate('/admin/dashboard')} className="flex items-center gap-2 text-[#d4af37] mb-8 uppercase text-xs tracking-widest font-bold">
-          <ArrowLeft className="w-4 h-4" /> Voltar ao Painel
-        </button>
-
-        <div className="flex items-center gap-4 mb-3">
-          <div className="w-12 h-12 rounded-2xl bg-[#d4af37]/10 border border-[#d4af37]/20 flex items-center justify-center">
-            <Sparkles className="w-6 h-6 text-[#d4af37]" />
-          </div>
-          <div>
-            <h1 className="text-3xl md:text-4xl font-serif font-black text-white">Estúdio de IA</h1>
-            <p className="text-white/40 text-xs uppercase tracking-widest font-bold">Gerador de imagens comerciais</p>
-          </div>
-        </div>
+    <AdminShell eyebrow="IA" title="Estúdio de IA" subtitle="Gerador de imagens comerciais">
         <p className="text-white/50 text-sm max-w-2xl mb-10 leading-relaxed">
           Envie a foto de um produto, escreva uma breve descrição e a IA gera uma imagem
           de comercial profissional pronta para anúncios e redes sociais.
@@ -246,8 +226,7 @@ const AdminStudio = () => {
             )}
           </div>
         </div>
-      </main>
-    </div>
+    </AdminShell>
   );
 };
 
