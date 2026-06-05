@@ -118,8 +118,12 @@ serve(async (req) => {
     const mpData = await mpResponse.json();
 
     if (!mpResponse.ok) {
+      // MP's detailed error is usually in cause[0].description
+      const cause = mpData.cause?.[0];
+      const detail = cause?.description || cause?.code || mpData.message || JSON.stringify(mpData);
+      console.error("MP PIX error:", mpResponse.status, JSON.stringify(mpData));
       return new Response(
-        JSON.stringify({ success: false, error: `MP API ${mpResponse.status}: ${mpData.message}` }),
+        JSON.stringify({ success: false, error: `MP ${mpResponse.status}: ${detail}` }),
         { status: 200, headers: { ...corsHeaders(origin), "Content-Type": "application/json" } }
       );
     }

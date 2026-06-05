@@ -429,7 +429,7 @@ const Checkout = () => {
       setCreatedOrderId(orderId);
 
       if (paymentMethod === 'pix') {
-        const { data: pixResult } = await supabase.functions.invoke('create-pix-payment', {
+        const { data: pixResult, error: pixFnError } = await supabase.functions.invoke('create-pix-payment', {
           body: {
             orderId: orderId,
             totalAmount: finalTotal,
@@ -438,8 +438,12 @@ const Checkout = () => {
             payerName: formData.fullName,
           }
         });
-        if (!pixResult?.success || !pixResult.pix?.qrCodeBase64) {
+        if (pixFnError) throw new Error(pixFnError.message || 'Erro ao chamar serviço PIX.');
+        if (!pixResult?.success) {
           throw new Error(pixResult?.error || 'Falha ao gerar QR Code PIX. Tente novamente.');
+        }
+        if (!pixResult.pix?.qrCodeBase64 && !pixResult.pix?.qrCode) {
+          throw new Error('QR Code PIX não retornado pelo banco. Verifique a integração MercadoPago.');
         }
         setPixData({ qrCodeBase64: pixResult.pix.qrCodeBase64, qrCode: pixResult.pix.qrCode });
         await supabase.from('orders').update({
