@@ -254,7 +254,9 @@ const Checkout = () => {
                 id: idx === 0 ? 'normal' : 'express',
                 name: o.name ?? (idx === 0 ? 'Normal' : 'Expressa'),
                 price: typeof o.price === 'number' ? o.price : (idx === 0 ? 15.90 : 0),
-                deadline: o.deadline ?? (idx === 0 ? '7 a 10 dias úteis' : '2 a 4 dias úteis'),
+                // A função shipping-calculate retorna o prazo em `days` (e `arrivalLabel`),
+                // não em `deadline`. Preferimos o prazo real; caímos no texto fixo só se faltar.
+                deadline: o.days ?? o.arrivalLabel ?? o.deadline ?? (idx === 0 ? '7 a 10 dias úteis' : '2 a 4 dias úteis'),
               }));
               setShippingOptions(opts);
               // Default to first option
