@@ -114,20 +114,6 @@ const Index: React.FC = () => {
       <SEO />
       <Header />
 
-      {/* ═══ WhatsApp Floating Button ═══ */}
-      <a
-        href={WHATSAPP}
-        target="_blank"
-        rel="noopener noreferrer"
-        className="fixed bottom-24 left-4 md:bottom-6 md:left-6 z-50 flex items-center gap-2 bg-primary text-primary-foreground font-bold text-sm px-4 md:px-5 py-3 rounded-full shadow-[0_4px_24px_rgba(212,175,55,0.5)] hover:scale-105 transition-transform duration-200 whitespace-nowrap"
-        aria-label="Falar no WhatsApp"
-      >
-        <MessageCircle className="h-5 w-5 shrink-0" />
-        <span className="hidden sm:inline">Compre pelo WhatsApp</span>
-        <span className="absolute -top-1.5 -right-1.5 h-3.5 w-3.5 rounded-full bg-green-400 border-2 border-background animate-ping" />
-        <span className="absolute -top-1.5 -right-1.5 h-3.5 w-3.5 rounded-full bg-green-400 border-2 border-background" />
-      </a>
-
       {/* ═══ Hero ═══ */}
       <GlassHero />
 

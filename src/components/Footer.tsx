@@ -111,23 +111,11 @@ export const Footer: React.FC = () => {
             <TrackingInText
               text="COMEÇAR?"
               className="block"
-              letterClassName="text-transparent bg-clip-text"
+              letterClassName="text-[#D4AF37] drop-shadow-[0_0_20px_rgba(212,175,55,0.4)]"
               stagger={0.05}
               delay={0.3}
             />
           </h2>
-          {/* Gradient text overlay for "COMEÇAR?" */}
-          <div
-            className="absolute inset-0 pointer-events-none"
-            aria-hidden="true"
-            style={{
-              background:
-                'linear-gradient(135deg, transparent 0%, transparent 48%, #D4AF37 52%, #B8960C 100%)',
-              WebkitBackgroundClip: 'text',
-              backgroundClip: 'text',
-              mixBlendMode: 'overlay',
-            }}
-          />
         </motion.div>
 
         {/* Subtitle */}

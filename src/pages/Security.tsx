@@ -58,6 +58,26 @@ const Security: React.FC = () => {
   const [errors,   setErrors]   = useState<Record<string, string>>({});
   const [loading,  setLoading]  = useState(false);
   const [success,  setSuccess]  = useState(false);
+  const [sendingReset, setSendingReset] = useState(false);
+
+  const handleSendResetEmail = async () => {
+    if (!user?.email) {
+      toast.error('Erro: Usuário não identificado ou e-mail indisponível.');
+      return;
+    }
+    setSendingReset(true);
+    try {
+      const { error } = await supabase.auth.resetPasswordForEmail(user.email, {
+        redirectTo: `${window.location.origin}/reset-password`,
+      });
+      if (error) throw error;
+      toast.success('E-mail de redefinição enviado! Verifique sua caixa de entrada.');
+    } catch (err: any) {
+      toast.error('Erro ao enviar e-mail: ' + err.message);
+    } finally {
+      setSendingReset(false);
+    }
+  };
 
   const strength = passwordStrength(newPwd);
 
@@ -169,6 +189,17 @@ const Security: React.FC = () => {
                 {showCur ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
               </button>
             </Field>
+
+            <div className="flex justify-end px-0.5 -mt-2">
+              <button
+                type="button"
+                onClick={handleSendResetEmail}
+                disabled={sendingReset}
+                className="text-[9px] font-bold text-[#d4af37] hover:text-[#f2ca50] transition-colors uppercase tracking-widest disabled:opacity-50"
+              >
+                {sendingReset ? 'Enviando e-mail...' : 'Esqueceu a senha atual? Receber link por e-mail'}
+              </button>
+            </div>
 
             {/* Nova senha */}
             <Field id="newPwd" label="Nova senha" error={errors.newPwd}>

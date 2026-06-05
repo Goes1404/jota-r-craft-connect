@@ -12,16 +12,35 @@ const ResetPassword = () => {
   const [confirmPassword, setConfirmPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
+  const [isValidSession, setIsValidSession] = useState<boolean | null>(null);
   const { toast } = useToast();
   const navigate = useNavigate();
 
   useEffect(() => {
-    // Check if we are in a password reset session
-    supabase.auth.onAuthStateChange(async (event, session) => {
-      if (event === 'PASSWORD_RECOVERY') {
-        // Handled automatically by Supabase
+    const verifySession = async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (session) {
+        setIsValidSession(true);
+      } else {
+        // Give it a short delay to allow Supabase to process URL fragment
+        setTimeout(async () => {
+          const { data: { session: delayedSession } } = await supabase.auth.getSession();
+          setIsValidSession(!!delayedSession);
+        }, 1500);
+      }
+    };
+
+    verifySession();
+
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      if (event === 'PASSWORD_RECOVERY' || session) {
+        setIsValidSession(true);
       }
     });
+
+    return () => {
+      subscription.unsubscribe();
+    };
   }, []);
 
   const handleResetPassword = async (e: React.FormEvent) => {
@@ -70,6 +89,48 @@ const ResetPassword = () => {
       setIsLoading(false);
     }
   };
+
+  if (isValidSession === null) {
+    return (
+      <div className="min-h-screen bg-black flex items-center justify-center p-6 select-none">
+        <div className="flex flex-col items-center gap-4">
+          <div className="w-8 h-8 rounded-full border-2 border-[#d4af37] border-t-transparent animate-spin" />
+          <p className="text-white/40 text-[10px] font-bold uppercase tracking-widest">Validando sessão...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (isValidSession === false) {
+    return (
+      <div className="min-h-screen bg-black flex items-center justify-center p-6 selection:bg-[#f2ca50]/30 selection:text-[#f2ca50]">
+        <div className="fixed inset-0 pointer-events-none z-0">
+          <div className="absolute top-[20%] -right-[10%] w-[40%] h-[40%] rounded-full bg-red-500 opacity-[0.03] blur-[120px]"></div>
+        </div>
+
+        <div className="relative z-10 w-full max-w-md animate-luxury-in">
+          <div className="bg-[#0f0f0f]/60 backdrop-blur-3xl border border-red-500/10 rounded-[40px] p-8 md:p-12 shadow-2xl relative overflow-hidden">
+            <div className="absolute top-0 right-0 -mr-12 -mt-12 w-40 h-40 bg-red-500/5 rounded-full blur-[60px]"></div>
+            
+            <div className="text-center mb-10 space-y-4">
+              <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-red-500/10 text-red-500 mb-4">
+                <Lock className="w-8 h-8" />
+              </div>
+              <h1 className="font-serif text-2xl font-bold text-white tracking-tight">Sessão <span className="text-red-500 italic">Inválida</span></h1>
+              <p className="text-white/30 text-xs font-medium leading-relaxed">O link de redefinição de senha é inválido, expirou ou você acessou a página sem um token ativo de recuperação.</p>
+            </div>
+
+            <Button 
+              onClick={() => navigate('/forgot-password')}
+              className="w-full bg-white/5 border border-white/10 text-white hover:bg-white/10 transition-all h-14 rounded-2xl font-bold uppercase tracking-widest text-[10px]"
+            >
+              Solicitar Novo Link
+            </Button>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-black flex items-center justify-center p-6 selection:bg-[#f2ca50]/30 selection:text-[#f2ca50]">

@@ -1,13 +1,20 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
 
-const ALLOWED_ORIGINS = ['https://jracessorios.com', 'https://www.jracessorios.com']
+function isAllowedOrigin(origin: string | null): boolean {
+  if (!origin) return false;
+  if (origin === "https://jracessorios.com" || origin === "https://www.jracessorios.com") return true;
+  if (/^http:\/\/localhost(:\d+)?$/.test(origin)) return true;
+  if (/^https:\/\/.*\.vercel\.app$/.test(origin)) return true;
+  return false;
+}
 
-function makeCors(origin: string | null) {
-  const allowed = (origin && ALLOWED_ORIGINS.includes(origin)) ? origin : ALLOWED_ORIGINS[0]
+function makeCors(origin: string | null): Record<string, string> {
+  const allowed = (origin && isAllowedOrigin(origin)) ? origin : "https://jracessorios.com";
   return {
-    'Access-Control-Allow-Origin': allowed,
-    'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
-  }
+    "Access-Control-Allow-Origin": allowed,
+    "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
+    "Access-Control-Allow-Methods": "POST, GET, OPTIONS, PUT, DELETE",
+  };
 }
 
 serve(async (req) => {

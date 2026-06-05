@@ -56,12 +56,14 @@ export const TrackingInText: React.FC<TrackingInTextProps> = ({
         {letters.map((letter, i) => (
           <motion.span
             key={i}
-            className={`inline-block ${letter === ' ' ? 'mr-[0.25em]' : ''} ${letterClassName}`}
+            className={`inline-block ${letter === ' ' ? 'mr-[0.25em]' : ''}`}
             variants={letterVariants}
             transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
             aria-hidden="true"
           >
-            {letter === ' ' ? '\u00A0' : letter}
+            <span className={letterClassName || undefined}>
+              {letter === ' ' ? '\u00A0' : letter}
+            </span>
           </motion.span>
         ))}
       </motion.span>

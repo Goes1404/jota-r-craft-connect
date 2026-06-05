@@ -19,6 +19,7 @@ import { PageTransition } from "./components/animations/PageTransition";
 import { MobileBottomNav } from "./components/MobileBottomNav";
 import { AdminMobileMenu } from "./components/AdminMobileMenu";
 import { IntroLoader } from "./components/animations/IntroLoader";
+import { FloatingWhatsApp } from "./components/FloatingWhatsApp";
 
 // ─── lazy page imports ────────────────────────────────────────────────────────
 const Index = lazy(() => import("./pages/Index"));
@@ -78,6 +79,7 @@ const App = () => (
                   <ExitIntentPopup />
                   <AICopilot />
                   <CookieBanner />
+                  <FloatingWhatsApp />
                   <MobileBottomNav />
                   <AdminMobileMenu />
                   <Suspense fallback={<PageLoader />}>

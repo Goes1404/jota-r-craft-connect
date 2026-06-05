@@ -86,22 +86,13 @@ export const GlassHero: React.FC = () => {
         {/* LEFT — text */}
         <div className="flex flex-col items-start gap-6">
 
-          {/* Badge pill */}
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6, delay: 0.2 }}
-            className="flex items-center gap-2 px-4 py-2 rounded-full bg-white/5 backdrop-blur-xl border border-white/10 text-[10px] font-black uppercase tracking-widest text-[#D4AF37]"
-          >
-            <span className="w-1.5 h-1.5 rounded-full bg-[#D4AF37] animate-pulse" />
-            Tecnologia Premium · Osasco SP
-          </motion.div>
 
           {/* Main heading with TrackingIn effect */}
           <h1 className="text-5xl md:text-6xl font-serif font-black leading-none tracking-tight text-white">
             <TrackingInText
               text="JR"
-              className="text-shimmer-gold block"
+              className="block"
+              letterClassName="text-shimmer-gold"
               stagger={0.1}
               delay={0.3}
             />
