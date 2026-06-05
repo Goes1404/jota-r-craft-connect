@@ -61,8 +61,25 @@ const CustomTooltip = ({ active, payload, label }: any) => {
   return null;
 };
 
-export const DashboardCharts: React.FC<DashboardChartsProps> = ({ sales }) => {
+export const DashboardCharts: React.FC<DashboardChartsProps> = ({ sales: salesProp }) => {
   const [trendRange, setTrendRange] = useState<7 | 30>(7);
+
+  // Blindagem: ignora vendas sem sale_date válido para nunca quebrar os gráficos
+  // (parseISO em data inválida lançaria e derrubaria todo o dashboard).
+  const sales = React.useMemo(
+    () => (salesProp || []).filter((s) => s?.sale_date && !isNaN(parseISO(s.sale_date).getTime())),
+    [salesProp],
+  );
+
+  if (sales.length === 0) {
+    return (
+      <div className="flex h-[260px] flex-col items-center justify-center gap-3 rounded-[28px] border border-dashed border-white/10 bg-white/[0.01] text-center">
+        <TrendingUp className="h-8 w-8 text-white/15" />
+        <p className="text-sm font-bold text-white/40">Sem dados de vendas no período</p>
+        <p className="text-[10px] uppercase tracking-widest text-white/20">Os gráficos aparecem assim que houver vendas</p>
+      </div>
+    );
+  }
 
   // ── 1. Sales Trend (7 or 30 days) ──────────────────────────────────────
   const trendDays = eachDayOfInterval({
@@ -184,7 +201,7 @@ export const DashboardCharts: React.FC<DashboardChartsProps> = ({ sales }) => {
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
 
         {/* Sales Trend */}
-        <div className="bg-white/[0.02] border border-white/5 p-8 rounded-[32px] hover:border-[#d4af37]/20 transition-all">
+        <div className="bg-white/[0.02] border border-white/5 p-5 sm:p-8 rounded-[28px] sm:rounded-[32px] hover:border-[#d4af37]/20 transition-all">
           <div className="flex items-center justify-between mb-6">
             <div>
               <h3 className="text-xs font-black uppercase tracking-[0.2em] text-[#d4af37]">Volume Transacional</h3>
@@ -221,7 +238,7 @@ export const DashboardCharts: React.FC<DashboardChartsProps> = ({ sales }) => {
         </div>
 
         {/* Monthly Revenue YoY */}
-        <div className="bg-white/[0.02] border border-white/5 p-8 rounded-[32px] hover:border-[#d4af37]/20 transition-all">
+        <div className="bg-white/[0.02] border border-white/5 p-5 sm:p-8 rounded-[28px] sm:rounded-[32px] hover:border-[#d4af37]/20 transition-all">
           <div className="flex items-center justify-between mb-6">
             <div>
               <h3 className="text-xs font-black uppercase tracking-[0.2em] text-[#d4af37]">Receita Mensal</h3>
@@ -252,13 +269,13 @@ export const DashboardCharts: React.FC<DashboardChartsProps> = ({ sales }) => {
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
 
         {/* Category Donut */}
-        <div className="bg-white/[0.02] border border-white/5 p-8 rounded-[32px] hover:border-[#d4af37]/20 transition-all">
+        <div className="bg-white/[0.02] border border-white/5 p-5 sm:p-8 rounded-[28px] sm:rounded-[32px] hover:border-[#d4af37]/20 transition-all">
           <div className="mb-6">
             <h3 className="text-xs font-black uppercase tracking-[0.2em] text-[#d4af37]">Mix por Categoria</h3>
             <p className="text-[9px] text-white/20 font-bold uppercase tracking-widest mt-1">Participação na Receita Total</p>
           </div>
-          <div className="flex items-center gap-6">
-            <div className="h-[240px] w-[240px] flex-shrink-0">
+          <div className="flex flex-col sm:flex-row items-center gap-6">
+            <div className="h-[220px] w-full max-w-[240px] sm:w-[240px] flex-shrink-0">
               <ResponsiveContainer width="100%" height="100%">
                 <PieChart>
                   <Pie data={categoryData} cx="50%" cy="50%" innerRadius={55} outerRadius={85}
@@ -271,7 +288,7 @@ export const DashboardCharts: React.FC<DashboardChartsProps> = ({ sales }) => {
                 </PieChart>
               </ResponsiveContainer>
             </div>
-            <div className="flex-1 space-y-3">
+            <div className="w-full sm:flex-1 space-y-3">
               {categoryData.slice(0, 6).map((cat, i) => {
                 const total = categoryData.reduce((a, c) => a + c.value, 0);
                 const pct = total > 0 ? ((cat.value / total) * 100).toFixed(1) : '0';
@@ -292,7 +309,7 @@ export const DashboardCharts: React.FC<DashboardChartsProps> = ({ sales }) => {
         </div>
 
         {/* Top 6 Products */}
-        <div className="bg-white/[0.02] border border-white/5 p-8 rounded-[32px] hover:border-[#d4af37]/20 transition-all">
+        <div className="bg-white/[0.02] border border-white/5 p-5 sm:p-8 rounded-[28px] sm:rounded-[32px] hover:border-[#d4af37]/20 transition-all">
           <div className="mb-6">
             <h3 className="text-xs font-black uppercase tracking-[0.2em] text-[#d4af37]">Top Produtos por Receita</h3>
             <p className="text-[9px] text-white/20 font-bold uppercase tracking-widest mt-1">Ranking de performance</p>
@@ -319,7 +336,7 @@ export const DashboardCharts: React.FC<DashboardChartsProps> = ({ sales }) => {
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
 
         {/* Profit vs Cost */}
-        <div className="bg-white/[0.02] border border-white/5 p-8 rounded-[32px] hover:border-[#d4af37]/20 transition-all">
+        <div className="bg-white/[0.02] border border-white/5 p-5 sm:p-8 rounded-[28px] sm:rounded-[32px] hover:border-[#d4af37]/20 transition-all">
           <div className="mb-6">
             <h3 className="text-xs font-black uppercase tracking-[0.2em] text-[#d4af37]">Eficiência de Margem</h3>
             <p className="text-[9px] text-white/20 font-bold uppercase tracking-widest mt-1">Lucro vs Custo Operacional</p>
@@ -340,7 +357,7 @@ export const DashboardCharts: React.FC<DashboardChartsProps> = ({ sales }) => {
         </div>
 
         {/* Peak Hours */}
-        <div className="bg-white/[0.02] border border-white/5 p-8 rounded-[32px] hover:border-[#d4af37]/20 transition-all">
+        <div className="bg-white/[0.02] border border-white/5 p-5 sm:p-8 rounded-[28px] sm:rounded-[32px] hover:border-[#d4af37]/20 transition-all">
           <div className="mb-6">
             <h3 className="text-xs font-black uppercase tracking-[0.2em] text-[#d4af37]">Horário de Pico de Vendas</h3>
             <p className="text-[9px] text-white/20 font-bold uppercase tracking-widest mt-1">Distribuição por hora do dia</p>
@@ -364,7 +381,7 @@ export const DashboardCharts: React.FC<DashboardChartsProps> = ({ sales }) => {
       </div>
 
       {/* ── Row 4: ABC Curve Summary ── */}
-      <div className="bg-white/[0.02] border border-white/5 p-8 rounded-[32px] hover:border-[#d4af37]/20 transition-all">
+      <div className="bg-white/[0.02] border border-white/5 p-5 sm:p-8 rounded-[28px] sm:rounded-[32px] hover:border-[#d4af37]/20 transition-all">
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6 mb-8">
           <div>
             <h3 className="text-xs font-black uppercase tracking-[0.2em] text-[#d4af37]">Curva ABC — Classificação de Portfólio</h3>
