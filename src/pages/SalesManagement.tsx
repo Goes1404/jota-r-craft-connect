@@ -32,6 +32,7 @@ import {
   ArrowUpRight
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import { AdminShell } from '@/components/admin/AdminShell';
 
 import { useProducts } from '@/hooks/useProducts';
 import { useSales, useSalesSummary, useSalesMutations } from '@/hooks/useSales';
@@ -128,19 +129,11 @@ const SalesManagement = () => {
   if (!user) return <div className="min-h-screen bg-black flex items-center justify-center"><p className="text-white/40 uppercase tracking-widest font-black">Acesso Restrito</p></div>;
 
   return (
-    <div className="min-h-screen bg-[#050505] text-[#e2e2e2] font-sans selection:bg-[#f2ca50]/30 selection:text-[#f2ca50]">
-      <header className="sticky top-0 z-50 bg-black/60 backdrop-blur-2xl border-b border-white/5 py-4">
-        <div className="max-w-screen-2xl mx-auto px-8 flex items-center justify-between">
-          <div className="flex items-center gap-6">
-            <Button variant="ghost" onClick={() => navigate('/admin/dashboard')} className="text-white/40 hover:text-[#d4af37] transition-colors p-0">
-              <ArrowLeft className="h-5 w-5 mr-2" />
-              <span className="text-[10px] font-bold uppercase tracking-widest">Painel</span>
-            </Button>
-            <div className="h-6 w-[1px] bg-white/10"></div>
-            <h1 className="text-xl font-serif font-black text-white uppercase tracking-[0.2em]">Fluxo de <span className="text-[#d4af37]">Caixa</span></h1>
-          </div>
-          
-          <div className="flex gap-3">
+    <AdminShell
+      eyebrow="Financeiro"
+      title="Fluxo de Caixa"
+      actions={
+        <div className="flex flex-wrap items-center gap-2.5">
             <Button variant="ghost" onClick={handleExportCSV} className="text-white/40 hover:text-white hover:bg-white/5 font-bold text-[10px] uppercase tracking-widest px-6 h-12 rounded-full">
               <Download className="h-4 w-4 mr-2" /> Exportar
             </Button>
@@ -297,11 +290,9 @@ const SalesManagement = () => {
                 </form>
               </DialogContent>
             </Dialog>
-          </div>
         </div>
-      </header>
-
-      <main className="max-w-screen-2xl mx-auto px-8 py-12">
+      }
+    >
         {/* Performance Summary Cards */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-16">
           {[
@@ -414,12 +405,7 @@ const SalesManagement = () => {
             </Table>
           </div>
         </div>
-      </main>
-
-      <footer className="py-12 text-center border-t border-white/5">
-        <p className="text-[10px] font-black uppercase tracking-[0.5em] text-white/10">LUMINA TECH — EXCLUSIVE SALES LEDGER</p>
-      </footer>
-    </div>
+    </AdminShell>
   );
 };
 
