@@ -33,12 +33,11 @@ import {
   MessageCircle,
   Loader2
 } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { AdminShell } from '@/components/admin/AdminShell';
 
 const AdminOrders = () => {
   const { user } = useAuth();
-  const navigate = useNavigate();
   const queryClient = useQueryClient();
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedOrder, setSelectedOrder] = useState<any>(null);
@@ -155,38 +154,26 @@ const AdminOrders = () => {
     }
   };
 
+  const searchAction = (
+    <div className="relative group w-full sm:w-72">
+      <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-white/20 group-focus-within:text-[#d4af37] transition-colors" />
+      <Input
+        placeholder="Buscar pedido, cliente, status…"
+        className="bg-white/5 border-white/10 h-11 w-full pl-10 rounded-full text-xs focus:border-[#d4af37]/40 transition-all"
+        value={searchTerm}
+        onChange={(e) => setSearchTerm(e.target.value)}
+      />
+    </div>
+  );
+
   return (
-    <div className="min-h-screen bg-[#050505] text-[#e2e2e2] font-sans selection:bg-[#f2ca50]/30 selection:text-[#f2ca50]">
-      <div className="fixed inset-0 pointer-events-none z-0">
-        <div className="absolute top-0 left-0 w-[40%] h-[40%] rounded-full bg-[#d4af37] opacity-[0.02] blur-[150px]"></div>
-      </div>
-
-      <header className="sticky top-0 z-50 bg-black/60 backdrop-blur-2xl border-b border-white/5 py-4">
-        <div className="max-w-screen-2xl mx-auto px-4 md:px-8 flex items-center justify-between">
-          <div className="flex items-center gap-6">
-            <Button variant="ghost" onClick={() => navigate('/admin/dashboard')} className="text-white/40 hover:text-[#d4af37] transition-colors p-0">
-              <ArrowLeft className="h-5 w-5 mr-2" />
-              <span className="text-[10px] font-black uppercase tracking-widest">Painel</span>
-            </Button>
-            <div className="h-6 w-[1px] bg-white/10"></div>
-            <h1 className="text-xl font-serif font-black text-white uppercase tracking-[0.2em]">Logistics <span className="text-[#d4af37]">Terminal</span></h1>
-          </div>
-          <div className="flex items-center gap-4">
-            <div className="relative group">
-              <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-white/20 group-focus-within:text-[#d4af37] transition-colors" />
-              <Input 
-                placeholder="Buscar pedido, cliente ou status..." 
-                className="bg-white/5 border-white/10 h-10 w-80 pl-10 rounded-full text-xs focus:border-[#d4af37]/40 transition-all"
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-              />
-            </div>
-          </div>
-        </div>
-      </header>
-
-      <main className="max-w-screen-2xl mx-auto px-4 md:px-4 md:px-8 py-8 md:py-12 relative z-10">
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
+    <AdminShell
+      eyebrow="Pedidos"
+      title="Logistics Terminal"
+      subtitle={`${filteredOrders.length} pedido(s) na fila`}
+      actions={searchAction}
+    >
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-8">
           
           {/* Orders List */}
           <div className="lg:col-span-8 space-y-6">
@@ -369,8 +356,7 @@ const AdminOrders = () => {
             </div>
           </div>
         </div>
-      </main>
-    </div>
+    </AdminShell>
   );
 };
 
