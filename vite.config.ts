@@ -14,6 +14,10 @@ export default defineConfig(({ mode }) => ({
     react(),
     mode === 'development' && componentTagger(),
     VitePWA({
+      // Service worker autodestrutivo: desregistra qualquer SW antigo e limpa
+      // todos os caches no navegador do visitante. Corrige o "app travado" causado
+      // por SW antigo servindo index.html cacheado apontando p/ assets que sumiram.
+      selfDestroying: true,
       registerType: 'autoUpdate',
       useCredentials: true,
       manifest: {

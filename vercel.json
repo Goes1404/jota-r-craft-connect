@@ -47,6 +47,15 @@
       ]
     },
     {
+      "source": "/(sw\\.js|registerSW\\.js|workbox-(.*)\\.js)",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "no-cache, no-store, must-revalidate"
+        }
+      ]
+    },
+    {
       "source": "/(favicon\\.ico|robots\\.txt|sitemap\\.xml|manifest\\.json)",
       "headers": [
         {
