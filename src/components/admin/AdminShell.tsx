@@ -18,6 +18,7 @@ import {
   X,
   LogOut,
   Diamond,
+  Percent,
 } from 'lucide-react';
 
 /* ─────────────────────────────────────────────────────────────────────────────
@@ -43,6 +44,7 @@ export const ADMIN_NAV: AdminNavItem[] = [
   { label: 'Recuperar Vendas', short: 'Recuperar', to: '/admin/abandoned-carts', icon: ShoppingCart, accent: '#fb923c' },
   { label: 'Reviews', short: 'Reviews', to: '/admin/reviews', icon: Star, accent: '#facc15' },
   { label: 'Estúdio IA', short: 'Estúdio', to: '/admin/studio', icon: Sparkles, accent: '#d4af37' },
+  { label: 'Comissões', short: 'Comissão', to: '/admin/commissions', icon: Percent, accent: '#d4af37' },
   { label: 'Configurações', short: 'Config', to: '/admin/settings', icon: Settings, accent: '#94a3b8' },
 ];
 

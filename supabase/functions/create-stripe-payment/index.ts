@@ -44,11 +44,18 @@ serve(async (req) => {
     }
 
     const STRIPE_SECRET_KEY = Deno.env.get("STRIPE_SECRET_KEY");
+    // Stripe Connect: se o dev configurou sua chave de plataforma + conta do merchant,
+    // a application_fee_amount (10%) é retida automaticamente pelo Stripe na conta do dev.
+    const STRIPE_PLATFORM_SECRET_KEY = Deno.env.get("STRIPE_PLATFORM_SECRET_KEY");
+    const STRIPE_MERCHANT_ACCOUNT_ID = Deno.env.get("STRIPE_MERCHANT_ACCOUNT_ID");
     const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
     const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
 
-    if (!STRIPE_SECRET_KEY) {
-      throw new Error("STRIPE_SECRET_KEY not configured.");
+    const useConnect = !!(STRIPE_PLATFORM_SECRET_KEY && STRIPE_MERCHANT_ACCOUNT_ID);
+    const activeKey = useConnect ? STRIPE_PLATFORM_SECRET_KEY : STRIPE_SECRET_KEY;
+
+    if (!activeKey) {
+      throw new Error("Stripe key not configured (STRIPE_SECRET_KEY or STRIPE_PLATFORM_SECRET_KEY).");
     }
 
     // ── Busca total real do pedido no banco ──────────────────────────────────
@@ -75,20 +82,33 @@ serve(async (req) => {
     const totalAmount = order.total_amount; // fonte da verdade: banco
     // ────────────────────────────────────────────────────────────────────────
 
+    const totalCents = Math.round(Number(totalAmount) * 100);
+    const platformFeeAmount = Math.round(Number(totalAmount) * 0.10 * 100) / 100;
+
     const params = new URLSearchParams();
-    params.append("amount", Math.round(Number(totalAmount) * 100).toString());
+    params.append("amount", totalCents.toString());
     params.append("currency", "brl");
     params.append("description", description || "Compra JR Acessórios");
     params.append("metadata[orderId]", orderId);
     params.append("payment_method_types[]", "card");
 
+    // Stripe Connect: retém 10% na conta plataforma do desenvolvedor automaticamente
+    if (useConnect) {
+      params.append("application_fee_amount", Math.round(totalCents * 0.10).toString());
+    }
+
+    const stripeHeaders: Record<string, string> = {
+      "Authorization": `Bearer ${activeKey}`,
+      "Content-Type": "application/x-www-form-urlencoded",
+      "Idempotency-Key": `pi-${orderId}`,
+    };
+    if (useConnect) {
+      stripeHeaders["Stripe-Account"] = STRIPE_MERCHANT_ACCOUNT_ID!;
+    }
+
     const stripeResponse = await fetch("https://api.stripe.com/v1/payment_intents", {
       method: "POST",
-      headers: {
-        "Authorization": `Bearer ${STRIPE_SECRET_KEY}`,
-        "Content-Type": "application/x-www-form-urlencoded",
-        "Idempotency-Key": `pi-${orderId}`,
-      },
+      headers: stripeHeaders,
       body: params,
     });
 
@@ -98,6 +118,12 @@ serve(async (req) => {
     }
 
     const stripeData = await stripeResponse.json();
+
+    // Persiste a comissão de 10% para rastreamento no painel do desenvolvedor
+    await adminClient
+      .from("orders")
+      .update({ platform_fee_amount: platformFeeAmount })
+      .eq("id", orderId);
 
     return new Response(
       JSON.stringify({

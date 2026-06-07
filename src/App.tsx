@@ -48,6 +48,7 @@ const AdminSettings = lazy(() => import("./pages/AdminSettings"));
 const AdminAbandonedCarts = lazy(() => import("./pages/AdminAbandonedCarts"));
 const AdminInventoryIntelligence = lazy(() => import("./pages/AdminInventoryIntelligence"));
 const AdminStudio = lazy(() => import("./pages/AdminStudio"));
+const AdminCommissions = lazy(() => import("./pages/AdminCommissions"));
 const Terms = lazy(() => import("./pages/Terms"));
 const Privacy = lazy(() => import("./pages/Privacy"));
 const Security = lazy(() => import("./pages/Security"));
@@ -113,6 +114,7 @@ const App = () => (
                       <Route path="/admin/abandoned-carts" element={<ProtectedAdminRoute><AdminAbandonedCarts /></ProtectedAdminRoute>} />
                       <Route path="/admin/inventory-intelligence" element={<ProtectedAdminRoute><AdminInventoryIntelligence /></ProtectedAdminRoute>} />
                       <Route path="/admin/studio" element={<ProtectedAdminRoute><AdminStudio /></ProtectedAdminRoute>} />
+                      <Route path="/admin/commissions" element={<ProtectedAdminRoute><AdminCommissions /></ProtectedAdminRoute>} />
                       <Route path="/termos" element={<Terms />} />
                       <Route path="/privacidade" element={<Privacy />} />
                       <Route path="/perfil/seguranca" element={<Security />} />

@@ -77,6 +77,13 @@ serve(async (req) => {
     }
 
     const totalAmount = order.total_amount; // fonte da verdade: banco
+    const platformFeeAmount = Math.round(Number(totalAmount) * 0.10 * 100) / 100;
+
+    // Salva a comissão do desenvolvedor (10%) logo na criação do PIX
+    await adminClient
+      .from("orders")
+      .update({ platform_fee_amount: platformFeeAmount })
+      .eq("id", orderId);
     // ────────────────────────────────────────────────────────────────────────
 
     const MERCADOPAGO_ACCESS_TOKEN = Deno.env.get("MERCADOPAGO_ACCESS_TOKEN");
