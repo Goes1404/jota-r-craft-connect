@@ -26,3 +26,14 @@ verify_jwt = false
 # Cálculo de frete também é chamado por convidado no checkout.
 [functions.shipping-calculate]
 verify_jwt = false
+
+# OAuth do MercadoPago Marketplace (split 10/90 do PIX).
+# mp-oauth-start: chamado pelo painel admin; valida is_admin DENTRO da função
+# (o projeto usa apikey sb_publishable_, que não é JWT, então verify_jwt=false).
+[functions.mp-oauth-start]
+verify_jwt = false
+
+# mp-oauth-callback: o MercadoPago redireciona o navegador do lojista para cá
+# (sem JWT). A segurança vem da validação do `state` gerado no mp-oauth-start.
+[functions.mp-oauth-callback]
+verify_jwt = false

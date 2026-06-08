@@ -1,5 +1,6 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { getSellerAccessToken } from "../_shared/mpToken.ts";
 
 function isAllowedOrigin(origin: string | null): boolean {
   if (!origin) return false;
@@ -86,10 +87,18 @@ serve(async (req) => {
       .eq("id", orderId);
     // ────────────────────────────────────────────────────────────────────────
 
-    const MERCADOPAGO_ACCESS_TOKEN = Deno.env.get("MERCADOPAGO_ACCESS_TOKEN");
+    // ── Split marketplace 10/90 ──────────────────────────────────────────────
+    // Se o lojista conectou a conta via OAuth (mp-oauth), criamos o pagamento
+    // com o token DELE + application_fee (os 10%), e o MercadoPago repassa
+    // automaticamente 10% para a conta do desenvolvedor (marketplace) e 90% para
+    // o lojista. Sem conexão OAuth, usa o token estático (sem split automático).
+    const sellerToken = await getSellerAccessToken(adminClient);
+    const MERCADOPAGO_ACCESS_TOKEN = sellerToken || Deno.env.get("MERCADOPAGO_ACCESS_TOKEN");
+    const useSplit = !!sellerToken;
     if (!MERCADOPAGO_ACCESS_TOKEN) {
       throw new Error("MERCADOPAGO_ACCESS_TOKEN not configured.");
     }
+    // ──────────────────────────────────────────────────────────────────────────
 
     // Monta o payer com nome e CPF quando disponíveis (o MP exige p/ PIX em muitos casos)
     const cleanCpf = (payerCpf || "").replace(/\D/g, "");
@@ -110,7 +119,7 @@ serve(async (req) => {
     // Without it, the webhook never fires and orders stay "Aguardando Pagamento".
     const notificationUrl = `${SUPABASE_URL}/functions/v1/mp-webhook`;
 
-    const paymentBody = {
+    const paymentBody: Record<string, unknown> = {
       transaction_amount: Number(totalAmount),
       description: `Pedido JR Acessórios #${orderId.slice(0, 8)}`,
       payment_method_id: "pix",
@@ -118,6 +127,11 @@ serve(async (req) => {
       notification_url: notificationUrl,
       payer,
     };
+
+    // Comissão da plataforma (10%) — só é aceita com token OAuth do lojista.
+    if (useSplit) {
+      paymentBody.application_fee = platformFeeAmount;
+    }
 
     const mpResponse = await fetch("https://api.mercadopago.com/v1/payments", {
       method: "POST",

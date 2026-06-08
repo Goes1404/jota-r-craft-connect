@@ -1,5 +1,6 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { getSellerAccessToken } from "../_shared/mpToken.ts";
 
 serve(async (req) => {
   try {
@@ -72,9 +73,16 @@ serve(async (req) => {
       return new Response("Ignored event type", { status: 200 });
     }
 
+    const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
+
+    // Em pagamentos com split, o pagamento pertence à conta do lojista (OAuth),
+    // então buscamos com o token dele; senão, com o token estático.
+    const sellerToken = await getSellerAccessToken(supabase);
+    const fetchToken = sellerToken || MERCADOPAGO_ACCESS_TOKEN;
+
     // Busca o pagamento real na API do MP para verificar status
     const mpResponse = await fetch(`https://api.mercadopago.com/v1/payments/${data.id}`, {
-      headers: { "Authorization": `Bearer ${MERCADOPAGO_ACCESS_TOKEN}` },
+      headers: { "Authorization": `Bearer ${fetchToken}` },
     });
 
     if (!mpResponse.ok) {
@@ -95,8 +103,6 @@ serve(async (req) => {
       console.error("MP Webhook: no external_reference on payment", data.id);
       return new Response("Missing external_reference", { status: 200 });
     }
-
-    const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
 
     // Idempotência: não reprocessar se já está Pago
     const { data: order } = await supabase

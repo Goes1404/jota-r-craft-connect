@@ -3,8 +3,8 @@ import { AdminShell } from '@/components/admin/AdminShell';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
-import { Navigate } from 'react-router-dom';
-import { TrendingUp, CreditCard, Smartphone, AlertCircle } from 'lucide-react';
+import { Navigate, useSearchParams } from 'react-router-dom';
+import { TrendingUp, CreditCard, Smartphone, AlertCircle, Link2, CheckCircle2, Loader2 } from 'lucide-react';
 import { motion } from 'framer-motion';
 
 const MONTHS = ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho',
@@ -15,9 +15,42 @@ const fmt = (v: number) =>
 
 const AdminCommissions = () => {
   const { user } = useAuth();
+  const [searchParams] = useSearchParams();
   const now = new Date();
   const [month, setMonth] = useState(now.getMonth());
   const [year, setYear] = useState(now.getFullYear());
+  const [connecting, setConnecting] = useState(false);
+
+  // Status da conexão do marketplace MercadoPago (split automático do PIX).
+  const { data: mpStatus, refetch: refetchMpStatus } = useQuery({
+    queryKey: ['mp-marketplace-status'],
+    queryFn: async () => {
+      const { data, error } = await supabase.rpc('mp_marketplace_status');
+      if (error) throw error;
+      const row = Array.isArray(data) ? data[0] : data;
+      return (row ?? { connected: false }) as { connected: boolean; mp_user_id?: string };
+    },
+  });
+  const mpConnected = !!mpStatus?.connected;
+
+  // Feedback do retorno do fluxo OAuth (?mp=connected | ?mp=error).
+  const mpReturn = searchParams.get('mp');
+
+  const handleConnectMp = async () => {
+    setConnecting(true);
+    try {
+      const { data, error } = await supabase.functions.invoke('mp-oauth-start');
+      if (error || !data?.authUrl) throw new Error(data?.error || error?.message || 'Falha ao iniciar conexão');
+      window.location.href = data.authUrl as string;
+    } catch (e) {
+      alert(`Não foi possível iniciar a conexão com o MercadoPago: ${(e as Error).message}`);
+      setConnecting(false);
+    }
+  };
+
+  React.useEffect(() => {
+    if (mpReturn === 'connected') refetchMpStatus();
+  }, [mpReturn, refetchMpStatus]);
 
   const startDate = new Date(year, month, 1).toISOString();
   const endDate = new Date(year, month + 1, 0, 23, 59, 59).toISOString();
@@ -81,6 +114,53 @@ const AdminCommissions = () => {
         </select>
       </div>
 
+      {/* Feedback do retorno OAuth */}
+      {mpReturn === 'connected' && (
+        <div className="mb-6 flex items-start gap-3 rounded-2xl border border-green-400/30 bg-green-400/10 px-5 py-4">
+          <CheckCircle2 className="w-4 h-4 text-green-400 mt-0.5 shrink-0" />
+          <p className="text-sm text-green-300">
+            Conta MercadoPago conectada! A partir de agora os 10% do PIX são repassados automaticamente para sua conta de desenvolvedor.
+          </p>
+        </div>
+      )}
+      {mpReturn === 'error' && (
+        <div className="mb-6 flex items-start gap-3 rounded-2xl border border-red-400/30 bg-red-400/10 px-5 py-4">
+          <AlertCircle className="w-4 h-4 text-red-400 mt-0.5 shrink-0" />
+          <p className="text-sm text-red-300">
+            Não foi possível conectar a conta MercadoPago{searchParams.get('detail') ? ` (${searchParams.get('detail')})` : ''}. Tente novamente.
+          </p>
+        </div>
+      )}
+
+      {/* Conexão do split automático do PIX (MercadoPago Marketplace) */}
+      <div className="mb-8 flex items-center justify-between gap-4 flex-wrap rounded-2xl border border-white/10 bg-white/[0.03] px-5 py-4">
+        <div className="flex items-center gap-3 min-w-0">
+          <span className={`flex h-9 w-9 items-center justify-center rounded-xl border ${mpConnected ? 'bg-green-400/10 border-green-400/30' : 'bg-amber-400/10 border-amber-400/30'}`}>
+            {mpConnected
+              ? <CheckCircle2 className="w-[18px] h-[18px] text-green-400" />
+              : <Link2 className="w-[18px] h-[18px] text-amber-400" />}
+          </span>
+          <div className="min-w-0">
+            <p className="text-sm font-bold text-white">Split automático do PIX</p>
+            <p className="text-xs text-white/40 truncate">
+              {mpConnected
+                ? 'Conta MercadoPago conectada · 10% repassados automaticamente'
+                : 'Conecte a conta MercadoPago do lojista para repassar os 10% sozinho'}
+            </p>
+          </div>
+        </div>
+        {!mpConnected && (
+          <button
+            onClick={handleConnectMp}
+            disabled={connecting}
+            className="shrink-0 inline-flex items-center gap-2 rounded-xl bg-[#d4af37] px-4 py-2.5 text-sm font-bold text-black hover:bg-[#e5c14e] transition-colors disabled:opacity-60"
+          >
+            {connecting ? <Loader2 className="w-4 h-4 animate-spin" /> : <Link2 className="w-4 h-4" />}
+            {connecting ? 'Abrindo…' : 'Conectar MercadoPago'}
+          </button>
+        )}
+      </div>
+
       {/* Cards de resumo */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-8">
         {/* Total */}
@@ -137,16 +217,19 @@ const AdminCommissions = () => {
           <p className="text-2xl font-serif font-bold text-white">
             {isLoading ? <span className="opacity-40">…</span> : fmt(pixTotal)}
           </p>
-          <p className="mt-1 text-xs text-white/30">{pixOrders.length} pedidos · cobrar do cliente</p>
+          <p className="mt-1 text-xs text-white/30">
+            {pixOrders.length} pedidos · {mpConnected ? 'repasse automático' : 'cobrar do cliente'}
+          </p>
         </motion.div>
       </div>
 
-      {/* Aviso PIX */}
-      {!isLoading && pixTotal > 0 && (
+      {/* Aviso PIX — só quando o split automático NÃO está conectado */}
+      {!isLoading && pixTotal > 0 && !mpConnected && (
         <div className="mb-6 flex items-start gap-3 rounded-2xl border border-green-400/20 bg-green-400/5 px-5 py-4">
           <AlertCircle className="w-4 h-4 text-green-400 mt-0.5 shrink-0" />
           <p className="text-sm text-green-300">
             Você tem <span className="font-bold">{fmt(pixTotal)}</span> de comissão via PIX a cobrar do cliente este mês.
+            Conecte a conta MercadoPago acima para o repasse virar automático.
           </p>
         </div>
       )}
