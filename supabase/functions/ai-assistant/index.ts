@@ -28,7 +28,7 @@ serve(async (req) => {
   }
 
   try {
-    const { task, productName, category, prompt, history, context } = await req.json()
+    const { task, productName, category, prompt, message, history, context } = await req.json()
 
     // Configuração da API da OpenAI
     const apiKey = Deno.env.get('OPENAI_API_KEY')
@@ -40,7 +40,7 @@ serve(async (req) => {
     }
 
     let systemPrompt = `Você é o Lumina AI, o assistente inteligente da ${STORE_NAME}. Sua missão é ajudar na gestão da loja com foco em luxo, eficiência e inteligência de negócios.`
-    let userPrompt = prompt
+    let userPrompt = prompt || message || ""
 
     if (task === 'generate_description') {
       systemPrompt = `Você é um copywriter de elite para a marca ${STORE_NAME}.`
