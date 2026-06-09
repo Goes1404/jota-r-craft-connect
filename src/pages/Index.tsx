@@ -1,6 +1,6 @@
 import React, { useEffect, useState, useRef } from 'react';
 import { Link } from 'react-router-dom';
-import { Diamond, MessageCircle, Smartphone, Watch, Zap, Plus, Truck, RefreshCw, Lock, Headphones, Shield } from 'lucide-react';
+import { Diamond, MessageCircle, Smartphone, Watch, Zap, Plus, Truck, RefreshCw, Lock, Headphones, Shield, FileText } from 'lucide-react';
 import { Header } from '@/components/Header';
 import { Footer } from '@/components/Footer';
 import SEO from '@/components/SEO';
