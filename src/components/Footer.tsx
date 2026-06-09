@@ -122,7 +122,7 @@ export const Footer: React.FC = () => {
         {/* Subtitle */}
         <MaskReveal delay={0.5} className="mt-6 relative z-10">
           <p className="text-white/30 text-base md:text-lg max-w-md mx-auto leading-relaxed">
-            Fale com nossa equipe ou explore nosso catálogo completo de tecnologia premium.
+            Fale com nossa equipe ou explore nosso catálogo de produtos.
           </p>
         </MaskReveal>
 
@@ -212,9 +212,8 @@ export const Footer: React.FC = () => {
               </span>
             </Link>
             <p className="text-sm font-sans leading-relaxed max-w-md text-white/30">
-              Onde a excelência encontra a inovação. Somos curadores de tecnologia premium,
-              entregando não apenas produtos, mas uma experiência completa de sofisticação
-              e conectividade para o seu estilo de vida digital.
+              Sua loja de acessórios e produtos variados. Preços justos, pagamento com PIX e cartão,
+              e entrega rápida em Osasco/SP e para todo o Brasil.
             </p>
             <div className="flex gap-4">
               <a href={INSTAGRAM_URL} target="_blank" rel="noopener noreferrer" className="w-10 h-10 rounded-full border border-white/5 flex items-center justify-center hover:bg-[#D4AF37]/10 hover:text-[#D4AF37] hover:border-[#D4AF37]/20 transition-all">

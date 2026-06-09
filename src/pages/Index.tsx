@@ -1,6 +1,6 @@
 import React, { useEffect, useState, useRef } from 'react';
 import { Link } from 'react-router-dom';
-import { Diamond, MessageCircle, Smartphone, Watch, Zap, Plus, Truck, RefreshCw, FileText, Lock } from 'lucide-react';
+import { Diamond, MessageCircle, Smartphone, Watch, Zap, Plus, Truck, RefreshCw, Lock, Headphones, Shield } from 'lucide-react';
 import { Header } from '@/components/Header';
 import { Footer } from '@/components/Footer';
 import SEO from '@/components/SEO';
@@ -14,60 +14,6 @@ import { MaskReveal } from '@/components/animations/MaskReveal';
 import { Reveal } from '@/components/animations/Reveal';
 import { useAppSettings } from '@/hooks/useProducts';
 
-const ApplePhoneIcon = ({ className }: { className?: string }) => (
-  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1" strokeLinecap="round" strokeLinejoin="round" className={className}>
-    <rect x="5.5" y="2.5" width="13" height="19" rx="3.5" />
-    <path d="M10.5 2.5h3" strokeWidth="1.5" />
-    <circle cx="12" cy="18.5" r="0.75" fill="currentColor" stroke="none" />
-  </svg>
-);
-
-const AppleWatchIcon = ({ className }: { className?: string }) => (
-  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1" strokeLinecap="round" strokeLinejoin="round" className={className}>
-    <rect x="7" y="5" width="10" height="14" rx="3.5" />
-    <path d="M8.5 2v3" />
-    <path d="M15.5 2v3" />
-    <path d="M8.5 19v3" />
-    <path d="M15.5 19v3" />
-    <path d="M17 9h1" strokeWidth="1.5" />
-    <circle cx="17.5" cy="13" r="1" fill="currentColor" stroke="none" />
-  </svg>
-);
-
-const AirPodsIcon = ({ className }: { className?: string }) => (
-  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1" strokeLinecap="round" strokeLinejoin="round" className={className}>
-    <path d="M3 14.5v-2a9 9 0 0 1 18 0v2" />
-    <rect x="3" y="14.5" width="18" height="7" rx="3" />
-    <circle cx="12" cy="18" r="1" fill="currentColor" stroke="none" />
-  </svg>
-);
-
-const CaseIcon = ({ className }: { className?: string }) => (
-  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1" strokeLinecap="round" strokeLinejoin="round" className={className}>
-    <rect x="5" y="2" width="14" height="20" rx="4" />
-    <rect x="6.5" y="3.5" width="11" height="17" rx="2.5" strokeOpacity="0.5" />
-    <path d="M10 2h4" strokeWidth="1.5" />
-  </svg>
-);
-
-const EnergyIcon = ({ className }: { className?: string }) => (
-  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1" strokeLinecap="round" strokeLinejoin="round" className={className}>
-    <circle cx="12" cy="12" r="8" />
-    <circle cx="12" cy="12" r="3" />
-    <path d="M12 4v3" />
-    <path d="M12 17v3" />
-    <path d="M4 12h3" />
-    <path d="M17 12h3" />
-  </svg>
-);
-
-const PlusIcon = ({ className }: { className?: string }) => (
-  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1" strokeLinecap="round" strokeLinejoin="round" className={className}>
-    <circle cx="12" cy="12" r="9" />
-    <path d="M12 8v8" />
-    <path d="M8 12h8" />
-  </svg>
-);
 
 /* ─── Countdown Hook ─── */
 function useCountdown(targetHours: number) {
@@ -161,12 +107,12 @@ const Index: React.FC = () => {
         <div className="container mx-auto px-4 overflow-x-auto scrollbar-hide">
           <div className="flex justify-between md:justify-center gap-6 md:gap-16 min-w-max">
             {[
-              { label: 'iPhones', value: 'Smartphone', icon: ApplePhoneIcon, color: 'bg-blue-500/10 text-blue-500' },
-              { label: 'Watches', value: 'Watch', icon: AppleWatchIcon, color: 'bg-orange-500/10 text-orange-500' },
-              { label: 'AirPods', value: 'Audio', icon: AirPodsIcon, color: 'bg-purple-500/10 text-purple-500' },
-              { label: 'Cases', value: 'Protection', icon: CaseIcon, color: 'bg-green-500/10 text-green-500' },
-              { label: 'Energia', value: 'Power', icon: EnergyIcon, color: 'bg-yellow-500/10 text-yellow-500' },
-              { label: 'Mais', value: '', icon: PlusIcon, color: 'bg-primary/10 text-primary' }
+              { label: 'Smartphones', value: 'Smartphone', icon: Smartphone, color: 'bg-blue-500/10 text-blue-500' },
+              { label: 'Relógios', value: 'Watch', icon: Watch, color: 'bg-orange-500/10 text-orange-500' },
+              { label: 'Áudio', value: 'Audio', icon: Headphones, color: 'bg-purple-500/10 text-purple-500' },
+              { label: 'Cases', value: 'Protection', icon: Shield, color: 'bg-green-500/10 text-green-500' },
+              { label: 'Energia', value: 'Power', icon: Zap, color: 'bg-yellow-500/10 text-yellow-500' },
+              { label: 'Ver Tudo', value: '', icon: Plus, color: 'bg-primary/10 text-primary' }
             ].map((item, i) => (
               <Link key={i} to={`/produtos${item.value ? `?category=${item.value}` : ''}`} className="flex flex-col items-center gap-3 group transition-all">
                 <div className={`h-14 w-14 rounded-full ${item.color} flex items-center justify-center transition-all duration-500 shadow-lg border border-white/5 group-hover:border-primary/40 relative overflow-hidden`}>
@@ -222,7 +168,7 @@ const Index: React.FC = () => {
         <div className="container mx-auto px-4">
           <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
 
-            {/* Apple banner — spans 2 cols on all sizes */}
+            {/* Destaque banner — spans 2 cols on all sizes */}
             <Link
               to="/produtos"
               className="relative col-span-2 h-48 md:h-56 rounded-2xl overflow-hidden bg-zinc-900 border border-primary/20 group cursor-pointer"
@@ -230,8 +176,8 @@ const Index: React.FC = () => {
               <div className="absolute inset-0 bg-zinc-800 bg-[url('https://images.unsplash.com/photo-1592899677977-9c10ca588bbd?w=800&auto=format&fit=crop')] bg-cover bg-center brightness-[0.4] group-hover:brightness-50 transition-all duration-700 group-hover:scale-105" />
               <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent" />
               <div className="relative z-10 p-6 h-full flex flex-col justify-end">
-                <span className="text-[9px] font-black uppercase tracking-[0.35em] text-primary mb-1 opacity-80">Coleção Premium</span>
-                <h3 className="text-lg md:text-2xl font-bold text-white uppercase tracking-wider">Acessórios Apple</h3>
+                <span className="text-[9px] font-black uppercase tracking-[0.35em] text-primary mb-1 opacity-80">Em Destaque</span>
+                <h3 className="text-lg md:text-2xl font-bold text-white uppercase tracking-wider">Produtos em Destaque</h3>
                 <p className="text-primary text-xs font-bold mt-1 group-hover:translate-x-1 transition-transform duration-300">
                   Até 20% OFF na primeira compra →
                 </p>
@@ -278,7 +224,7 @@ const Index: React.FC = () => {
               </Link>
             </div>
 
-            {/* Smartwatches banner — spans 2 cols on all sizes */}
+            {/* Relógios banner — spans 2 cols on all sizes */}
             <Link
               to="/produtos?category=Watch"
               className="relative col-span-2 h-48 md:h-56 rounded-2xl overflow-hidden bg-zinc-900 border border-primary/20 group cursor-pointer"
@@ -287,9 +233,9 @@ const Index: React.FC = () => {
               <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent" />
               <div className="relative z-10 p-6 h-full flex flex-col justify-end">
                 <span className="text-[9px] font-black uppercase tracking-[0.35em] text-primary mb-1 opacity-80">Novidades</span>
-                <h3 className="text-lg md:text-2xl font-bold text-white uppercase tracking-wider">Smartwatches</h3>
+                <h3 className="text-lg md:text-2xl font-bold text-white uppercase tracking-wider">Relógios & Acessórios</h3>
                 <p className="text-primary text-xs font-bold mt-1 group-hover:translate-x-1 transition-transform duration-300">
-                  Lançamentos exclusivos → Ver Coleção
+                  Confira as novidades → Ver Coleção
                 </p>
               </div>
             </Link>

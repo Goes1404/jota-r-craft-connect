@@ -107,8 +107,8 @@ export const GlassHero: React.FC = () => {
           {/* Subtitle with MaskReveal */}
           <MaskReveal delay={1.0} duration={0.8}>
             <p className="text-white/40 text-base md:text-lg font-medium max-w-md leading-relaxed">
-              Curadoria digital de acessórios premium com inteligência artificial.
-              Encontre o item perfeito para o seu estilo de vida.
+              Encontre acessórios e produtos para o seu dia a dia.
+              Ótimos preços, pagamento fácil e entrega rápida.
             </p>
           </MaskReveal>
 

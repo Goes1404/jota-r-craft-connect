@@ -265,7 +265,7 @@ const AdminDashboard = () => {
       const { data, error } = await supabase.functions.invoke('ai-assistant', {
         body: {
           prompt:
-            'Você é o Lumina Executive Analyst, BI para e-commerce de luxo. Analise estes dados do dashboard e dê 3 insights executivos curtos e acionáveis (markdown, tom profissional e sofisticado): ' +
+            'Você é o analista de negócios da loja. Analise estes dados do dashboard e dê 3 insights práticos e acionáveis em português (markdown, tom direto e claro): ' +
             JSON.stringify(metrics),
           context: metrics,
         },

@@ -101,8 +101,8 @@ const AdminCustomers = () => {
 
       const { data, error } = await supabase.functions.invoke('ai-assistant', {
         body: { 
-          message: `Gere uma abordagem de vendas personalizada e luxuosa para o WhatsApp deste cliente: ${JSON.stringify(context)}. O tom deve ser exclusivo, chamando pelo primeiro nome, mencionando sutilmente seu histórico (se for VIP ou recorrente) e oferecendo uma curadoria personalizada. Responda APENAS o texto da mensagem.`,
-          context: `Você é o Lumina Concierge, um especialista em vendas de luxo para a ${STORE.name}.`
+          message: `Gere uma mensagem de abordagem de vendas para WhatsApp para este cliente da ${STORE.name}: ${JSON.stringify(context)}. Chame pelo primeiro nome, mencione brevemente o histórico se for cliente recorrente, e ofereça ajuda de forma amigável e direta. Responda APENAS o texto da mensagem.`,
+          context: `Você é o assistente de vendas da ${STORE.name}, especializado em atendimento ao cliente e produtos da loja.`
         }
       });
 

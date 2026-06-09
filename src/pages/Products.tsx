@@ -130,7 +130,7 @@ const Products: React.FC = () => {
 
   return (
     <div className="lumina-grain relative min-h-screen bg-[#050505] text-[#e2e2e2] overflow-hidden selection:bg-[#f2ca50]/30 selection:text-[#f2ca50]">
-      <SEO title="Produtos" description="Acessórios premium para iPhone, Apple Watch, AirPods e mais." />
+      <SEO title="Produtos" description="Acessórios e produtos variados com ótimos preços. Compre com PIX ou cartão e receba rapidamente." />
       <Header />
 
       {/* ── Layered background ── */}
@@ -171,7 +171,7 @@ const Products: React.FC = () => {
           transition={{ delay: 0.6, duration: 0.8 }}
           className="mx-auto mt-5 max-w-md text-sm text-white/40 leading-relaxed"
         >
-          Capas, cabos, fones e acessórios premium para iPhone, Apple Watch e mais — com envio rápido para todo o Brasil.
+          Acessórios e produtos variados com ótimos preços — com entrega rápida para todo o Brasil.
         </motion.p>
 
         {/* Thin gold rule */}

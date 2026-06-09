@@ -96,7 +96,7 @@ const Orders = () => {
 
   const steps = [
     { id: 1, label: 'Confirmado', desc: 'Sua reserva foi garantida com sucesso.', icon: ShieldCheck },
-    { id: 2, label: 'Curadoria', desc: 'Preparando sua peça sob padrões de luxo.', icon: Sparkles },
+    { id: 2, label: 'Separação', desc: 'Separando e conferindo seu produto com cuidado.', icon: Sparkles },
     { id: 3, label: 'Em Trânsito', desc: 'Transporte seguro iniciado para seu endereço.', icon: Truck },
     { id: 4, label: 'Entregue', desc: 'Experiência concluída. Aproveite seu item.', icon: Diamond },
   ];

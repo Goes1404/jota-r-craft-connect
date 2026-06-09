@@ -170,12 +170,12 @@ const Register: React.FC = () => {
           <div className="space-y-8">
             <div className="space-y-4">
               <h2 className="font-serif text-4xl xl:text-5xl font-bold leading-[1.05] text-white">
-                Junte-se à{' '}
-                <span className="italic text-[#d4af37]">elite</span>
-                <br />da tecnologia premium.
+                Crie sua{' '}
+                <span className="italic text-[#d4af37]">conta</span>
+                <br />e aproveite as ofertas.
               </h2>
               <p className="text-white/40 max-w-md text-base leading-relaxed">
-                Curadoria digital com IA, atendimento exclusivo e entrega no mesmo dia em Osasco/SP.
+                Produtos variados, preços justos, atendimento personalizado e entrega rápida em Osasco/SP.
               </p>
             </div>
 

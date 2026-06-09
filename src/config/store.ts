@@ -5,8 +5,8 @@
 export const STORE = {
   name: "JR Acessórios",
   shortName: "JR",
-  segment: "semijoias de luxo",
-  description: "Sua boutique online de semijoias de luxo. Peças exclusivas com qualidade premium.",
+  segment: "acessórios e produtos variados",
+  description: "Sua loja de acessórios e produtos variados. Ótimos preços, pagamento fácil e entrega rápida.",
 
   domain: "https://jracessorios.com",
 
@@ -46,17 +46,17 @@ export const STORE = {
   },
 
   seo: {
-    defaultTitle: "JR Acessórios — Semijoias de Luxo",
+    defaultTitle: "JR Acessórios — Produtos e Acessórios | Entrega Rápida",
     defaultDescription:
-      "Sua boutique online de semijoias de luxo. Anéis, colares, pulseiras e brincos exclusivos com qualidade premium. Frete grátis e entrega rápida.",
-    defaultImage: "https://images.unsplash.com/photo-1515562141207-7a88fb7ce338",
+      "JR Acessórios — sua loja de acessórios e produtos variados. Ótimos preços, pagamento com PIX e cartão, entrega no mesmo dia em Osasco/SP e para todo o Brasil.",
+    defaultImage: "/hero-bg.png",
     priceRange: "$$",
   },
 
   pwa: {
     name: "JR Acessórios",
     shortName: "JR",
-    description: "Sua boutique online de semijoias de luxo.",
+    description: "Sua loja de acessórios e produtos variados.",
   },
 } as const;
 

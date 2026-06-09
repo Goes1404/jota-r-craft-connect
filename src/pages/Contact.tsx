@@ -60,7 +60,7 @@ const Contact: React.FC = () => {
       const { data, error } = await supabase.functions.invoke('ai-assistant', {
         body: { 
           message: userMessage,
-          context: `Você é a Lumina, a concierge de luxo virtual da ${STORE.name}. Você responde dúvidas sobre produtos, prazos de envio e a marca ${STORE.name}. Seja extremamente polida, use um tom sofisticado e responda de forma concisa. Se a pergunta envolver compras diretas ou estoque imediato, sugira que o cliente clique em 'Falar com Consultor' para iniciar atendimento humano no WhatsApp.`
+          context: `Você é a Lumina, a assistente virtual da ${STORE.name}. Você responde dúvidas sobre produtos, preços, formas de pagamento, prazos de envio e a loja ${STORE.name}. Seja simpática, clara e objetiva. Se a pergunta envolver compras diretas ou estoque imediato, sugira que o cliente clique em 'Falar com Consultor' para ser atendido no WhatsApp.`
         }
       });
 
@@ -101,7 +101,7 @@ const Contact: React.FC = () => {
               Experiência & <span className="text-[#d4af37] italic">Atendimento JR.</span>
             </h1>
             <p className="text-sm text-white/40 max-w-xl mx-auto font-bold uppercase tracking-widest leading-relaxed animate-in fade-in slide-in-from-bottom-8 duration-700 delay-200">
-              Consulte nossa assistente inteligente sobre iPhones e acessórios premium, ou conecte-se com nossa equipe especializada.
+              Tire suas dúvidas sobre produtos, preços e entregas com nossa assistente virtual, ou fale diretamente com nossa equipe.
             </p>
           </div>
 
