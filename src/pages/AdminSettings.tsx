@@ -1,22 +1,19 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
-import { Header } from '@/components/Header';
 import { AdminShell } from '@/components/admin/AdminShell';
-import { Footer } from '@/components/Footer';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
-import { Settings as SettingsIcon, Shield, ArrowLeft, Truck, Tag } from 'lucide-react';
-import { useNavigate, Navigate } from 'react-router-dom';
+import { Settings as SettingsIcon, Shield, Truck, Tag } from 'lucide-react';
+import { Navigate } from 'react-router-dom';
 import { useAppSettings } from '@/hooks/useProducts';
 import { useQueryClient } from '@tanstack/react-query';
 
 const AdminSettings = () => {
   const { user } = useAuth();
   const { toast } = useToast();
-  const navigate = useNavigate();
   const queryClient = useQueryClient();
 
   const [email, setEmail] = useState(user?.email || '');

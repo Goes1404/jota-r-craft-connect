@@ -4,6 +4,7 @@ import { ShoppingCart, User, Menu, Search, Diamond, Home, ShoppingBag, Phone, X 
 import { useCart } from '@/contexts/CartContext';
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
 import { CartModal } from './CartModal';
+import { STORE } from '@/config/store';
 
 // ─── styles ──────────────────────────────────────────────────────────────────
 const styles = {
@@ -185,7 +186,7 @@ export const Header: React.FC = () => {
                 </Link>
               </div>
               <div className={styles.drawerFooter}>
-                <p className={styles.drawerFooterText}>JR Acessórios © 2025</p>
+                <p className={styles.drawerFooterText}>{STORE.name} © {new Date().getFullYear()}</p>
               </div>
             </SheetContent>
           </Sheet>

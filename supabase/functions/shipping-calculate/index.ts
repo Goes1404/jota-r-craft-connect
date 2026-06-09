@@ -6,16 +6,20 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
 // ─── CORS ─────────────────────────────────────────────────────────────────────
 
+const STORE_URL = Deno.env.get('STORE_URL') || "https://jracessorios.com";
+const STORE_DOMAIN = STORE_URL.replace(/^https?:\/\/(www\.)?/, '').replace(/\/$/, '');
+const STORE_EMAIL_FROM = Deno.env.get('STORE_EMAIL_FROM') || `contato@${STORE_DOMAIN}`;
+
 function isAllowedOrigin(origin: string | null): boolean {
   if (!origin) return false;
-  if (origin === "https://jracessorios.com" || origin === "https://www.jracessorios.com") return true;
+  if (origin === STORE_URL || origin === STORE_URL.replace('https://', 'https://www.')) return true;
   if (/^http:\/\/localhost(:\d+)?$/.test(origin)) return true;
   if (/^https:\/\/.*\.vercel\.app$/.test(origin)) return true;
   return false;
 }
 
 function corsHeaders(origin: string | null): Record<string, string> {
-  const allowed = (origin && isAllowedOrigin(origin)) ? origin : "https://jracessorios.com";
+  const allowed = (origin && isAllowedOrigin(origin)) ? origin : STORE_URL;
   return {
     "Access-Control-Allow-Origin": allowed,
     "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
@@ -102,7 +106,7 @@ async function fetchMelhorEnvioRates(
       "Content-Type": "application/json",
       "Accept": "application/json",
       "Authorization": `Bearer ${token}`,
-      "User-Agent": "jr-acessorios/1.0 (contato@jracessorios.com)",
+      "User-Agent": `${STORE_DOMAIN}/1.0 (${STORE_EMAIL_FROM})`,
     },
     body: JSON.stringify({
       from: { postal_code: originZip.replace(/\D/g, "") },

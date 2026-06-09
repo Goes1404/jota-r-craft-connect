@@ -1,25 +1,13 @@
 import React, { useMemo } from 'react';
-import { useQuery } from '@tanstack/react-query';
-import { supabase } from '@/integrations/supabase/client';
-import { Navigate, useNavigate } from 'react-router-dom';
+import { Navigate } from 'react-router-dom';
 import { AdminShell } from '@/components/admin/AdminShell';
+import { AdminCardSkeleton } from '@/components/admin/ui';
 import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { 
-  ArrowLeft, 
-  Package, 
-  AlertTriangle, 
-  TrendingDown, 
-  TrendingUp, 
-  DollarSign, 
-  Layers, 
-  RefreshCcw,
-  BarChart3,
-  Calendar,
-  Box,
-  ChevronRight,
-  ShieldCheck,
+import {
+  TrendingUp,
+  Layers,
   Zap,
   Sparkles,
   Clock,
@@ -74,15 +62,18 @@ const AdminInventoryIntelligence = () => {
     return { totalCost, totalVGV, avgMarkup, lowStockAlerts, criticalStock };
   }, [products, predictMetrics]);
 
+  if (!authLoading && !user) return <Navigate to="/admin/login" replace />;
+
   if (authLoading || productsLoading) {
     return (
-      <div className="min-h-screen bg-black flex items-center justify-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#d4af37]"></div>
-      </div>
+      <AdminShell eyebrow="Inteligência" title="Lumina Predict" subtitle="AI Inventory Protocol v2.0">
+        <AdminCardSkeleton count={4} />
+        <div className="mt-8">
+          <AdminCardSkeleton count={6} />
+        </div>
+      </AdminShell>
     );
   }
-
-  if (!user) return <Navigate to="/admin/login" replace />;
 
   return (
     <AdminShell eyebrow="Inteligência" title="Lumina Predict" subtitle="AI Inventory Protocol v2.0">

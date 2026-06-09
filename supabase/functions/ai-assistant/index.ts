@@ -1,15 +1,18 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
 
+const STORE_URL = Deno.env.get('STORE_URL') || "https://jracessorios.com";
+const STORE_NAME = Deno.env.get('STORE_NAME') || "JR Acessórios";
+
 function isAllowedOrigin(origin: string | null): boolean {
   if (!origin) return false;
-  if (origin === "https://jracessorios.com" || origin === "https://www.jracessorios.com") return true;
+  if (origin === STORE_URL || origin === STORE_URL.replace('https://', 'https://www.')) return true;
   if (/^http:\/\/localhost(:\d+)?$/.test(origin)) return true;
   if (/^https:\/\/.*\.vercel\.app$/.test(origin)) return true;
   return false;
 }
 
 function makeCors(origin: string | null): Record<string, string> {
-  const allowed = (origin && isAllowedOrigin(origin)) ? origin : "https://jracessorios.com";
+  const allowed = (origin && isAllowedOrigin(origin)) ? origin : STORE_URL;
   return {
     "Access-Control-Allow-Origin": allowed,
     "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
@@ -36,11 +39,11 @@ serve(async (req) => {
       )
     }
 
-    let systemPrompt = "Você é o Lumina AI, o assistente inteligente da JR Acessórios. Sua missão é ajudar na gestão da loja com foco em luxo, eficiência e inteligência de negócios."
+    let systemPrompt = `Você é o Lumina AI, o assistente inteligente da ${STORE_NAME}. Sua missão é ajudar na gestão da loja com foco em luxo, eficiência e inteligência de negócios.`
     let userPrompt = prompt
 
     if (task === 'generate_description') {
-      systemPrompt = "Você é um copywriter de elite para a marca de semijoias de luxo 'JR Acessórios'."
+      systemPrompt = `Você é um copywriter de elite para a marca ${STORE_NAME}.`
       userPrompt = `Crie uma descrição sofisticada para o produto "${productName}" da categoria "${category}". Use gatilhos mentais de exclusividade e qualidade. Seja breve (máximo 3 parágrafos).`
     } else {
       systemPrompt += ` Contexto atual: ${JSON.stringify(context)}. Responda de forma executiva e use markdown.`

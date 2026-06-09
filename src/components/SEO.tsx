@@ -1,5 +1,6 @@
 import React from 'react';
 import { Helmet } from 'react-helmet-async';
+import { STORE } from '@/config/store';
 
 interface ProductJsonLd {
   name: string;
@@ -20,14 +21,14 @@ interface SEOProps {
 }
 
 const SEO: React.FC<SEOProps> = ({
-  title = 'JR Acessórios — Luxo e Tecnologia Exclusiva',
-  description = 'Descubra a coleção exclusiva da JR Acessórios. Tecnologia de ponta, smartwatches e acessórios premium para o seu lifestyle de luxo.',
-  image = 'https://images.unsplash.com/photo-1515562141207-7a88fb7ce338',
-  url = 'https://jracessorios.com',
+  title = STORE.seo.defaultTitle,
+  description = STORE.seo.defaultDescription,
+  image = STORE.seo.defaultImage,
+  url = STORE.domain,
   type = 'website',
   product,
 }) => {
-  const siteTitle = title.includes('JR Acessórios') ? title : `${title} | JR Acessórios`;
+  const siteTitle = title.includes(STORE.name) ? title : `${title} | ${STORE.name}`;
 
   const productJsonLd = product
     ? JSON.stringify({
@@ -36,13 +37,13 @@ const SEO: React.FC<SEOProps> = ({
         name: product.name,
         description: product.description,
         image: product.image,
-        brand: { '@type': 'Brand', name: product.brand || 'JR Acessórios' },
+        brand: { '@type': 'Brand', name: product.brand || STORE.name },
         offers: {
           '@type': 'Offer',
           priceCurrency: 'BRL',
           price: product.price?.toFixed(2),
           availability: `https://schema.org/${product.availability ?? 'InStock'}`,
-          seller: { '@type': 'Organization', name: 'JR Acessórios' },
+          seller: { '@type': 'Organization', name: STORE.name },
         },
       })
     : null;
@@ -51,20 +52,20 @@ const SEO: React.FC<SEOProps> = ({
     ? JSON.stringify({
         '@context': 'https://schema.org',
         '@type': 'Store',
-        name: 'JR Acessórios',
+        name: STORE.name,
         description,
-        url: 'https://jracessorios.com',
+        url: STORE.domain,
         image,
         address: {
           '@type': 'PostalAddress',
-          streetAddress: 'Rua Martim Afonso, 431',
-          addressLocality: 'Osasco',
-          addressRegion: 'SP',
-          postalCode: '06233-130',
-          addressCountry: 'BR',
+          streetAddress: STORE.address.street,
+          addressLocality: STORE.address.city,
+          addressRegion: STORE.address.state,
+          postalCode: STORE.address.zip,
+          addressCountry: STORE.address.country,
         },
-        telephone: '+55-11-99999-9999',
-        priceRange: '$$',
+        telephone: STORE.contact.phone,
+        priceRange: STORE.seo.priceRange,
       })
     : null;
 
@@ -83,7 +84,7 @@ const SEO: React.FC<SEOProps> = ({
       <meta property="og:image" content={image} />
       <meta property="og:url" content={url} />
       <meta property="og:locale" content="pt_BR" />
-      <meta property="og:site_name" content="JR Acessórios" />
+      <meta property="og:site_name" content={STORE.name} />
 
       {/* Twitter */}
       <meta name="twitter:card" content="summary_large_image" />
@@ -94,7 +95,7 @@ const SEO: React.FC<SEOProps> = ({
       {/* Mobile */}
       <meta name="apple-mobile-web-app-capable" content="yes" />
       <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
-      <meta name="theme-color" content="#0a0a0a" />
+      <meta name="theme-color" content={STORE.theme.pwaTheme} />
 
       {/* JSON-LD Structured Data */}
       {productJsonLd && (

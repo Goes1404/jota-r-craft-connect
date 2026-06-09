@@ -4,6 +4,7 @@ import { Eye, EyeOff, Mail, Lock, ArrowLeft, Loader2 } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
 import { SmokeBackground } from '@/components/ui/spooky-smoke-animation';
+import { STORE } from '@/config/store';
 
 // ─── Subcomponente: Field ─────────────────────────────────────────────────────
 
@@ -143,7 +144,7 @@ const AdminLogin: React.FC = () => {
             </p>
           </div>
 
-          <p className="relative z-10 text-xs text-white/15 tracking-widest uppercase">© 2025 JR Acessórios</p>
+          <p className="relative z-10 text-xs text-white/15 tracking-widest uppercase">© {new Date().getFullYear()} {STORE.name}</p>
         </aside>
 
         {/* ── Lado direito: Formulário ── */}
@@ -163,8 +164,7 @@ const AdminLogin: React.FC = () => {
                 <span className="text-[10px] font-black uppercase tracking-widest">Voltar</span>
               </Link>
               <Link to="/" className="lg:hidden flex items-center gap-1.5">
-                <span className="font-serif text-lg text-white">JR</span>
-                <span className="font-serif italic text-lg text-[#d4af37]">acessorios</span>
+                <span className="font-serif text-lg text-[#d4af37]">{STORE.name}</span>
               </Link>
             </div>
 
@@ -174,7 +174,7 @@ const AdminLogin: React.FC = () => {
               </h1>
               <p className="mt-2 text-sm text-white/30">
                 {isAdminPath
-                  ? 'Acesso exclusivo para administradores JR Acessórios.'
+                  ? `Acesso exclusivo para administradores ${STORE.name}.`
                   : 'Entre para ver seus pedidos e benefícios exclusivos.'}
               </p>
             </header>
@@ -281,7 +281,7 @@ const AdminLogin: React.FC = () => {
 
       {/* Footer */}
       <footer className="relative z-10 py-6 px-8 flex flex-col sm:flex-row justify-between items-center gap-4 border-t border-white/5">
-        <span className="text-[9px] tracking-[0.3em] uppercase text-white/15">JR Acessórios © 2025</span>
+        <span className="text-[9px] tracking-[0.3em] uppercase text-white/15">{STORE.name} © {new Date().getFullYear()}</span>
         <div className="flex gap-6">
           {['Privacidade', 'Termos', 'Suporte'].map((item) => (
             <button key={item} className="text-[9px] tracking-widest uppercase text-white/15 hover:text-white/40 transition-colors">

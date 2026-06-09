@@ -71,8 +71,8 @@ export const AICopilot: React.FC = () => {
 
     try {
       const { data, error } = await supabase.functions.invoke('ai-assistant', {
-        body: { 
-          message: userMessage,
+        body: {
+          prompt: userMessage,
           history: messages.slice(-6),
           context: {
             role: isAdmin ? 'admin' : 'customer',
@@ -84,7 +84,7 @@ export const AICopilot: React.FC = () => {
 
       if (error) throw error;
 
-      setMessages(prev => [...prev, { role: 'assistant', content: data.reply || 'Desculpe, tive um problema ao processar sua solicitação.' }]);
+      setMessages(prev => [...prev, { role: 'assistant', content: data.text || data.reply || 'Desculpe, tive um problema ao processar sua solicitação.' }]);
     } catch (err: any) {
       console.error('AI Error:', err);
       toast.error('Erro na conexão com Lumina AI.');

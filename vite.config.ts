@@ -21,6 +21,7 @@ export default defineConfig(({ mode }) => ({
       registerType: 'autoUpdate',
       useCredentials: true,
       manifest: {
+        // ⚠️ AO CLONAR: atualize estes campos (e src/config/store.ts)
         name: 'JR Acessórios',
         short_name: 'JR',
         description: 'Sua boutique online de acessórios premium.',

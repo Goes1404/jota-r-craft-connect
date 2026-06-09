@@ -1,16 +1,19 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
+const STORE_URL = Deno.env.get('STORE_URL') || "https://jracessorios.com";
+const STORE_NAME = Deno.env.get('STORE_NAME') || "JR Acessórios";
+
 function isAllowedOrigin(origin: string | null): boolean {
   if (!origin) return false;
-  if (origin === "https://jracessorios.com" || origin === "https://www.jracessorios.com") return true;
+  if (origin === STORE_URL || origin === STORE_URL.replace('https://', 'https://www.')) return true;
   if (/^http:\/\/localhost(:\d+)?$/.test(origin)) return true;
   if (/^https:\/\/.*\.vercel\.app$/.test(origin)) return true;
   return false;
 }
 
 function corsHeaders(origin: string | null): Record<string, string> {
-  const allowed = (origin && isAllowedOrigin(origin)) ? origin : "https://jracessorios.com";
+  const allowed = (origin && isAllowedOrigin(origin)) ? origin : STORE_URL;
   return {
     "Access-Control-Allow-Origin": allowed,
     "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
@@ -105,7 +108,7 @@ serve(async (req) => {
     const lastName = nameParts.slice(1).join(" ") || "JR";
 
     const payer: Record<string, unknown> = {
-      email: payerEmail || "cliente@jracessorios.com",
+      email: payerEmail || `cliente@${STORE_URL.replace(/^https?:\/\/(www\.)?/, '')}`,
       first_name: firstName,
       last_name: lastName,
     };
@@ -119,7 +122,7 @@ serve(async (req) => {
 
     const paymentBody: Record<string, unknown> = {
       transaction_amount: Number(totalAmount),
-      description: `Pedido JR Acessórios #${orderId.slice(0, 8)}`,
+      description: `Pedido ${STORE_NAME} #${orderId.slice(0, 8)}`,
       payment_method_id: "pix",
       external_reference: orderId,
       notification_url: notificationUrl,

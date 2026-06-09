@@ -3,6 +3,8 @@ import { Link } from 'react-router-dom';
 import { ArrowLeft, ChevronDown, FileText } from 'lucide-react';
 import { Header } from '@/components/Header';
 import { Footer } from '@/components/Footer';
+import SEO from '@/components/SEO';
+import { STORE } from '@/config/store';
 
 // ─── Accordion ────────────────────────────────────────────────────────────────
 
@@ -37,6 +39,7 @@ function Section({ number, title, children }: { number: string; title: string; c
 
 const Terms: React.FC = () => (
   <div className="min-h-screen bg-black text-[#e2e2e2] font-sans selection:bg-[#f2ca50]/30 selection:text-[#f2ca50]">
+    <SEO title="Termos de Uso" description={`Leia os Termos de Uso da ${STORE.name} para conhecer as regras de compra, entrega, pagamentos e garantia de produtos.`} url={`${STORE.domain}/termos`} />
     <div className="fixed inset-0 pointer-events-none z-0" aria-hidden="true">
       <div className="absolute top-[10%] -right-[10%] w-[40%] h-[40%] rounded-full bg-[#f2ca50] opacity-[0.02] blur-[120px]" />
     </div>
@@ -59,14 +62,14 @@ const Terms: React.FC = () => (
         <div>
           <h1 className="font-serif text-2xl md:text-3xl font-bold text-white leading-tight">Termos de Uso</h1>
           <p className="text-xs text-white/30 mt-1">
-            JR Acessórios · Última atualização: 01 de maio de 2025 · Versão 1.0
+            {STORE.name} · Última atualização: 01 de maio de 2025 · Versão 1.0
           </p>
         </div>
       </div>
 
       <p className="text-sm text-white/40 leading-relaxed mb-8 bg-white/[0.02] border border-white/5 rounded-2xl p-5">
-        Ao acessar ou utilizar o site <strong className="text-white/60">jracessorios.com</strong>, você concorda com os presentes Termos de Uso. Leia-os com atenção antes de realizar qualquer compra. Em caso de dúvida, entre em contato via{' '}
-        <a href="mailto:contato@jracessorios.com" className="text-[#d4af37] hover:underline">contato@jracessorios.com</a>.
+        Ao acessar ou utilizar o site <strong className="text-white/60">{STORE.domain.replace('https://', '')}</strong>, você concorda com os presentes Termos de Uso. Leia-os com atenção antes de realizar qualquer compra. Em caso de dúvida, entre em contato via{' '}
+        <a href={`mailto:${STORE.contact.email}`} className="text-[#d4af37] hover:underline">{STORE.contact.email}</a>.
       </p>
 
       {/* Sections */}
@@ -79,13 +82,13 @@ const Terms: React.FC = () => (
           </Section>
 
           <Section number="02" title="Quem Somos">
-            <p><strong className="text-white/60">JR Acessórios</strong> é uma loja especializada em acessórios premium para dispositivos Apple, localizada em Osasco/SP. Operamos com entrega em todo o Brasil.</p>
-            <p>Contato: <a href="mailto:contato@jracessorios.com" className="text-[#d4af37]">contato@jracessorios.com</a></p>
+            <p><strong className="text-white/60">{STORE.name}</strong> é uma loja especializada em {STORE.segment}, localizada em {STORE.address.city}/{STORE.address.state}. Operamos com entrega em todo o Brasil.</p>
+            <p>Contato: <a href={`mailto:${STORE.contact.email}`} className="text-[#d4af37]">{STORE.contact.email}</a></p>
           </Section>
 
           <Section number="03" title="Cadastro e Conta de Usuário">
             <p>Para realizar compras, você pode criar uma conta fornecendo nome completo, e-mail, telefone e senha. Você é responsável pela confidencialidade de suas credenciais.</p>
-            <p>É proibido criar contas com informações falsas. A JR Acessórios se reserva o direito de suspender ou encerrar contas que violem estes termos.</p>
+            <p>É proibido criar contas com informações falsas. A {STORE.name} se reserva o direito de suspender ou encerrar contas que violem estes termos.</p>
             <p>Menores de 18 anos devem ter autorização dos pais ou responsáveis para criar conta e realizar compras.</p>
           </Section>
 
@@ -103,7 +106,7 @@ const Terms: React.FC = () => (
 
           <Section number="06" title="Entrega e Prazos">
             <p>Realizamos entrega em todo o território nacional via Correios (PAC e Sedex) ou motoboy próprio para pedidos na região de Osasco/SP (entrega no mesmo dia).</p>
-            <p>Os prazos estimados são contados em dias úteis a partir da confirmação do pagamento. A JR Acessórios não se responsabiliza por atrasos causados por greves, forças maiores ou endereços incorretos fornecidos pelo cliente.</p>
+            <p>Os prazos estimados são contados em dias úteis a partir da confirmação do pagamento. A {STORE.name} não se responsabiliza por atrasos causados por greves, forças maiores ou endereços incorretos fornecidos pelo cliente.</p>
           </Section>
 
           <Section number="07" title="Política de Troca e Devolução">
@@ -113,12 +116,12 @@ const Terms: React.FC = () => (
           </Section>
 
           <Section number="08" title="Propriedade Intelectual">
-            <p>Todo o conteúdo deste site — textos, imagens, logotipos, design e código — é de propriedade da JR Acessórios ou de seus licenciantes, protegido pela Lei 9.610/1998 (Lei de Direitos Autorais).</p>
+            <p>Todo o conteúdo deste site — textos, imagens, logotipos, design e código — é de propriedade da {STORE.name} ou de seus licenciantes, protegido pela Lei 9.610/1998 (Lei de Direitos Autorais).</p>
             <p>É proibida a reprodução, distribuição ou uso comercial de qualquer conteúdo sem autorização prévia por escrito.</p>
           </Section>
 
           <Section number="09" title="Limitação de Responsabilidade">
-            <p>A JR Acessórios não se responsabiliza por danos indiretos, incidentais ou consequentes decorrentes do uso do site ou dos produtos, salvo nos casos previstos em lei.</p>
+            <p>A {STORE.name} não se responsabiliza por danos indiretos, incidentais ou consequentes decorrentes do uso do site ou dos produtos, salvo nos casos previstos em lei.</p>
             <p>Nossa responsabilidade máxima é limitada ao valor pago pelo produto objeto da reclamação.</p>
           </Section>
 
@@ -135,7 +138,7 @@ const Terms: React.FC = () => (
 
       {/* Footer legal */}
       <div className="mt-8 flex flex-col sm:flex-row items-center justify-between gap-4 text-[10px] text-white/20 uppercase tracking-widest">
-        <span>© 2025 JR Acessórios — CNPJ em processo de regularização</span>
+        <span>© {new Date().getFullYear()} {STORE.name} — CNPJ em processo de regularização</span>
         <Link to="/privacidade" className="text-[#d4af37]/40 hover:text-[#d4af37] transition-colors">
           Política de Privacidade →
         </Link>

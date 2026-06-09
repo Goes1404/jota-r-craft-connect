@@ -2,6 +2,7 @@ import React, { useState, useMemo, useEffect, useRef, useCallback } from 'react'
 import { Header } from '@/components/Header';
 import { Footer } from '@/components/Footer';
 import SEO from '@/components/SEO';
+import { STORE } from '@/config/store';
 import { ProductCard, ProductCardSkeleton } from '@/components/ProductCard';
 import { ProductFilters, FilterState } from '@/components/ProductFilters';
 import { useProducts } from '@/hooks/useProducts';
@@ -153,7 +154,7 @@ const Products: React.FC = () => {
           className="inline-flex items-center gap-2 px-3.5 h-8 rounded-full border border-[#d4af37]/25 bg-[#d4af37]/[0.06] backdrop-blur-md"
         >
           <Sparkles className="w-3 h-3 text-[#d4af37]" />
-          <span className="text-[10px] font-black uppercase tracking-[0.3em] text-[#d4af37]">JR Acessórios</span>
+          <span className="text-[10px] font-black uppercase tracking-[0.3em] text-[#d4af37]">{STORE.name}</span>
         </motion.span>
 
         <h1 className="mt-5 font-serif font-bold leading-[0.95] tracking-tight text-white text-[clamp(2.4rem,9vw,5.5rem)]">

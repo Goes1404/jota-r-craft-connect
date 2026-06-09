@@ -1,6 +1,7 @@
 import React from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { Header } from '@/components/Header';
+import { STORE } from '@/config/store';
 import { Footer } from '@/components/Footer';
 import { 
   Tag, 
@@ -58,7 +59,7 @@ const Coupons: React.FC = () => {
   // Placeholder coupons if DB is empty/not ready
   const displayCoupons = coupons && coupons.length > 0 ? coupons : [
     { id: '1', code: 'BEMVINDO10', discount_percentage: 10, description: 'Desconto de boas-vindas para sua primeira aquisição premium.', expiry_date: '2024-12-31' },
-    { id: '2', code: 'JRLUXO', discount_percentage: 15, description: 'Cupom exclusivo para membros do Programa JR Acessórios.', expiry_date: '2024-10-15' }
+    { id: '2', code: 'JRLUXO', discount_percentage: 15, description: `Cupom exclusivo para membros do Programa ${STORE.name}.`, expiry_date: '2024-10-15' }
   ];
 
   return (

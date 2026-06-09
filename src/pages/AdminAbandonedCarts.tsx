@@ -2,9 +2,8 @@ import React, { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
-import { Header } from '@/components/Header';
 import { AdminShell } from '@/components/admin/AdminShell';
-import { Footer } from '@/components/Footer';
+import { AdminCardSkeleton, AdminEmptyState } from '@/components/admin/ui';
 import { Button } from '@/components/ui/button';
 import { 
   ShoppingCart, 
@@ -70,7 +69,7 @@ const AdminAbandonedCarts = () => {
       });
 
       if (error) throw error;
-      setAiMessages(prev => ({ ...prev, [cart.id]: data.reply }));
+      setAiMessages(prev => ({ ...prev, [cart.id]: data.text || data.reply }));
       toast.success('Mensagem de recuperação gerada! ✨');
     } catch (error) {
       console.error(error);
@@ -104,17 +103,15 @@ const AdminAbandonedCarts = () => {
     >
 
         <div className="grid gap-6">
-          {isLoading ? (
-            <div className="text-center py-20 text-white/40 animate-pulse font-bold tracking-widest uppercase text-xs">
-              Buscando oportunidades de venda...
-            </div>
-          ) : carts?.length === 0 ? (
-            <div className="bg-[#0f0f0f]/60 p-12 rounded-[32px] border border-white/5 text-center">
-              <ShoppingCart className="w-12 h-12 text-white/10 mx-auto mb-4" />
-              <h3 className="text-xl font-serif font-bold text-white mb-2">Nenhum Carrinho Abandonado</h3>
-              <p className="text-white/40 text-sm">Seus clientes estão finalizando todas as compras!</p>
-            </div>
-          ) : (
+          {isLoading && <AdminCardSkeleton count={3} />}
+          {!isLoading && carts?.length === 0 && (
+            <AdminEmptyState
+              icon={ShoppingCart}
+              title="Nenhum carrinho abandonado 🎉"
+              description="Seus clientes estão finalizando todas as compras. Continue assim!"
+            />
+          )}
+          {!isLoading && (carts?.length ?? 0) > 0 && (
             carts?.map(cart => {
               const items = Array.isArray(cart.cart_items) ? cart.cart_items : [];
               const isRecent = new Date().getTime() - new Date(cart.last_active_at).getTime() < 1000 * 60 * 60;
@@ -209,6 +206,7 @@ const AdminAbandonedCarts = () => {
           )}
         </div>
     </AdminShell>
+
   );
 };
 

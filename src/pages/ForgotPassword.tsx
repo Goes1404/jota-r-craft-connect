@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Diamond, ArrowLeft, Mail, CheckCircle2 } from 'lucide-react';
+import { STORE } from '@/config/store';
 
 const ForgotPassword = () => {
   const [email, setEmail] = useState('');
@@ -114,7 +115,7 @@ const ForgotPassword = () => {
           )}
         </div>
         
-        <p className="mt-8 text-center text-white/10 text-[9px] uppercase tracking-[0.3em] font-medium">JR Acessórios</p>
+        <p className="mt-8 text-center text-white/10 text-[9px] uppercase tracking-[0.3em] font-medium">{STORE.name}</p>
       </div>
     </div>
   );

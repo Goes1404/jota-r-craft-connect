@@ -35,6 +35,8 @@ import {
 } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { AdminShell } from '@/components/admin/AdminShell';
+import { STORE } from '@/config/store';
+import { AdminCardSkeleton, AdminEmptyState, AdminErrorState } from '@/components/admin/ui';
 
 const AdminOrders = () => {
   const { user } = useAuth();
@@ -123,7 +125,7 @@ const AdminOrders = () => {
                       order.status === 'Enviado' ? `acaba de ser enviado! 🚚\n\nCódigo de Rastreio: *${order.tracking_code || 'Em processamento'}*` : 
                       'foi entregue! Esperamos que você ame sua nova peça. 💎';
     
-    const text = `Olá ${firstName}! Seu pedido da JR Acessórios ${statusText}`;
+    const text = `Olá ${firstName}! Seu pedido da ${STORE.name} ${statusText}`;
     const phone = order.customer_phone?.replace(/\D/g, '') || order.user?.phone?.replace(/\D/g, '') || order.shipping_address?.match(/\d{10,11}/)?.[0];
     
     if (phone) {
@@ -185,8 +187,16 @@ const AdminOrders = () => {
               <span className="text-[10px] font-black uppercase tracking-[0.2em] text-white/20">{filteredOrders.length} Pedidos encontrados</span>
             </div>
 
+            {isLoading && <AdminCardSkeleton count={5} />}
+            {!isLoading && filteredOrders.length === 0 && (
+              <AdminEmptyState
+                icon={ShoppingBag}
+                title="Nenhum pedido encontrado"
+                description={searchTerm ? 'Tente outro termo de busca.' : 'Os pedidos aparecerão aqui assim que forem realizados.'}
+              />
+            )}
             <div className="space-y-4">
-              {filteredOrders.map((order) => (
+              {!isLoading && filteredOrders.map((order) => (
                 <div 
                   key={order.id} 
                   onClick={() => setSelectedOrder(order)}

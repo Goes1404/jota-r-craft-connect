@@ -2,6 +2,7 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 import { motion, useScroll, useTransform, useReducedMotion } from 'framer-motion';
 import { INSTAGRAM_URL, WHATSAPP_NUMBER, WHATSAPP_LINK } from '@/config/constants';
+import { STORE } from '@/config/store';
 import { Instagram, MessageCircle, Mail, MapPin, Diamond, Send, ShoppingBag } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
@@ -172,7 +173,7 @@ export const Footer: React.FC = () => {
                 </h3>
               </MaskReveal>
               <p className="text-white/30 text-sm max-w-sm">
-                Cadastre-se para receber lançamentos exclusivos e ofertas selecionadas da JR Acessórios.
+                Cadastre-se para receber lançamentos exclusivos e ofertas selecionadas da {STORE.name}.
               </p>
             </div>
 
@@ -207,7 +208,7 @@ export const Footer: React.FC = () => {
             <Link to="/" className="flex items-center gap-3 group">
               <Diamond className="h-6 w-6 text-[#D4AF37]" />
               <span className="text-2xl font-serif font-black text-[#D4AF37] uppercase tracking-[0.3em]">
-                JR <span className="text-white italic lowercase font-light tracking-normal opacity-80">acessorios</span>
+                {STORE.name}
               </span>
             </Link>
             <p className="text-sm font-sans leading-relaxed max-w-md text-white/30">
@@ -253,14 +254,14 @@ export const Footer: React.FC = () => {
               <div className="flex items-start gap-4">
                 <MapPin className="h-5 w-5 text-[#D4AF37] shrink-0" />
                 <p className="text-xs leading-relaxed text-white/30">
-                  Rua Martim Afonso, 431<br />
-                  Piratininga, Osasco - SP<br />
-                  06233-130
+                  {STORE.address.street}<br />
+                  {STORE.address.city} - {STORE.address.state}<br />
+                  {STORE.address.zip}
                 </p>
               </div>
               <div className="flex items-center gap-4">
                 <Mail className="h-5 w-5 text-[#D4AF37] shrink-0" />
-                <p className="text-xs text-white/30">contato@jr-acessorios.com</p>
+                <p className="text-xs text-white/30">{STORE.contact.email}</p>
               </div>
             </div>
           </div>
@@ -269,7 +270,7 @@ export const Footer: React.FC = () => {
         {/* Bottom bar */}
         <div className="mt-20 pt-10 border-t border-white/5 flex flex-col md:flex-row justify-between items-center gap-6">
           <p className="text-[10px] uppercase tracking-[0.2em] font-bold text-white/10">
-            © 2025 JR ACESSÓRIOS — LUMINA TECH EXPERIENCE
+            © {new Date().getFullYear()} {STORE.name.toUpperCase()}
           </p>
           <div className="flex gap-8">
             <Link to="/contato" className="text-[10px] uppercase tracking-[0.2em] font-bold text-white/10 hover:text-white/20 transition-colors">

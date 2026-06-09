@@ -3,6 +3,7 @@ import { useCart } from '@/contexts/CartContext';
 import { useAuth } from '@/contexts/AuthContext';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
+import { STORE } from '@/config/store';
 import { Header } from '@/components/Header';
 import { Footer } from '@/components/Footer';
 import { Button } from '@/components/ui/button';
@@ -708,7 +709,7 @@ const Checkout = () => {
 
                 <PaymentRequestButton
                   amount={finalTotal}
-                  label="JR Acessórios"
+                  label={STORE.name}
                   onCreateOrder={createWalletOrder}
                   onSuccess={() => {
                     setOrderTotal(finalTotal);
@@ -753,7 +754,7 @@ const Checkout = () => {
                   </div>
                   <input type="checkbox" className="hidden" checked={acceptedTerms} onChange={(e) => setAcceptedTerms(e.target.checked)} />
                   <span className="text-[10px] text-white/40 leading-relaxed">
-                    Eu li e concordo com os <a href="#" className="text-[#d4af37] hover:underline">Termos e Condições</a> e a <a href="#" className="text-[#d4af37] hover:underline">Política de Privacidade</a> da JR Acessórios. *
+                    Eu li e concordo com os <a href="#" className="text-[#d4af37] hover:underline">Termos e Condições</a> e a <a href="#" className="text-[#d4af37] hover:underline">Política de Privacidade</a> da {STORE.name}. *
                   </span>
                 </label>
               </div>

@@ -5,8 +5,9 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
-const BRAND = "JR Acessórios";
-const FROM = `${BRAND} <notificacoes@jracessorios.com>`;
+const BRAND = Deno.env.get('STORE_NAME') || "JR Acessórios";
+const FROM = `${BRAND} <${Deno.env.get('STORE_EMAIL_FROM') || "notificacoes@jracessorios.com"}>`;
+const STORE_URL = Deno.env.get('STORE_URL') || "https://jracessorios.com";
 
 function baseTemplate(content: string) {
   return `<!DOCTYPE html>
@@ -57,7 +58,7 @@ function orderConfirmedHtml(name: string, orderId: string, total: number, addres
       <p>${address}</p>
     </div>
     <p>Você pode acompanhar o status do seu pedido a qualquer momento clicando no botão abaixo.</p>
-    <a href="https://jracessorios.com/pedidos" class="btn">Acompanhar Pedido</a>
+    <a href="${STORE_URL}/pedidos" class="btn">Acompanhar Pedido</a>
   `);
 }
 
@@ -74,7 +75,7 @@ function orderShippedHtml(name: string, orderId: string, trackingCode: string) {
       <p class="highlight" style="font-size:18px;letter-spacing:.1em">${trackingCode}</p>
     </div>
     <p>Use o código acima para rastrear sua encomenda no site dos Correios ou na transportadora responsável.</p>
-    <a href="https://jracessorios.com/pedidos" class="btn">Ver Status do Pedido</a>
+    <a href="${STORE_URL}/pedidos" class="btn">Ver Status do Pedido</a>
   `);
 }
 
@@ -94,7 +95,7 @@ function adminNewOrderHtml(customerName: string, customerEmail: string, orderId:
       <p class="label" style="margin-top:16px!important">Endereço de Entrega</p>
       <p>${shippingAddress}</p>
     </div>
-    <a href="https://jracessorios.com/admin/orders" class="btn">Gerenciar Pedido</a>
+    <a href="${STORE_URL}/admin/orders" class="btn">Gerenciar Pedido</a>
   `);
 }
 

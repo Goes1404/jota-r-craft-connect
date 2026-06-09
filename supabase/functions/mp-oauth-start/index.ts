@@ -8,16 +8,18 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 // mp-oauth-callback com ?code=... → callback troca por tokens e salva.
 // ─────────────────────────────────────────────────────────────────────────────
 
+const STORE_URL = Deno.env.get('STORE_URL') || "https://jracessorios.com";
+
 function isAllowedOrigin(origin: string | null): boolean {
   if (!origin) return false;
-  if (origin === "https://jracessorios.com" || origin === "https://www.jracessorios.com") return true;
+  if (origin === STORE_URL || origin === STORE_URL.replace('https://', 'https://www.')) return true;
   if (/^http:\/\/localhost(:\d+)?$/.test(origin)) return true;
   if (/^https:\/\/.*\.vercel\.app$/.test(origin)) return true;
   return false;
 }
 
 function corsHeaders(origin: string | null): Record<string, string> {
-  const allowed = (origin && isAllowedOrigin(origin)) ? origin : "https://jracessorios.com";
+  const allowed = (origin && isAllowedOrigin(origin)) ? origin : STORE_URL;
   return {
     "Access-Control-Allow-Origin": allowed,
     "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",

@@ -5,6 +5,8 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
+const STORE_NAME = Deno.env.get('STORE_NAME') || "JR Acessórios";
+
 function formatBRL(value: number) {
   return `R$ ${value.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}`;
 }
@@ -45,7 +47,7 @@ serve(async (req) => {
 
     if (type === "order_shipped") {
       const tracking = trackingCode || "Em processamento";
-      textMessage = `Olá, ${firstName}! 🚚 Seu pedido *#${shortOrderId}* acaba de ser enviado!\n\nEle está a caminho de forma totalmente segura até o seu endereço.\n\nCódigo de Rastreio: *${tracking}*\nVocê pode utilizá-lo para acompanhar a entrega no site dos Correios ou da transportadora.\n\nAgradecemos a sua preferência!\n*JR Acessórios*`;
+      textMessage = `Olá, ${firstName}! 🚚 Seu pedido *#${shortOrderId}* acaba de ser enviado!\n\nEle está a caminho de forma totalmente segura até o seu endereço.\n\nCódigo de Rastreio: *${tracking}*\nVocê pode utilizá-lo para acompanhar a entrega no site dos Correios ou da transportadora.\n\nAgradecemos a sua preferência!\n*${STORE_NAME}*`;
       
       templateName = Deno.env.get("WHATSAPP_TEMPLATE_SHIPPED_NAME") || "order_shipped";
       templateComponents = [
@@ -55,7 +57,7 @@ serve(async (req) => {
       ];
     } else {
       const formattedAmount = formatBRL(Number(totalAmount || 0));
-      textMessage = `Olá, ${firstName}! ✨\n\nConfirmamos o recebimento do seu pagamento para o pedido *#${shortOrderId}* no valor de *${formattedAmount}*.\n\nSua reserva foi garantida com sucesso e nossa equipe de curadoria já está preparando a sua peça sob os mais altos padrões de luxo. 💎\n\nAssim que seu pacote for despachado, você receberá o código de rastreamento por aqui e por e-mail.\n\nAgradecemos a sua preferência!\n*JR Acessórios*`;
+      textMessage = `Olá, ${firstName}! ✨\n\nConfirmamos o recebimento do seu pagamento para o pedido *#${shortOrderId}* no valor de *${formattedAmount}*.\n\nSua reserva foi garantida com sucesso e nossa equipe de curadoria já está preparando a sua peça sob os mais altos padrões de luxo. 💎\n\nAssim que seu pacote for despachado, você receberá o código de rastreamento por aqui e por e-mail.\n\nAgradecemos a sua preferência!\n*${STORE_NAME}*`;
       
       templateName = Deno.env.get("WHATSAPP_TEMPLATE_NAME") || "order_confirmed";
       templateComponents = [

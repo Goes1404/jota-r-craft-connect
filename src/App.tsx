@@ -20,6 +20,7 @@ import { MobileBottomNav } from "./components/MobileBottomNav";
 import { AdminMobileMenu } from "./components/AdminMobileMenu";
 import { IntroLoader } from "./components/animations/IntroLoader";
 import { FloatingWhatsApp } from "./components/FloatingWhatsApp";
+import { ThemeProvider } from "./components/ThemeProvider";
 
 // ─── lazy page imports ────────────────────────────────────────────────────────
 const Index = lazy(() => import("./pages/Index"));
@@ -64,6 +65,7 @@ const PageLoader = () => (
 const queryClient = new QueryClient();
 
 const App = () => (
+  <ThemeProvider>
   <HelmetProvider>
     <QueryClientProvider client={queryClient}>
       <AuthProvider>
@@ -131,6 +133,7 @@ const App = () => (
       </AuthProvider>
     </QueryClientProvider>
   </HelmetProvider>
+  </ThemeProvider>
 );
 
 export default App;

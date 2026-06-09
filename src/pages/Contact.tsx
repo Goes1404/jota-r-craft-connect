@@ -19,6 +19,8 @@ import {
 import { supabase } from '@/integrations/supabase/client';
 import { useAnalytics } from '@/hooks/useAnalytics';
 import { WHATSAPP_LINK, WHATSAPP_NUMBER } from '@/config/constants';
+import SEO from '@/components/SEO';
+import { STORE } from '@/config/store';
 
 interface Message {
   id: string;
@@ -31,7 +33,7 @@ const Contact: React.FC = () => {
   usePageVisit('contact');
   
   const [messages, setMessages] = useState<Message[]>([
-    { id: '1', role: 'assistant', content: 'Olá! Bem-vindo à JR Acessórios. Posso te ajudar com dúvidas sobre produtos, prazos de entrega, trocas e muito mais. Como posso ajudar?' }
+    { id: '1', role: 'assistant', content: `Olá! Bem-vindo à ${STORE.name}. Posso te ajudar com dúvidas sobre produtos, prazos de entrega, trocas e muito mais. Como posso ajudar?` }
   ]);
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
@@ -58,7 +60,7 @@ const Contact: React.FC = () => {
       const { data, error } = await supabase.functions.invoke('ai-assistant', {
         body: { 
           message: userMessage,
-          context: "Você é a Lumina, a concierge de luxo virtual da JR Acessórios. Você responde dúvidas sobre iPhones, Apple Watches, AirPods, cases premium, prazos de envio e a marca JR Acessórios. Seja extremamente polida, use um tom sofisticado e responda de forma concisa. Se a pergunta envolver compras diretas ou estoque imediato, sugira que o cliente clique em 'Falar com Consultor' para iniciar atendimento humano no WhatsApp."
+          context: `Você é a Lumina, a concierge de luxo virtual da ${STORE.name}. Você responde dúvidas sobre produtos, prazos de envio e a marca ${STORE.name}. Seja extremamente polida, use um tom sofisticado e responda de forma concisa. Se a pergunta envolver compras diretas ou estoque imediato, sugira que o cliente clique em 'Falar com Consultor' para iniciar atendimento humano no WhatsApp.`
         }
       });
 
@@ -79,6 +81,7 @@ const Contact: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-black text-[#e2e2e2] font-sans selection:bg-[#f2ca50]/30 selection:text-[#f2ca50]">
+      <SEO title="Fale Conosco" description={`Entre em contato com a equipe da ${STORE.name} para tirar dúvidas sobre produtos e suporte.`} url={`${STORE.domain}/contato`} />
       <Header />
       
       {/* Background Smoke Animation */}
@@ -222,7 +225,7 @@ const Contact: React.FC = () => {
                   </div>
                   <div>
                     <h3 className="text-[9px] font-black text-white/40 uppercase tracking-[0.2em]">Email de Suporte</h3>
-                    <p className="text-sm font-bold text-white">contato@jracessorios.com.br</p>
+                    <p className="text-sm font-bold text-white">{STORE.contact.email}</p>
                   </div>
                 </div>
                 <div className="h-[1px] w-full bg-white/5 my-4"></div>

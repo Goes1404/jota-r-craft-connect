@@ -142,46 +142,66 @@ serve(async (req) => {
       }
     }
 
-    // 3. Send confirmation email to customer (fire-and-forget)
+    // 3. Send confirmation and notifications (await in parallel before responding to avoid serverless freeze)
+    const notificationPromises = [];
+
     if (order?.customer_email) {
-      supabase.functions.invoke("send-email", {
-        body: {
-          type: "order_confirmed",
-          to: order.customer_email,
-          customerName: order.customer_name,
-          orderId,
-          totalAmount: order.total_amount,
-          shippingAddress: order.shipping_address,
-        },
-      }).catch((err) => console.error("send-email customer failed:", err));
+      notificationPromises.push(
+        supabase.functions.invoke("send-email", {
+          body: {
+            type: "order_confirmed",
+            to: order.customer_email,
+            customerName: order.customer_name,
+            orderId,
+            totalAmount: order.total_amount,
+            shippingAddress: order.shipping_address,
+          },
+        }).then((res) => {
+          if (res.error) console.error("send-email customer error:", res.error);
+          else console.log("send-email customer success:", res.data);
+        }).catch((err) => console.error("send-email customer failed:", err))
+      );
     }
 
-    // 4. Send confirmation WhatsApp to customer (fire-and-forget)
     if (order?.customer_phone) {
-      supabase.functions.invoke("send-whatsapp", {
-        body: {
-          to: order.customer_phone,
-          customerName: order.customer_name,
-          orderId,
-          totalAmount: order.total_amount,
-        },
-      }).catch((err) => console.error("send-whatsapp failed:", err));
+      notificationPromises.push(
+        supabase.functions.invoke("send-whatsapp", {
+          body: {
+            to: order.customer_phone,
+            customerName: order.customer_name,
+            orderId,
+            totalAmount: order.total_amount,
+          },
+        }).then((res) => {
+          if (res.error) console.error("send-whatsapp error:", res.error);
+          else console.log("send-whatsapp success:", res.data);
+        }).catch((err) => console.error("send-whatsapp failed:", err))
+      );
     }
 
-    // 5. Notify admin (fire-and-forget)
     const ADMIN_EMAIL = Deno.env.get("ADMIN_EMAIL");
     if (ADMIN_EMAIL) {
-      supabase.functions.invoke("send-email", {
-        body: {
-          type: "admin_new_order",
-          to: ADMIN_EMAIL,
-          customerName: order.customer_name,
-          customerEmail: order.customer_email,
-          orderId,
-          totalAmount: order.total_amount,
-          shippingAddress: order.shipping_address,
-        },
-      }).catch((err) => console.error("send-email admin failed:", err));
+      notificationPromises.push(
+        supabase.functions.invoke("send-email", {
+          body: {
+            type: "admin_new_order",
+            to: ADMIN_EMAIL,
+            customerName: order.customer_name,
+            customerEmail: order.customer_email,
+            orderId,
+            totalAmount: order.total_amount,
+            shippingAddress: order.shipping_address,
+          },
+        }).then((res) => {
+          if (res.error) console.error("send-email admin error:", res.error);
+          else console.log("send-email admin success:", res.data);
+        }).catch((err) => console.error("send-email admin failed:", err))
+      );
+    }
+
+    if (notificationPromises.length > 0) {
+      console.log(`Awaiting ${notificationPromises.length} notification promises...`);
+      await Promise.allSettled(notificationPromises);
     }
 
     console.log(`Order ${orderId} marked Pago via MP webhook`);

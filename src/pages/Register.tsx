@@ -3,6 +3,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { Eye, EyeOff, Loader2, Mail, User, Lock, Phone, Check, ArrowLeft } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
+import { STORE } from '@/config/store';
 
 // ─── Tipos ────────────────────────────────────────────────────────────────────
 
@@ -138,7 +139,7 @@ const Register: React.FC = () => {
       } else {
         toast({
           title: 'Conta criada! ✨',
-          description: 'Bem-vindo(a) à JR Acessórios.',
+          description: `Bem-vindo(a) à ${STORE.name}.`,
         });
         navigate('/perfil');
       }
@@ -195,7 +196,7 @@ const Register: React.FC = () => {
             </ul>
           </div>
 
-          <p className="text-xs text-white/15 tracking-widest uppercase">© 2025 JR Acessórios</p>
+          <p className="text-xs text-white/15 tracking-widest uppercase">© {new Date().getFullYear()} {STORE.name}</p>
         </aside>
 
         {/* ── Lado direito: Formulário ── */}

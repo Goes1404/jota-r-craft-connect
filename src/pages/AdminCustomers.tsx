@@ -3,16 +3,14 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { AdminShell } from '@/components/admin/AdminShell';
-import { Header } from '@/components/Header';
-import { Footer } from '@/components/Footer';
-import { 
-  Users, 
-  Mail, 
-  ArrowLeft, 
-  Search, 
-  Phone, 
-  ExternalLink, 
-  Star, 
+import { STORE } from '@/config/store';
+import { AdminCardSkeleton, AdminEmptyState, AdminErrorState } from '@/components/admin/ui';
+import {
+  Users,
+  Mail,
+  Search,
+  Phone,
+  Star,
   User,
   Sparkles,
   Bot,
@@ -20,7 +18,7 @@ import {
   Copy,
   Zap
 } from 'lucide-react';
-import { useNavigate, Navigate } from 'react-router-dom';
+import { Navigate } from 'react-router-dom';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { format } from 'date-fns';
@@ -37,7 +35,6 @@ import { toast } from 'sonner';
 
 const AdminCustomers = () => {
   const { user } = useAuth();
-  const navigate = useNavigate();
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCustomer, setSelectedCustomer] = useState<any>(null);
   const [notes, setNotes] = useState('');
@@ -105,12 +102,12 @@ const AdminCustomers = () => {
       const { data, error } = await supabase.functions.invoke('ai-assistant', {
         body: { 
           message: `Gere uma abordagem de vendas personalizada e luxuosa para o WhatsApp deste cliente: ${JSON.stringify(context)}. O tom deve ser exclusivo, chamando pelo primeiro nome, mencionando sutilmente seu histórico (se for VIP ou recorrente) e oferecendo uma curadoria personalizada. Responda APENAS o texto da mensagem.`,
-          context: "Você é o Lumina Concierge, um especialista em vendas de luxo para a JR Acessórios."
+          context: `Você é o Lumina Concierge, um especialista em vendas de luxo para a ${STORE.name}.`
         }
       });
 
       if (error) throw error;
-      setAiApproach(data.reply);
+      setAiApproach(data.text || data.reply);
       toast.success('Abordagem gerada pela Lumina AI! ✨');
     } catch (error) {
       console.error(error);

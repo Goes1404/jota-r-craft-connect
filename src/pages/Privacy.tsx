@@ -3,6 +3,8 @@ import { Link } from 'react-router-dom';
 import { ArrowLeft, ChevronDown, ShieldCheck } from 'lucide-react';
 import { Header } from '@/components/Header';
 import { Footer } from '@/components/Footer';
+import SEO from '@/components/SEO';
+import { STORE } from '@/config/store';
 
 // ─── Accordion ────────────────────────────────────────────────────────────────
 
@@ -51,6 +53,7 @@ function Right({ icon, title, desc }: { icon: React.ReactNode; title: string; de
 
 const Privacy: React.FC = () => (
   <div className="min-h-screen bg-black text-[#e2e2e2] font-sans selection:bg-[#f2ca50]/30 selection:text-[#f2ca50]">
+    <SEO title="Política de Privacidade" description={`Consulte a Política de Privacidade da ${STORE.name} para saber como tratamos e protegemos seus dados pessoais de acordo com a LGPD.`} url={`${STORE.domain}/privacidade`} />
     <div className="fixed inset-0 pointer-events-none z-0" aria-hidden="true">
       <div className="absolute top-[10%] -left-[10%] w-[40%] h-[40%] rounded-full bg-[#f2ca50] opacity-[0.02] blur-[120px]" />
     </div>
@@ -73,13 +76,13 @@ const Privacy: React.FC = () => (
         <div>
           <h1 className="font-serif text-2xl md:text-3xl font-bold text-white leading-tight">Política de Privacidade</h1>
           <p className="text-xs text-white/30 mt-1">
-            JR Acessórios · Última atualização: 01 de maio de 2025 · Em conformidade com a LGPD
+            {STORE.name} · Última atualização: 01 de maio de 2025 · Em conformidade com a LGPD
           </p>
         </div>
       </div>
 
       <p className="text-sm text-white/40 leading-relaxed mb-6 bg-white/[0.02] border border-white/5 rounded-2xl p-5">
-        Esta Política descreve como a <strong className="text-white/60">JR Acessórios</strong> coleta, usa, armazena e protege seus dados pessoais, em conformidade com a{' '}
+        Esta Política descreve como a <strong className="text-white/60">{STORE.name}</strong> coleta, usa, armazena e protege seus dados pessoais, em conformidade com a{' '}
         <strong className="text-white/60">Lei Geral de Proteção de Dados — LGPD (Lei 13.709/2018)</strong> e demais normas aplicáveis.
       </p>
 
@@ -100,8 +103,8 @@ const Privacy: React.FC = () => (
         </div>
         <p className="text-xs text-white/30 mt-3">
           Para exercer seus direitos, envie e-mail para{' '}
-          <a href="mailto:privacidade@jracessorios.com" className="text-[#d4af37] hover:underline">
-            privacidade@jracessorios.com
+          <a href={`mailto:${STORE.contact.emailPrivacidade}`} className="text-[#d4af37] hover:underline">
+            {STORE.contact.emailPrivacidade}
           </a>{' '}
           com o assunto "Direitos LGPD". Responderemos em até 15 dias úteis.
         </p>
@@ -112,9 +115,9 @@ const Privacy: React.FC = () => (
         <div className="px-6">
 
           <Section number="01" title="Controlador dos Dados">
-            <p><strong className="text-white/60">JR Acessórios</strong> é o controlador responsável pelo tratamento dos dados pessoais coletados neste site.</p>
+            <p><strong className="text-white/60">{STORE.name}</strong> é o controlador responsável pelo tratamento dos dados pessoais coletados neste site.</p>
             <p>Encarregado de Proteção de Dados (DPO):{' '}
-              <a href="mailto:privacidade@jracessorios.com" className="text-[#d4af37]">privacidade@jracessorios.com</a>
+              <a href={`mailto:${STORE.contact.emailPrivacidade}`} className="text-[#d4af37]">{STORE.contact.emailPrivacidade}</a>
             </p>
           </Section>
 
@@ -206,7 +209,7 @@ const Privacy: React.FC = () => (
 
       {/* Footer legal */}
       <div className="mt-8 flex flex-col sm:flex-row items-center justify-between gap-4 text-[10px] text-white/20 uppercase tracking-widest">
-        <span>© 2025 JR Acessórios · LGPD (Lei 13.709/2018)</span>
+        <span>© {new Date().getFullYear()} {STORE.name} · LGPD (Lei 13.709/2018)</span>
         <Link to="/termos" className="text-[#d4af37]/40 hover:text-[#d4af37] transition-colors">
           Termos de Uso →
         </Link>

@@ -6,9 +6,9 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
-const BRAND = "JR Acessórios";
-const FROM = `${BRAND} <notificacoes@jracessorios.com>`;
-const STORE_URL = "https://jracessorios.com";
+const BRAND = Deno.env.get('STORE_NAME') || "JR Acessórios";
+const FROM = `${BRAND} <${Deno.env.get('STORE_EMAIL_FROM') || "notificacoes@jracessorios.com"}>`;
+const STORE_URL = Deno.env.get('STORE_URL') || "https://jracessorios.com";
 
 function formatBRL(value: number) {
   return `R$ ${Number(value).toLocaleString("pt-BR", { minimumFractionDigits: 2 })}`;
