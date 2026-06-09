@@ -1,17 +1,10 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
-// ─────────────────────────────────────────────────────────────────────────────
-// mp-oauth-callback: o MercadoPago redireciona o navegador para cá com
-// ?code=...&state=... após o lojista autorizar. Trocamos o code pelos tokens
-// OAuth e salvamos. verify_jwt=false: é um redirect de navegador, sem JWT.
-// A segurança vem da validação do `state` (gerado e guardado pelo mp-oauth-start).
-// ─────────────────────────────────────────────────────────────────────────────
-
-function redirect(base: string, status: "connected" | "error", detail?: string): Response {
-  const url = new URL("/admin/commissions", base);
-  url.searchParams.set("mp", status);
-  if (detail) url.searchParams.set("detail", detail.slice(0, 140));
-  return new Response(null, { status: 302, headers: { Location: url.toString() } });
+function htmlPage(title: string, body: string, color: string): Response {
+  return new Response(
+    `<!DOCTYPE html><html lang="pt-BR"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>${title}</title><style>body{font-family:sans-serif;display:flex;align-items:center;justify-content:center;min-height:100vh;margin:0;background:#f8f9fa}.box{background:#fff;border-radius:12px;padding:40px;max-width:420px;text-align:center;box-shadow:0 4px 20px rgba(0,0,0,.1)}h1{color:${color};margin-top:0}p{color:#555;line-height:1.6}a{display:inline-block;margin-top:20px;padding:12px 28px;background:${color};color:#fff;text-decoration:none;border-radius:8px;font-weight:600}</style></head><body><div class="box">${body}</div></body></html>`,
+    { status: 200, headers: { "Content-Type": "text/html; charset=utf-8" } }
+  );
 }
 
 Deno.serve(async (req) => {
@@ -23,8 +16,12 @@ Deno.serve(async (req) => {
     const state = url.searchParams.get("state");
     const error = url.searchParams.get("error");
 
-    if (error) return redirect(APP_BASE_URL, "error", error);
-    if (!code || !state) return redirect(APP_BASE_URL, "error", "missing_code_or_state");
+    if (error) {
+      return htmlPage("Erro OAuth", `<h1>❌ Erro ao conectar</h1><p>MercadoPago retornou: <strong>${error}</strong></p><a href="${APP_BASE_URL}/admin/commissions">Voltar ao painel</a>`, "#e53e3e");
+    }
+    if (!code || !state) {
+      return htmlPage("Erro OAuth", `<h1>❌ Parâmetros ausentes</h1><p>code ou state não recebidos.</p><a href="${APP_BASE_URL}/admin/commissions">Voltar ao painel</a>`, "#e53e3e");
+    }
 
     const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
     const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
@@ -33,21 +30,21 @@ Deno.serve(async (req) => {
     const MP_REDIRECT_URI = Deno.env.get("MP_REDIRECT_URI");
 
     if (!MP_CLIENT_ID || !MP_CLIENT_SECRET || !MP_REDIRECT_URI) {
-      return redirect(APP_BASE_URL, "error", "app_not_configured");
+      return htmlPage("Erro de configuração", `<h1>❌ App não configurado</h1><p>Secrets MP_CLIENT_ID, MP_CLIENT_SECRET ou MP_REDIRECT_URI não encontrados no Supabase.</p>`, "#e53e3e");
     }
 
     const admin = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
 
-    // Valida o state (CSRF) e o consome.
     const { data: stateRow } = await admin
       .from("mp_oauth_state")
       .select("state")
       .eq("state", state)
       .maybeSingle();
-    if (!stateRow) return redirect(APP_BASE_URL, "error", "invalid_state");
+    if (!stateRow) {
+      return htmlPage("Erro de segurança", `<h1>❌ State inválido</h1><p>Este link de autorização já foi usado ou expirou. Gere um novo link no painel.</p><a href="${APP_BASE_URL}/admin/commissions">Voltar ao painel</a>`, "#e53e3e");
+    }
     await admin.from("mp_oauth_state").delete().eq("state", state);
 
-    // Troca o code pelos tokens OAuth do lojista.
     const tokenResp = await fetch("https://api.mercadopago.com/oauth/token", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -61,14 +58,14 @@ Deno.serve(async (req) => {
     });
 
     if (!tokenResp.ok) {
-      console.error("MP token exchange failed:", tokenResp.status, await tokenResp.text());
-      return redirect(APP_BASE_URL, "error", "token_exchange_failed");
+      const errText = await tokenResp.text();
+      console.error("MP token exchange failed:", tokenResp.status, errText);
+      return htmlPage("Erro no exchange", `<h1>❌ Falha ao obter token</h1><p>MercadoPago retornou HTTP ${tokenResp.status}:</p><pre style="background:#f0f0f0;padding:12px;border-radius:6px;text-align:left;font-size:13px;overflow:auto">${errText.slice(0, 600)}</pre><p>Verifique se MP_CLIENT_SECRET e MP_REDIRECT_URI no Supabase estão corretos.</p><a href="${APP_BASE_URL}/admin/commissions">Voltar ao painel</a>`, "#e53e3e");
     }
 
     const token = await tokenResp.json();
     const expiresAt = new Date(Date.now() + Number(token.expires_in ?? 0) * 1000).toISOString();
 
-    // Upsert singleton (id=true): substitui qualquer credencial anterior.
     const { error: upsertErr } = await admin
       .from("mp_marketplace_credentials")
       .upsert({
@@ -83,13 +80,13 @@ Deno.serve(async (req) => {
 
     if (upsertErr) {
       console.error("MP creds upsert failed:", upsertErr.message);
-      return redirect(APP_BASE_URL, "error", "save_failed");
+      return htmlPage("Erro ao salvar", `<h1>❌ Erro ao salvar credenciais</h1><p>${upsertErr.message}</p><a href="${APP_BASE_URL}/admin/commissions">Voltar ao painel</a>`, "#e53e3e");
     }
 
     console.log(`MP marketplace conectado: user_id=${token.user_id}`);
-    return redirect(APP_BASE_URL, "connected");
+    return htmlPage("Conectado!", `<h1>✅ MercadoPago conectado!</h1><p>Split automático 10/90 ativo. O lojista (user_id: ${token.user_id}) está vinculado.</p><a href="${APP_BASE_URL}/admin/commissions">Ver painel de comissões</a>`, "#38a169");
   } catch (err) {
     console.error("mp-oauth-callback error:", err);
-    return redirect(APP_BASE_URL, "error", "unexpected");
+    return htmlPage("Erro inesperado", `<h1>❌ Erro inesperado</h1><p>${String(err)}</p><a href="${APP_BASE_URL}/admin/commissions">Voltar ao painel</a>`, "#e53e3e");
   }
 });

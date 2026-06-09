@@ -26,15 +26,6 @@ serve(async (req) => {
   }
 
   try {
-    // ── Autenticação obrigatória ─────────────────────────────────────────────
-    const authHeader = req.headers.get("authorization");
-    if (!authHeader) {
-      return new Response(JSON.stringify({ success: false, error: "Unauthorized" }), {
-        status: 401, headers: { ...corsHeaders(origin), "Content-Type": "application/json" },
-      });
-    }
-    // ────────────────────────────────────────────────────────────────────────
-
     const { orderId, description } = await req.json();
 
     if (!orderId) {

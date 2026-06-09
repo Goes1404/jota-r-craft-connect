@@ -1,6 +1,5 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
-import { getSellerAccessToken } from "../_shared/mpToken.ts";
 
 function isAllowedOrigin(origin: string | null): boolean {
   if (!origin) return false;
@@ -19,34 +18,41 @@ function corsHeaders(origin: string | null): Record<string, string> {
   };
 }
 
+// Busca o access_token OAuth do lojista (split automático 10/90).
+// Retorna null se não houver credenciais — fallback para token estático.
+async function getSellerToken(admin: ReturnType<typeof createClient>): Promise<string | null> {
+  try {
+    const { data, error } = await admin
+      .from("mp_marketplace_credentials")
+      .select("access_token, refresh_token, expires_at")
+      .limit(1)
+      .maybeSingle();
+    if (error || !data) return null;
+    const expiresAt = new Date(data.expires_at).getTime();
+    if (Number.isFinite(expiresAt) && expiresAt - Date.now() > 5 * 60 * 1000) {
+      return data.access_token as string;
+    }
+    const MP_CLIENT_ID = Deno.env.get("MP_CLIENT_ID");
+    const MP_CLIENT_SECRET = Deno.env.get("MP_CLIENT_SECRET");
+    if (!MP_CLIENT_ID || !MP_CLIENT_SECRET) return data.access_token as string;
+    const resp = await fetch("https://api.mercadopago.com/oauth/token", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ client_id: MP_CLIENT_ID, client_secret: MP_CLIENT_SECRET, grant_type: "refresh_token", refresh_token: data.refresh_token }),
+    });
+    if (!resp.ok) return data.access_token as string;
+    const token = await resp.json();
+    const newExpiry = new Date(Date.now() + Number(token.expires_in ?? 0) * 1000).toISOString();
+    await admin.from("mp_marketplace_credentials").update({ access_token: token.access_token, refresh_token: token.refresh_token ?? data.refresh_token, expires_at: newExpiry, updated_at: new Date().toISOString() }).eq("id", true);
+    return token.access_token as string;
+  } catch { return null; }
+}
+
 serve(async (req) => {
   const origin = req.headers.get("origin");
-
-  if (req.method === "OPTIONS") {
-    return new Response("ok", { headers: corsHeaders(origin) });
-  }
+  if (req.method === "OPTIONS") return new Response("ok", { headers: corsHeaders(origin) });
 
   try {
-    // ── Autenticação obrigatória ─────────────────────────────────────────────
-    const authHeader = req.headers.get("authorization");
-    if (!authHeader) {
-      return new Response(JSON.stringify({ success: false, error: "Unauthorized" }), {
-        status: 401, headers: { ...corsHeaders(origin), "Content-Type": "application/json" },
-      });
-    }
-
-    const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
-    const SUPABASE_ANON_KEY = Deno.env.get("SUPABASE_ANON_KEY")!;
-    const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
-      global: { headers: { Authorization: authHeader } },
-    });
-
-    // Permite guest checkout: o usuário pode ser anônimo (publishable/anon key).
-    // A autorização para chegar aqui já é feita pelo gateway (apikey válida) e a
-    // segurança real vem da validação do pedido no banco (existe + não pago).
-    await supabase.auth.getUser().catch(() => null);
-    // ────────────────────────────────────────────────────────────────────────
-
     const { orderId, payerEmail, payerCpf, payerName } = await req.json();
 
     if (!orderId) {
@@ -55,7 +61,7 @@ serve(async (req) => {
       });
     }
 
-    // ── Busca o total real do pedido no banco (não confia no frontend) ───────
+    const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
     const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
     const adminClient = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
 
@@ -87,18 +93,10 @@ serve(async (req) => {
       .eq("id", orderId);
     // ────────────────────────────────────────────────────────────────────────
 
-    // ── Split marketplace 10/90 ──────────────────────────────────────────────
-    // Se o lojista conectou a conta via OAuth (mp-oauth), criamos o pagamento
-    // com o token DELE + application_fee (os 10%), e o MercadoPago repassa
-    // automaticamente 10% para a conta do desenvolvedor (marketplace) e 90% para
-    // o lojista. Sem conexão OAuth, usa o token estático (sem split automático).
-    const sellerToken = await getSellerAccessToken(adminClient);
+    const sellerToken = await getSellerToken(adminClient);
     const MERCADOPAGO_ACCESS_TOKEN = sellerToken || Deno.env.get("MERCADOPAGO_ACCESS_TOKEN");
     const useSplit = !!sellerToken;
-    if (!MERCADOPAGO_ACCESS_TOKEN) {
-      throw new Error("MERCADOPAGO_ACCESS_TOKEN not configured.");
-    }
-    // ──────────────────────────────────────────────────────────────────────────
+    if (!MERCADOPAGO_ACCESS_TOKEN) throw new Error("MERCADOPAGO_ACCESS_TOKEN not configured.");
 
     // Monta o payer com nome e CPF quando disponíveis (o MP exige p/ PIX em muitos casos)
     const cleanCpf = (payerCpf || "").replace(/\D/g, "");
