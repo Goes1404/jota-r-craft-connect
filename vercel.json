@@ -47,7 +47,7 @@
       ]
     },
     {
-      "source": "/(sw\\.js|registerSW\\.js|workbox-(.*)\\.js)",
+      "source": "/sw.js",
       "headers": [
         {
           "key": "Cache-Control",
@@ -56,7 +56,52 @@
       ]
     },
     {
-      "source": "/(favicon\\.ico|robots\\.txt|sitemap\\.xml|manifest\\.json)",
+      "source": "/registerSW.js",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "no-cache, no-store, must-revalidate"
+        }
+      ]
+    },
+    {
+      "source": "/workbox-:path*",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "no-cache, no-store, must-revalidate"
+        }
+      ]
+    },
+    {
+      "source": "/favicon.ico",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "public, max-age=86400"
+        }
+      ]
+    },
+    {
+      "source": "/robots.txt",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "public, max-age=86400"
+        }
+      ]
+    },
+    {
+      "source": "/sitemap.xml",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "public, max-age=86400"
+        }
+      ]
+    },
+    {
+      "source": "/manifest.json",
       "headers": [
         {
           "key": "Cache-Control",
