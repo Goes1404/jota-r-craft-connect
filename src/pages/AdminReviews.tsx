@@ -56,7 +56,7 @@ const AdminReviews = () => {
     onError: () => toast.error('Erro ao remover avaliação'),
   });
 
-  if (!user || user.user_metadata?.role !== 'admin') return <Navigate to="/admin/login" />;
+  if (!user || user.app_metadata?.role !== 'admin') return <Navigate to="/admin/login" />;
 
   const filtered = reviews?.filter((r: any) => {
     if (filter === 'positive') return r.rating >= 4;

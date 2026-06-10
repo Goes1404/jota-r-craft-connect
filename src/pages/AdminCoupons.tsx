@@ -86,7 +86,7 @@ const AdminCoupons = () => {
     onError: () => toast.error('Erro ao excluir cupom'),
   });
 
-  if (!user || user.user_metadata?.role !== 'admin') return <Navigate to="/admin/login" />;
+  if (!user || user.app_metadata?.role !== 'admin') return <Navigate to="/admin/login" />;
 
   return (
     <AdminShell eyebrow="Marketing" title="Cupons de Desconto" subtitle="Gerencie os códigos promocionais da loja">

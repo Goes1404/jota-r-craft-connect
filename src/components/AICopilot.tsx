@@ -34,7 +34,7 @@ export const AICopilot: React.FC = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [isMinimized, setIsMinimized] = useState(false);
   const [input, setInput] = useState('');
-  const isAdmin = user?.user_metadata?.role === 'admin';
+  const isAdmin = user?.app_metadata?.role === 'admin';
   
   const [messages, setMessages] = useState<Message[]>([]);
   const [isLoading, setIsLoading] = useState(false);

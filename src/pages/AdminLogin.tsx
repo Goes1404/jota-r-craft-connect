@@ -63,7 +63,7 @@ const AdminLogin: React.FC = () => {
 
   useEffect(() => {
     if (user && !loading) {
-      const isAdmin = user.user_metadata?.role === 'admin';
+      const isAdmin = user.app_metadata?.role === 'admin';
       navigate(isAdmin ? '/admin/dashboard' : '/perfil');
     }
   }, [user, loading, navigate]);
@@ -103,7 +103,7 @@ const AdminLogin: React.FC = () => {
   }
 
   if (user) {
-    const isAdmin = user.user_metadata?.role === 'admin';
+    const isAdmin = user.app_metadata?.role === 'admin';
     return <Navigate to={isAdmin ? '/admin/dashboard' : '/perfil'} replace />;
   }
 

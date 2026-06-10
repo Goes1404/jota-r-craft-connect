@@ -59,8 +59,9 @@ serve(async (req) => {
       });
     }
 
-    const role = (user.user_metadata as Record<string, unknown> | null)?.role;
-    if (role !== "admin") {
+    // Autorização real via app_metadata (is_admin lê app_metadata, não user_metadata).
+    const { data: isAdmin } = await authedClient.rpc("is_admin");
+    if (isAdmin !== true) {
       return new Response(JSON.stringify({ error: "Apenas administradores" }), {
         status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" },
       });

@@ -46,7 +46,7 @@ const AdminAbandonedCarts = () => {
     refetchInterval: 30000 
   });
 
-  if (!user || user.user_metadata?.role !== 'admin') {
+  if (!user || user.app_metadata?.role !== 'admin') {
     return <Navigate to="/admin/login" />;
   }
 

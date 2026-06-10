@@ -18,7 +18,7 @@ const ProtectedAdminRoute: React.FC<Props> = ({ children }) => {
     );
   }
 
-  const isAdmin = user?.user_metadata?.role === 'admin';
+  const isAdmin = user?.app_metadata?.role === 'admin';
 
   if (!user || !isAdmin) {
     return <Navigate to="/admin/login" replace />;

@@ -41,7 +41,7 @@ const AdminStudio = () => {
   const [generating, setGenerating] = useState(false);
   const [result, setResult] = useState<string | null>(null);
 
-  if (!user || user.user_metadata?.role !== 'admin') {
+  if (!user || user.app_metadata?.role !== 'admin') {
     return <Navigate to="/admin/login" />;
   }
 
