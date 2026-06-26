@@ -35,11 +35,14 @@ const ResultSkeleton = () => (
 interface Props {
   totalValue?: number;
   source?: string;
+  /** Itens para cálculo de frete pelas dimensões reais (ex.: [{ id, quantity }]). */
+  items?: { id: string; quantity: number }[];
 }
 
 export const ShippingCalculator: React.FC<Props> = ({
   totalValue = 0,
   source = 'web',
+  items,
 }) => {
   const [cep, setCep] = useState('');
   const [locationLabel, setLocationLabel] = useState('');
@@ -62,7 +65,7 @@ export const ShippingCalculator: React.FC<Props> = ({
     try {
       const { data, error: fnError } = await supabase.functions.invoke<EdgeFunctionResponse>(
         'shipping-calculate',
-        { body: { cep: rawCep, productValue: totalValue, source } },
+        { body: { cep: rawCep, productValue: totalValue, source, items } },
       );
 
       // Guard against stale responses if the user typed a different CEP
@@ -85,7 +88,7 @@ export const ShippingCalculator: React.FC<Props> = ({
     } finally {
       if (latestCepRef.current === rawCep) setLoading(false);
     }
-  }, [totalValue, source]);
+  }, [totalValue, source, items]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const raw = e.target.value.replace(/\D/g, '').slice(0, 8);

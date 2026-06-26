@@ -696,7 +696,7 @@ const ProductDetails = () => {
                 )}
                 {activeTab === 'frete' && (
                   <div className="animate-in fade-in duration-300">
-                    <ShippingCalculator totalValue={product.price} />
+                    <ShippingCalculator totalValue={product.price} items={[{ id: product.id, quantity: 1 }]} />
                   </div>
                 )}
               </div>

@@ -90,10 +90,19 @@ function arrivalLabel(daysStr: string): string {
 //   "services": "1,2"   // 1 = Sedex, 2 = PAC (Correios)
 // }
 //
+interface PackageDims {
+  height: number;
+  width: number;
+  length: number;
+  weight: number;
+}
+
 async function fetchMelhorEnvioRates(
   originZip: string,
   destZip: string,
   token: string,
+  pkg: PackageDims,
+  insuranceValue: number,
 ): Promise<ShippingOption[]> {
   const useSandbox = token.startsWith("sandbox_");
   const base = useSandbox
@@ -111,8 +120,8 @@ async function fetchMelhorEnvioRates(
     body: JSON.stringify({
       from: { postal_code: originZip.replace(/\D/g, "") },
       to:   { postal_code: destZip.replace(/\D/g, "") },
-      package: { height: 10, width: 15, length: 20, weight: 0.3 },
-      options: { insurance_value: 0, receipt: false, own_hand: false },
+      package: pkg,
+      options: { insurance_value: insuranceValue, receipt: false, own_hand: false },
       services: "1,2",
     }),
   });
@@ -189,6 +198,33 @@ function buildFlatRateOptions(uf: string, productValue: number, cfg: ShippingCon
   ];
 }
 
+// ─── Montagem do pacote a partir dos itens do carrinho ───────────────────────
+// Dimensões mínimas exigidas pelos Correios/Melhor Envio (evita erro da API).
+const PKG_MIN = { height: 2, width: 11, length: 16, weight: 0.3 };
+const DEFAULT_PACKAGE: PackageDims = { height: 10, width: 15, length: 20, weight: 0.3 };
+
+interface CartLine { weight: number; height: number; width: number; length: number; quantity: number }
+
+// Empilha os itens numa única caixa: maior largura/comprimento, soma das alturas
+// e dos pesos. Conservador (não subdimensiona) e respeita os mínimos da transportadora.
+function computePackage(lines: CartLine[]): PackageDims {
+  if (!lines.length) return DEFAULT_PACKAGE;
+  let height = 0, width = 0, length = 0, weight = 0;
+  for (const l of lines) {
+    const q = Math.max(1, Number(l.quantity) || 1);
+    height += (Number(l.height) || DEFAULT_PACKAGE.height) * q;
+    weight += (Number(l.weight) || DEFAULT_PACKAGE.weight) * q;
+    width = Math.max(width, Number(l.width) || DEFAULT_PACKAGE.width);
+    length = Math.max(length, Number(l.length) || DEFAULT_PACKAGE.length);
+  }
+  return {
+    height: Math.max(PKG_MIN.height, Math.round(height * 10) / 10),
+    width:  Math.max(PKG_MIN.width, Math.round(width * 10) / 10),
+    length: Math.max(PKG_MIN.length, Math.round(length * 10) / 10),
+    weight: Math.max(PKG_MIN.weight, Math.round(weight * 1000) / 1000),
+  };
+}
+
 // ─── Handler ──────────────────────────────────────────────────────────────────
 
 serve(async (req) => {
@@ -197,7 +233,9 @@ serve(async (req) => {
 
   try {
     // 1. Parse and validate input
-    const { cep, productValue = 0 } = await req.json();
+    // `items` (opcional): [{ id, quantity }] — usados para buscar as dimensões
+    // reais no banco e montar o pacote. Sem itens, usa um pacote padrão.
+    const { cep, productValue = 0, items = [] } = await req.json();
     const rawCep = String(cep ?? "").replace(/\D/g, "");
     if (rawCep.length !== 8) {
       return json({ error: "CEP inválido. Informe os 8 dígitos." }, 400, origin);
@@ -227,11 +265,33 @@ serve(async (req) => {
     const city: string = viaCepData.localidade;
     const state: string = viaCepData.uf;
 
+    // 4b. Monta o pacote a partir das dimensões REAIS dos produtos (busca no
+    // banco pelos ids enviados — não confia nas dimensões vindas do cliente).
+    let pkg: PackageDims = DEFAULT_PACKAGE;
+    const ids = Array.isArray(items)
+      ? items.map((i: { id?: string }) => i?.id).filter((id): id is string => typeof id === "string")
+      : [];
+    if (ids.length) {
+      const { data: prodRows } = await supabase
+        .from("products")
+        .select("id, weight, height, width, length")
+        .in("id", ids);
+      const byId = new Map((prodRows ?? []).map((p: { id: string }) => [p.id, p]));
+      const lines: CartLine[] = items
+        .map((i: { id?: string; quantity?: number }) => {
+          const p = i?.id ? byId.get(i.id) : null;
+          if (!p) return null;
+          return { ...p, quantity: Math.max(1, Number(i.quantity) || 1) } as CartLine;
+        })
+        .filter(Boolean) as CartLine[];
+      pkg = computePackage(lines);
+    }
+
     // 5. Calculate shipping options
     let options: ShippingOption[];
     if (cfg.melhor_envio_enabled && cfg.melhor_envio_token) {
       // Live carrier rates — token stays server-side
-      options = await fetchMelhorEnvioRates(cfg.origin_zip, rawCep, cfg.melhor_envio_token);
+      options = await fetchMelhorEnvioRates(cfg.origin_zip, rawCep, cfg.melhor_envio_token, pkg, productValue);
       // Fall back to flat-rate if Melhor Envio returns nothing
       if (options.length === 0) options = buildFlatRateOptions(state, productValue, cfg);
     } else {

@@ -248,7 +248,11 @@ const Checkout = () => {
           setIsCalculatingShipping(true);
           try {
             const { data: shippingData } = await supabase.functions.invoke('shipping-calculate', {
-              body: { cep: value.replace(/\D/g, ''), productValue: total },
+              body: {
+                cep: value.replace(/\D/g, ''),
+                productValue: total,
+                items: cartItems.map(i => ({ id: i.id, quantity: i.quantity })),
+              },
             });
             if (shippingData?.options?.length) {
               const opts = shippingData.options.map((o: any, idx: number) => ({
