@@ -75,6 +75,10 @@ const AdminProducts = () => {
     category: '',
     stock: '',
     is_featured: false,
+    weight: '',
+    height: '',
+    width: '',
+    length: '',
   });
 
   const [nameFilter, setNameFilter] = useState('');
@@ -114,6 +118,10 @@ const AdminProducts = () => {
       category: '',
       stock: '',
       is_featured: false,
+      weight: '',
+      height: '',
+      width: '',
+      length: '',
     });
     setEditingProduct(null);
   };
@@ -131,6 +139,10 @@ const AdminProducts = () => {
       category: product.category || '',
       stock: product.stock.toString(),
       is_featured: product.is_featured,
+      weight: product.weight?.toString() || '',
+      height: product.height?.toString() || '',
+      width: product.width?.toString() || '',
+      length: product.length?.toString() || '',
     });
     setIsDialogOpen(true);
   };
@@ -153,6 +165,10 @@ const AdminProducts = () => {
       category: formData.category,
       stock: parseInt(formData.stock),
       is_featured: formData.is_featured,
+      weight: parseFloat(formData.weight) || 0.3,
+      height: parseFloat(formData.height) || 10,
+      width: parseFloat(formData.width) || 15,
+      length: parseFloat(formData.length) || 20,
     };
 
     if (editingProduct) {
@@ -283,6 +299,29 @@ const AdminProducts = () => {
                   <div className="space-y-4">
                     <Label className="text-[10px] font-bold uppercase tracking-widest text-white/30">Estoque Disponível</Label>
                     <Input type="number" value={formData.stock} onChange={(e) => setFormData({...formData, stock: e.target.value})} className="bg-white/5 border-white/10 focus:border-[#d4af37]/40 h-12 rounded-xl" required />
+                  </div>
+                </div>
+
+                {/* Dimensões para cálculo de frete (Melhor Envio). Opcionais — se vazias, usa um padrão seguro. */}
+                <div className="space-y-4">
+                  <Label className="text-[10px] font-bold uppercase tracking-widest text-white/30">Dimensões para Frete <span className="text-white/20 normal-case tracking-normal">(opcional — usado no cálculo de envio)</span></Label>
+                  <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                    <div className="space-y-2">
+                      <Label className="text-[9px] font-bold uppercase tracking-widest text-white/20">Peso (kg)</Label>
+                      <Input type="number" step="0.01" placeholder="0.3" value={formData.weight} onChange={(e) => setFormData({...formData, weight: e.target.value})} className="bg-white/5 border-white/10 focus:border-[#d4af37]/40 h-12 rounded-xl" />
+                    </div>
+                    <div className="space-y-2">
+                      <Label className="text-[9px] font-bold uppercase tracking-widest text-white/20">Altura (cm)</Label>
+                      <Input type="number" step="0.1" placeholder="10" value={formData.height} onChange={(e) => setFormData({...formData, height: e.target.value})} className="bg-white/5 border-white/10 focus:border-[#d4af37]/40 h-12 rounded-xl" />
+                    </div>
+                    <div className="space-y-2">
+                      <Label className="text-[9px] font-bold uppercase tracking-widest text-white/20">Largura (cm)</Label>
+                      <Input type="number" step="0.1" placeholder="15" value={formData.width} onChange={(e) => setFormData({...formData, width: e.target.value})} className="bg-white/5 border-white/10 focus:border-[#d4af37]/40 h-12 rounded-xl" />
+                    </div>
+                    <div className="space-y-2">
+                      <Label className="text-[9px] font-bold uppercase tracking-widest text-white/20">Comprimento (cm)</Label>
+                      <Input type="number" step="0.1" placeholder="20" value={formData.length} onChange={(e) => setFormData({...formData, length: e.target.value})} className="bg-white/5 border-white/10 focus:border-[#d4af37]/40 h-12 rounded-xl" />
+                    </div>
                   </div>
                 </div>
 

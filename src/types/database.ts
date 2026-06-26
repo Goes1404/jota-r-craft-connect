@@ -10,6 +10,10 @@ export interface Product {
   category: string;
   stock: number;
   is_featured: boolean;
+  weight?: number;  // kg — usado no cálculo de frete
+  height?: number;  // cm
+  width?: number;   // cm
+  length?: number;  // cm
   created_at?: string;
   updated_at?: string;
 }
