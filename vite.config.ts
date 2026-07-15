@@ -40,5 +40,22 @@ export default defineConfig(({ mode }) => ({
     alias: {
       "@": path.resolve(__dirname, "./src"),
     },
-  }
+  },
+  build: {
+    // Navegadores modernos: menos transpilação/polyfill = bundles menores
+    target: 'es2020',
+    rollupOptions: {
+      output: {
+        // Separa vendors pesados em chunks próprios: melhora cache do navegador
+        // entre deploys e reduz o JS baixado na primeira visita.
+        manualChunks: {
+          'vendor-react': ['react', 'react-dom', 'react-router-dom'],
+          'vendor-motion': ['framer-motion'],
+          'vendor-charts': ['recharts'],
+          'vendor-supabase': ['@supabase/supabase-js'],
+          'vendor-stripe': ['@stripe/stripe-js', '@stripe/react-stripe-js'],
+        },
+      },
+    },
+  },
 }));

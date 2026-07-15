@@ -12,6 +12,7 @@ import { useToast } from '@/hooks/use-toast';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import MultiImageUpload from '@/components/MultiImageUpload';
+import ProductAdGenerator from '@/components/ProductAdGenerator';
 import {
   Plus,
   Edit,
@@ -182,26 +183,33 @@ const AdminProducts = () => {
 
   const handleGenerateDescription = async () => {
     if (!formData.name) {
-      toast.error('Informe o nome do produto primeiro');
+      toast({ title: 'Informe o nome do produto primeiro', variant: 'destructive' });
       return;
     }
-    
+
     setIsGeneratingDescription(true);
     try {
       const { data, error } = await supabase.functions.invoke('ai-assistant', {
-        body: { 
+        body: {
           task: 'generate_description',
           productName: formData.name,
           category: formData.category
         }
       });
-      
+
       if (error) throw error;
-      setFormData({ ...formData, description: data.description });
-      toast.success('Descrição gerada pela Lumina AI!');
+      setFormData(prev => ({
+        ...prev,
+        description: data.description || prev.description,
+        detailed_description: data.detailed_description || prev.detailed_description,
+      }));
+      toast({
+        title: 'Descrição gerada pela Lumina AI!',
+        description: 'A IA pesquisou especificações técnicas reais na web e preencheu a descrição curta e a detalhada.',
+      });
     } catch (err) {
       console.error(err);
-      toast.error('Erro ao conectar com a IA');
+      toast({ title: 'Erro ao conectar com a IA', variant: 'destructive' });
     } finally {
       setIsGeneratingDescription(false);
     }
@@ -328,7 +336,20 @@ const AdminProducts = () => {
                 <div className="space-y-4">
                   <Label className="text-[10px] font-bold uppercase tracking-widest text-white/30">Galeria de Imagens</Label>
                   <div className="rounded-3xl border border-white/10 bg-black/40 p-6">
-                    <MultiImageUpload onImagesChange={(urls) => setFormData({...formData, images: urls})} currentImages={formData.images} />
+                    <MultiImageUpload key={editingProduct?.id ?? 'new'} onImagesChange={(urls) => setFormData({...formData, images: urls})} currentImages={formData.images} />
+                  </div>
+                </div>
+
+                {/* Estúdio de IA — gera imagens comerciais a partir das fotos da galeria */}
+                <div className="space-y-4">
+                  <Label className="text-[10px] font-bold uppercase tracking-widest text-white/30">Estúdio de IA — Imagens Comerciais</Label>
+                  <div className="rounded-3xl border border-[#d4af37]/20 bg-[#d4af37]/[0.03] p-6">
+                    <ProductAdGenerator
+                      images={formData.images}
+                      productName={formData.name}
+                      description={formData.description}
+                      onGenerated={(newUrls) => setFormData(prev => ({ ...prev, images: [...prev.images, ...newUrls] }))}
+                    />
                   </div>
                 </div>
 
@@ -347,6 +368,13 @@ const AdminProducts = () => {
                     </Button>
                   </div>
                   <Textarea value={formData.description} onChange={(e) => setFormData({...formData, description: e.target.value})} className="bg-white/5 border-white/10 focus:border-[#d4af37]/40 rounded-2xl min-h-[100px]" />
+                </div>
+
+                <div className="space-y-4">
+                  <Label className="text-[10px] font-bold uppercase tracking-widest text-white/30">
+                    Descrição Detalhada / Ficha Técnica <span className="text-white/20 normal-case tracking-normal">(aparece na página do produto — aceita markdown)</span>
+                  </Label>
+                  <Textarea value={formData.detailed_description} onChange={(e) => setFormData({...formData, detailed_description: e.target.value})} className="bg-white/5 border-white/10 focus:border-[#d4af37]/40 rounded-2xl min-h-[160px]" placeholder="Use o botão 'Sugerir com IA' acima para preencher com especificações técnicas reais do produto." />
                 </div>
 
                 <div className="space-y-4">

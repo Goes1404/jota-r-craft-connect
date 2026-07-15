@@ -20,6 +20,13 @@ interface SEOProps {
   product?: ProductJsonLd;
 }
 
+/** Converte caminhos relativos (/hero-bg.png) em URL absoluta — exigido por
+ *  Open Graph/Twitter e pelos crawlers de resultados ricos do Google. */
+const absolute = (path?: string) => {
+  if (!path) return path;
+  return path.startsWith('http') ? path : `${STORE.domain}${path.startsWith('/') ? '' : '/'}${path}`;
+};
+
 const SEO: React.FC<SEOProps> = ({
   title = STORE.seo.defaultTitle,
   description = STORE.seo.defaultDescription,
@@ -29,6 +36,8 @@ const SEO: React.FC<SEOProps> = ({
   product,
 }) => {
   const siteTitle = title.includes(STORE.name) ? title : `${title} | ${STORE.name}`;
+  image = absolute(image)!;
+  url = absolute(url)!;
 
   const productJsonLd = product
     ? JSON.stringify({
@@ -36,7 +45,7 @@ const SEO: React.FC<SEOProps> = ({
         '@type': 'Product',
         name: product.name,
         description: product.description,
-        image: product.image,
+        image: absolute(product.image),
         brand: { '@type': 'Brand', name: product.brand || STORE.name },
         offers: {
           '@type': 'Offer',
@@ -68,6 +77,19 @@ const SEO: React.FC<SEOProps> = ({
         priceRange: STORE.seo.priceRange,
       })
     : null;
+
+  // WebSite + SearchAction: habilita a caixa de busca do site nos resultados do Google
+  const websiteJsonLd = JSON.stringify({
+    '@context': 'https://schema.org',
+    '@type': 'WebSite',
+    name: STORE.name,
+    url: STORE.domain,
+    potentialAction: {
+      '@type': 'SearchAction',
+      target: { '@type': 'EntryPoint', urlTemplate: `${STORE.domain}/produtos?q={search_term_string}` },
+      'query-input': 'required name=search_term_string',
+    },
+  });
 
   return (
     <Helmet>
@@ -104,6 +126,7 @@ const SEO: React.FC<SEOProps> = ({
       {storeJsonLd && (
         <script type="application/ld+json">{storeJsonLd}</script>
       )}
+      <script type="application/ld+json">{websiteJsonLd}</script>
     </Helmet>
   );
 };

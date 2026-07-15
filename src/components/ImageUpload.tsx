@@ -3,6 +3,7 @@ import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
+import { compressImage } from '@/lib/imageCompression';
 import { Upload, X, Image as ImageIcon } from 'lucide-react';
 
 interface ImageUploadProps {
@@ -22,11 +23,11 @@ const ImageUpload: React.FC<ImageUploadProps> = ({
   const { toast } = useToast();
 
   const handleFileSelect = async (event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0];
-    if (!file) return;
+    const rawFile = event.target.files?.[0];
+    if (!rawFile) return;
 
     // Validar tipo de arquivo
-    if (!file.type.match(/^image\/(jpeg|jpg|png|webp)$/)) {
+    if (!rawFile.type.match(/^image\/(jpeg|jpg|png|webp)$/)) {
       toast({
         title: 'Formato inválido',
         description: 'Por favor, selecione apenas arquivos JPG, JPEG, PNG ou WEBP.',
@@ -35,19 +36,11 @@ const ImageUpload: React.FC<ImageUploadProps> = ({
       return;
     }
 
-    // Validar tamanho (máx 5MB)
-    if (file.size > 5 * 1024 * 1024) {
-      toast({
-        title: 'Arquivo muito grande',
-        description: 'Por favor, selecione um arquivo menor que 5MB.',
-        variant: 'destructive',
-      });
-      return;
-    }
-
     setUploading(true);
 
     try {
+      // Comprime no navegador — aceita fotos grandes (até 25MB) sem erro
+      const file = await compressImage(rawFile);
       // Criar preview local
       const reader = new FileReader();
       reader.onload = () => {
@@ -166,7 +159,7 @@ const ImageUpload: React.FC<ImageUploadProps> = ({
           </Button>
           
           <p className="text-xs text-muted-foreground text-center">
-            Formatos aceitos: JPG, JPEG, PNG, WEBP (máx. 5MB)
+            Formatos aceitos: JPG, JPEG, PNG, WEBP (até 25MB — comprimimos automaticamente)
           </p>
         </div>
       </div>

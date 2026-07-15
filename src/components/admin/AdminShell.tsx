@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { NavLink, useLocation, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useAuth } from '@/contexts/AuthContext';
+import { ThemeToggle } from '@/components/ThemeToggle';
 import {
   LayoutDashboard,
   ShoppingBag,
@@ -150,12 +151,15 @@ export const AdminShell: React.FC<AdminShellProps> = ({ title, subtitle, eyebrow
         </nav>
 
         <div className="px-4 py-5 border-t border-white/5 space-y-3">
-          <div className="flex items-center gap-2 px-3">
-            <span className="relative flex h-2 w-2">
-              <span className="absolute inline-flex h-full w-full rounded-full bg-green-500 opacity-60 animate-ping" />
-              <span className="relative inline-flex h-2 w-2 rounded-full bg-green-500" />
-            </span>
-            <span className="text-[10px] font-bold text-white/40 uppercase tracking-widest">Sistema Online</span>
+          <div className="flex items-center justify-between px-3">
+            <div className="flex items-center gap-2">
+              <span className="relative flex h-2 w-2">
+                <span className="absolute inline-flex h-full w-full rounded-full bg-green-500 opacity-60 animate-ping" />
+                <span className="relative inline-flex h-2 w-2 rounded-full bg-green-500" />
+              </span>
+              <span className="text-[10px] font-bold text-white/40 uppercase tracking-widest">Sistema Online</span>
+            </div>
+            <ThemeToggle />
           </div>
           <div className="flex items-center justify-between gap-2 rounded-2xl bg-white/[0.03] border border-white/5 px-3.5 py-3">
             <div className="min-w-0">
@@ -177,6 +181,7 @@ export const AdminShell: React.FC<AdminShellProps> = ({ title, subtitle, eyebrow
       <header className="lg:hidden sticky top-0 z-40 h-16 flex items-center justify-between px-4 border-b border-white/5 bg-black/60 backdrop-blur-2xl">
         <Brand onClick={() => navigate('/')} />
         <div className="flex items-center gap-1.5">
+          <ThemeToggle />
           <span className="relative flex h-2 w-2 mr-1">
             <span className="absolute inline-flex h-full w-full rounded-full bg-green-500 opacity-60 animate-ping" />
             <span className="relative inline-flex h-2 w-2 rounded-full bg-green-500" />

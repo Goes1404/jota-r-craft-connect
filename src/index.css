@@ -50,6 +50,58 @@
     --shadow-luxury: 0 0 15px hsla(45, 64%, 52%, 0.2);
     --shadow-luxury-hover: 0 0 25px hsla(45, 64%, 52%, 0.4);
   }
+
+  /* ── MODO CLARO — alto contraste para leitura sob luz do sol ── */
+  .light {
+    --brand-bg: #f7f5f0;
+    --brand-surface: #ffffff;
+    --brand-surface-alt: #fbfaf7;
+
+    --background: 40 30% 96%;
+    --foreground: 24 12% 8%;
+
+    --card: 0 0% 100%;
+    --card-foreground: 24 12% 8%;
+
+    --popover: 0 0% 100%;
+    --popover-foreground: 24 12% 8%;
+
+    /* Dourado mais escuro p/ contraste em fundo claro */
+    --primary: 45 70% 38%;
+    --primary-foreground: 0 0% 100%;
+
+    --secondary: 24 8% 20%;
+    --secondary-foreground: 0 0% 98%;
+
+    --muted: 40 12% 90%;
+    --muted-foreground: 30 8% 32%;
+
+    --accent: 45 60% 88%;
+    --accent-foreground: 45 80% 18%;
+
+    --destructive: 0 74% 44%;
+    --destructive-foreground: 0 0% 98%;
+
+    --border: 40 10% 78%;
+    --input: 40 10% 78%;
+    --ring: 45 70% 38%;
+
+    --shadow-luxury: 0 2px 12px rgba(140, 106, 21, 0.15);
+    --shadow-luxury-hover: 0 4px 20px rgba(140, 106, 21, 0.25);
+  }
+
+  .light ::-webkit-scrollbar-track {
+    background: #eceae4;
+  }
+  .light ::-webkit-scrollbar-thumb {
+    background: #cfc9bc;
+    border: 1px solid rgba(140, 106, 21, 0.15);
+  }
+
+  .light .glass {
+    background: rgba(255, 255, 255, 0.75);
+    border: 1px solid rgba(0, 0, 0, 0.06);
+  }
 }
 
 @layer base {
@@ -108,6 +160,12 @@
   @keyframes luxuryIn {
     from { opacity: 0; transform: translateY(20px) scale(0.98); }
     to { opacity: 1; transform: translateY(0) scale(1); }
+  }
+
+  /* Renderização adiada de seções fora da viewport (rodapé, blocos longos) */
+  .cv-auto {
+    content-visibility: auto;
+    contain-intrinsic-size: auto 600px;
   }
 
   .no-scrollbar::-webkit-scrollbar {

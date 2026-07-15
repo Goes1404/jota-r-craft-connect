@@ -21,22 +21,27 @@
     <meta property="og:description" content="JR Acessórios — sua boutique online de acessórios premium. Cintos, bolsas e muito mais com qualidade e elegância." />
     <meta property="og:type" content="website" />
     <meta property="og:locale" content="pt_BR" />
-    <meta property="og:image" content="/hero-bg.png" />
+    <meta property="og:image" content="https://jracessorios.com/hero-bg.png" />
 
     <!-- Twitter Card -->
     <meta name="twitter:card" content="summary_large_image" />
     <meta name="twitter:title" content="JR Acessórios — Acessórios Premium e Exclusivos" />
     <meta name="twitter:description" content="JR Acessórios — sua boutique online de acessórios premium." />
-    <meta name="twitter:image" content="/hero-bg.png" />
+    <meta name="twitter:image" content="https://jracessorios.com/hero-bg.png" />
 
     <!-- Preload hero image -->
-    <link rel="preload" as="image" href="/hero-bg.png" />
+    <link rel="preload" as="image" href="/hero-bg.png" fetchpriority="high" />
 
-    <!-- Typography — loaded in <head> for zero-FOUT -->
+    <!-- Abre a conexão com o Supabase antes da primeira query (economiza ~100-300ms) -->
+    <link rel="preconnect" href="https://kpjmjwxcpzcipcxunthq.supabase.co" crossorigin="anonymous" />
+    <link rel="dns-prefetch" href="https://kpjmjwxcpzcipcxunthq.supabase.co" />
+
+    <!-- Typography — loaded in <head> for zero-FOUT.
+         Só os pesos realmente usados (itálico apenas 300/400 do logo) — menos bytes de fonte. -->
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="anonymous" />
     <link rel="stylesheet"
-      href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;0,700;1,300;1,400;1,500;1,600;1,700&family=DM+Sans:wght@300;400;500;600;700&display=swap" />
+      href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;0,700;1,300;1,400&family=DM+Sans:wght@300;400;500;600;700&display=swap" />
   </head>
 
   <body>

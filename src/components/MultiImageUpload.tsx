@@ -1,8 +1,9 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
+import { compressImage } from '@/lib/imageCompression';
 import { Upload, X, Image as ImageIcon, Plus } from 'lucide-react';
 
 interface MultiImageUploadProps {
@@ -21,6 +22,11 @@ const MultiImageUpload: React.FC<MultiImageUploadProps> = ({
   const [uploading, setUploading] = useState(false);
   const [images, setImages] = useState<string[]>(currentImages);
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  // Mantém em sincronia quando o pai altera as imagens (ex.: geradas por IA)
+  useEffect(() => {
+    setImages(currentImages);
+  }, [currentImages]);
   const { toast } = useToast();
 
   const handleFileSelect = async (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -40,16 +46,14 @@ const MultiImageUpload: React.FC<MultiImageUploadProps> = ({
     setUploading(true);
 
     try {
-      const uploadPromises = Array.from(files).map(async (file) => {
+      const uploadPromises = Array.from(files).map(async (rawFile) => {
         // Validar tipo de arquivo
-        if (!file.type.match(/^image\/(jpeg|jpg|png|webp)$/)) {
-          throw new Error(`Formato inválido: ${file.name}. Use apenas JPG, JPEG, PNG ou WEBP.`);
+        if (!rawFile.type.match(/^image\/(jpeg|jpg|png|webp)$/)) {
+          throw new Error(`Formato inválido: ${rawFile.name}. Use apenas JPG, JPEG, PNG ou WEBP.`);
         }
 
-        // Validar tamanho (máx 5MB)
-        if (file.size > 5 * 1024 * 1024) {
-          throw new Error(`Arquivo muito grande: ${file.name}. Máximo 5MB.`);
-        }
+        // Comprime no navegador — aceita fotos grandes (até 25MB) sem erro
+        const file = await compressImage(rawFile);
 
         // Upload para Supabase Storage
         const fileExt = file.name.split('.').pop();
@@ -253,7 +257,7 @@ const MultiImageUpload: React.FC<MultiImageUploadProps> = ({
       />
       
       <p className="text-xs text-muted-foreground">
-        Formatos aceitos: JPG, JPEG, PNG, WEBP (máx. 5MB cada). A primeira imagem será a principal.
+        Formatos aceitos: JPG, JPEG, PNG, WEBP (até 25MB — comprimimos automaticamente). A primeira imagem será a principal.
       </p>
     </div>
   );

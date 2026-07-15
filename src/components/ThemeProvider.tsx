@@ -7,12 +7,12 @@ export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   useEffect(() => {
     const root = document.documentElement;
     const t = STORE.theme;
+    // Apenas as cores de marca (iguais nos modos claro/escuro).
+    // bg/surface ficam no CSS (:root e .light) para o toggle de tema funcionar —
+    // estilo inline no <html> venceria os overrides do modo claro.
     root.style.setProperty('--brand-primary', t.primary);
     root.style.setProperty('--brand-primary-light', t.primaryLight);
     root.style.setProperty('--brand-primary-dark', t.primaryDark);
-    root.style.setProperty('--brand-bg', t.background);
-    root.style.setProperty('--brand-surface', t.surface);
-    root.style.setProperty('--brand-surface-alt', t.surfaceAlt);
     document.querySelector('meta[name="theme-color"]')?.setAttribute('content', t.pwaTheme);
   }, []);
 

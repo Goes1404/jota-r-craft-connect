@@ -4,6 +4,7 @@ import { ShoppingCart, User, Menu, Search, Diamond, Home, ShoppingBag, Phone, X 
 import { useCart } from '@/contexts/CartContext';
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
 import { CartModal } from './CartModal';
+import { ThemeToggle } from './ThemeToggle';
 import { STORE } from '@/config/store';
 
 // ─── styles ──────────────────────────────────────────────────────────────────
@@ -131,6 +132,7 @@ export const Header: React.FC = () => {
 
         {/* Action icons */}
         <div className={styles.actions}>
+          <ThemeToggle />
           <button
             onClick={() => setIsSearchOpen(true)}
             className={styles.searchBtn}

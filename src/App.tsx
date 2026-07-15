@@ -1,4 +1,4 @@
-import { lazy, Suspense } from "react";
+import { lazy, Suspense, useEffect, useState } from "react";
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -10,17 +10,43 @@ import { WishlistProvider } from "@/contexts/WishlistContext";
 import { HelmetProvider } from 'react-helmet-async';
 import { ErrorBoundary } from "./components/ErrorBoundary";
 import ProtectedAdminRoute from "./components/ProtectedAdminRoute";
-import { ExitIntentPopup } from "./components/ExitIntentPopup";
-import { AICopilot } from "./components/AICopilot";
-import { CookieBanner } from "./components/CookieBanner";
 import { ScrollToTop } from "./components/ScrollToTop";
 import { SmoothScroll } from "./components/animations/SmoothScroll";
 import { PageTransition } from "./components/animations/PageTransition";
 import { MobileBottomNav } from "./components/MobileBottomNav";
 import { AdminMobileMenu } from "./components/AdminMobileMenu";
 import { IntroLoader } from "./components/animations/IntroLoader";
-import { FloatingWhatsApp } from "./components/FloatingWhatsApp";
 import { ThemeProvider } from "./components/ThemeProvider";
+
+// ─── overlays não-críticos: carregados fora do bundle inicial, após o idle ────
+const ExitIntentPopup = lazy(() => import("./components/ExitIntentPopup").then(m => ({ default: m.ExitIntentPopup })));
+const AICopilot = lazy(() => import("./components/AICopilot").then(m => ({ default: m.AICopilot })));
+const CookieBanner = lazy(() => import("./components/CookieBanner").then(m => ({ default: m.CookieBanner })));
+const FloatingWhatsApp = lazy(() => import("./components/FloatingWhatsApp").then(m => ({ default: m.FloatingWhatsApp })));
+
+/** Monta popups/banners/copiloto só depois que o navegador ficar ocioso —
+ *  eles não fazem parte do conteúdo principal e atrasavam a primeira pintura. */
+const DeferredOverlays = () => {
+  const [ready, setReady] = useState(false);
+  useEffect(() => {
+    const show = () => setReady(true);
+    if ('requestIdleCallback' in window) {
+      const id = (window as any).requestIdleCallback(show, { timeout: 3000 });
+      return () => (window as any).cancelIdleCallback(id);
+    }
+    const t = setTimeout(show, 2000);
+    return () => clearTimeout(t);
+  }, []);
+  if (!ready) return null;
+  return (
+    <Suspense fallback={null}>
+      <ExitIntentPopup />
+      <AICopilot />
+      <CookieBanner />
+      <FloatingWhatsApp />
+    </Suspense>
+  );
+};
 
 // ─── lazy page imports ────────────────────────────────────────────────────────
 const Index = lazy(() => import("./pages/Index"));
@@ -62,7 +88,18 @@ const PageLoader = () => (
   </div>
 );
 
-const queryClient = new QueryClient();
+// staleTime evita refetch a cada troca de página (era o padrão 0 = sempre refetch),
+// deixando a navegação muito mais fluida. gcTime mantém o cache entre rotas.
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      staleTime: 60 * 1000,
+      gcTime: 10 * 60 * 1000,
+      refetchOnWindowFocus: false,
+      retry: 1,
+    },
+  },
+});
 
 const App = () => (
   <ThemeProvider>
@@ -79,10 +116,7 @@ const App = () => (
                 <ScrollToTop />
                 <SmoothScroll>
                 <ErrorBoundary>
-                  <ExitIntentPopup />
-                  <AICopilot />
-                  <CookieBanner />
-                  <FloatingWhatsApp />
+                  <DeferredOverlays />
                   <MobileBottomNav />
                   <AdminMobileMenu />
                   <Suspense fallback={<PageLoader />}>

@@ -39,15 +39,70 @@ serve(async (req) => {
       )
     }
 
+    // ── Descrição de produto: busca especificações técnicas REAIS na web ──
+    if (task === 'generate_description') {
+      const instructions =
+        `Você é um copywriter técnico de elite para a loja ${STORE_NAME} (e-commerce brasileiro de acessórios). ` +
+        `Pesquise na web as especificações técnicas REAIS do produto informado (fabricante, site oficial, fichas técnicas). ` +
+        `Não invente especificações: se não encontrar um dado, omita-o. Escreva em português do Brasil.`
+
+      const searchPrompt =
+        `Produto: "${productName}"${category ? ` (categoria: ${category})` : ''}.\n\n` +
+        `1) Pesquise as especificações técnicas reais deste produto.\n` +
+        `2) Responda APENAS com um JSON válido (sem cercas de código) no formato:\n` +
+        `{\n` +
+        `  "description": "descrição curta de vitrine (2-3 frases, persuasiva, citando 1-2 diferenciais técnicos reais)",\n` +
+        `  "detailed_description": "descrição completa em markdown: 1 parágrafo de apresentação + seção '### Ficha Técnica' com lista de especificações reais encontradas (material, dimensões, compatibilidade, bateria, conectividade, etc.)"\n` +
+        `}`
+
+      const resp = await fetch('https://api.openai.com/v1/responses', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${apiKey}` },
+        body: JSON.stringify({
+          model: 'gpt-4o',
+          tools: [{ type: 'web_search_preview' }],
+          instructions,
+          input: searchPrompt,
+        }),
+      })
+
+      const data = await resp.json()
+      if (!resp.ok || data.error) {
+        throw new Error(data?.error?.message || `OpenAI ${resp.status}`)
+      }
+
+      // Extrai o texto da resposta (Responses API)
+      let text: string = data.output_text
+        || (data.output || [])
+          .filter((o: any) => o.type === 'message')
+          .flatMap((o: any) => o.content || [])
+          .filter((c: any) => c.type === 'output_text')
+          .map((c: any) => c.text)
+          .join('\n')
+        || ''
+
+      // Tenta parsear o JSON pedido; se falhar, usa o texto inteiro como descrição
+      let description = text
+      let detailed = ''
+      try {
+        const cleaned = text.replace(/```json|```/g, '').trim()
+        const jsonStart = cleaned.indexOf('{')
+        const jsonEnd = cleaned.lastIndexOf('}')
+        const parsed = JSON.parse(cleaned.slice(jsonStart, jsonEnd + 1))
+        description = parsed.description || text
+        detailed = parsed.detailed_description || ''
+      } catch (_) { /* mantém texto bruto */ }
+
+      return new Response(
+        JSON.stringify({ description, detailed_description: detailed }),
+        { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      )
+    }
+
     let systemPrompt = `Você é o Lumina AI, o assistente inteligente da ${STORE_NAME}. Sua missão é ajudar na gestão da loja com foco em luxo, eficiência e inteligência de negócios.`
     let userPrompt = prompt || message || ""
 
-    if (task === 'generate_description') {
-      systemPrompt = `Você é um copywriter de elite para a marca ${STORE_NAME}.`
-      userPrompt = `Crie uma descrição sofisticada para o produto "${productName}" da categoria "${category}". Use gatilhos mentais de exclusividade e qualidade. Seja breve (máximo 3 parágrafos).`
-    } else {
-      systemPrompt += ` Contexto atual: ${JSON.stringify(context)}. Responda de forma executiva e use markdown.`
-    }
+    systemPrompt += ` Contexto atual: ${JSON.stringify(context)}. Responda de forma executiva e use markdown.`
 
     // Preparar mensagens incluindo histórico
     const messages = [
@@ -78,7 +133,7 @@ serve(async (req) => {
     const aiText = result.choices[0].message.content
 
     return new Response(
-      JSON.stringify(task === 'generate_description' ? { description: aiText } : { text: aiText }),
+      JSON.stringify({ text: aiText }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     )
 

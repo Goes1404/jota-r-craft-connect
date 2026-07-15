@@ -56,7 +56,7 @@ export const Footer: React.FC = () => {
   };
 
   return (
-    <footer className="bg-[#050505] text-white/40 relative overflow-hidden">
+    <footer className="cv-auto bg-[#050505] text-white/40 relative overflow-hidden">
       {/* ── Top gradient line ── */}
       <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full h-[1px] bg-gradient-to-r from-transparent via-[#D4AF37]/30 to-transparent" />
 

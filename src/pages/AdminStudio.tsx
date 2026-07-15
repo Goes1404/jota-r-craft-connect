@@ -10,6 +10,7 @@ import {
   ArrowLeft, Sparkles, Upload, Wand2, Download, Loader2, ImageIcon, RefreshCw,
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { compressImage } from '@/lib/imageCompression';
 
 const STYLES = [
   { id: 'luxo', label: 'Luxo', emoji: '✨', desc: 'Fundo escuro, luz dourada dramática' },
@@ -45,14 +46,18 @@ const AdminStudio = () => {
     return <Navigate to="/admin/login" />;
   }
 
-  const handleFile = async (file?: File) => {
-    if (!file) return;
-    if (!file.type.startsWith('image/')) {
+  const handleFile = async (rawFile?: File) => {
+    if (!rawFile) return;
+    if (!rawFile.type.startsWith('image/')) {
       toast({ title: 'Arquivo inválido', description: 'Envie uma imagem.', variant: 'destructive' });
       return;
     }
-    if (file.size > 4 * 1024 * 1024) {
-      toast({ title: 'Imagem muito grande', description: 'Máximo 4MB.', variant: 'destructive' });
+    let file: File;
+    try {
+      // Comprime no navegador — fotos de câmera (>4MB) passam a funcionar
+      file = await compressImage(rawFile, { maxDimension: 1536 });
+    } catch (err: any) {
+      toast({ title: 'Imagem inválida', description: err.message, variant: 'destructive' });
       return;
     }
     const b64 = await fileToBase64(file);
@@ -127,7 +132,7 @@ const AdminStudio = () => {
                   <div className="text-center px-6">
                     <Upload className="w-10 h-10 text-[#d4af37]/40 mx-auto mb-3" />
                     <p className="text-white/60 text-sm font-bold">Clique ou arraste uma imagem</p>
-                    <p className="text-white/20 text-[10px] mt-1 uppercase tracking-wider">PNG / JPG · máx 4MB</p>
+                    <p className="text-white/20 text-[10px] mt-1 uppercase tracking-wider">PNG / JPG · até 25MB (compressão automática)</p>
                   </div>
                 )}
                 <input ref={fileRef} type="file" accept="image/*" hidden onChange={(e) => handleFile(e.target.files?.[0] || undefined)} />

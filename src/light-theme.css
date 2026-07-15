@@ -1,0 +1,155 @@
+/* ─────────────────────────────────────────────────────────────────────────────
+   MODO CLARO — camada de compatibilidade
+   O site foi construído com cores escuras hardcoded (bg-black, text-white,
+   bg-[#0a0a0a], …). Este arquivo remapeia essas classes quando <html> tem a
+   classe .light (controlada pelo next-themes / ThemeToggle).
+   Paleta clara: fundo #f7f5f0 · superfícies brancas · tinta #1c1917 ·
+   dourado escuro #8a6a15 (contraste AA sobre fundo claro).
+   Ao migrar componentes para tokens semânticos (bg-background, text-foreground)
+   estas regras podem ser removidas gradualmente.
+   ──────────────────────────────────────────────────────────────────────────── */
+
+/* ── Texto branco → tinta escura ── */
+.light .text-white { color: rgb(28 25 23) !important; }
+.light .text-white\/5 { color: rgb(28 25 23 / 0.30); }
+.light .text-white\/10 { color: rgb(28 25 23 / 0.35); }
+.light .text-white\/15 { color: rgb(28 25 23 / 0.40); }
+.light .text-white\/20 { color: rgb(28 25 23 / 0.46); }
+.light .text-white\/25 { color: rgb(28 25 23 / 0.50); }
+.light .text-white\/30 { color: rgb(28 25 23 / 0.55); }
+.light .text-white\/35 { color: rgb(28 25 23 / 0.58); }
+.light .text-white\/40 { color: rgb(28 25 23 / 0.62); }
+.light .text-white\/45 { color: rgb(28 25 23 / 0.65); }
+.light .text-white\/50 { color: rgb(28 25 23 / 0.68); }
+.light .text-white\/55 { color: rgb(28 25 23 / 0.70); }
+.light .text-white\/60 { color: rgb(28 25 23 / 0.72); }
+.light .text-white\/70 { color: rgb(28 25 23 / 0.78); }
+.light .text-white\/80 { color: rgb(28 25 23 / 0.85); }
+.light .text-white\/90 { color: rgb(28 25 23 / 0.92); }
+.light .text-\[\#e2e2e2\] { color: #3a3733; }
+
+.light .hover\:text-white:hover { color: rgb(28 25 23) !important; }
+.light .hover\:text-white\/80:hover { color: rgb(28 25 23 / 0.85); }
+.light .hover\:text-white\/70:hover { color: rgb(28 25 23 / 0.78); }
+.light .hover\:text-white\/60:hover { color: rgb(28 25 23 / 0.72); }
+.light .hover\:text-white\/50:hover { color: rgb(28 25 23 / 0.68); }
+.light .hover\:text-white\/40:hover { color: rgb(28 25 23 / 0.62); }
+.light .hover\:text-white\/20:hover { color: rgb(28 25 23 / 0.46); }
+.light .group:hover .group-hover\:text-white { color: rgb(28 25 23) !important; }
+.light .group:hover .group-hover\:text-white\/80 { color: rgb(28 25 23 / 0.85); }
+
+/* ── Bordas brancas → bordas escuras suaves ── */
+.light .border-white { border-color: rgb(28 25 23 / 0.75); }
+.light .border-white\/5 { border-color: rgb(28 25 23 / 0.12); }
+.light .border-white\/10 { border-color: rgb(28 25 23 / 0.15); }
+.light .border-white\/15 { border-color: rgb(28 25 23 / 0.18); }
+.light .border-white\/20 { border-color: rgb(28 25 23 / 0.22); }
+.light .border-white\/25 { border-color: rgb(28 25 23 / 0.25); }
+.light .border-white\/30 { border-color: rgb(28 25 23 / 0.30); }
+.light .divide-white\/5 > :not([hidden]) ~ :not([hidden]) { border-color: rgb(28 25 23 / 0.12); }
+.light .divide-white > :not([hidden]) ~ :not([hidden]) { border-color: rgb(28 25 23 / 0.75); }
+.light .ring-white\/30 { --tw-ring-color: rgb(28 25 23 / 0.30); }
+
+.light .hover\:border-white:hover { border-color: rgb(28 25 23 / 0.75); }
+.light .hover\:border-white\/10:hover { border-color: rgb(28 25 23 / 0.15); }
+.light .hover\:border-white\/15:hover { border-color: rgb(28 25 23 / 0.18); }
+.light .hover\:border-white\/20:hover { border-color: rgb(28 25 23 / 0.22); }
+.light .hover\:border-white\/25:hover { border-color: rgb(28 25 23 / 0.25); }
+.light .hover\:border-white\/30:hover { border-color: rgb(28 25 23 / 0.30); }
+.light .group:hover .group-hover\:border-white\/30 { border-color: rgb(28 25 23 / 0.30); }
+
+/* ── Painéis translúcidos brancos (sobre fundo escuro) → tinta suave ── */
+.light .bg-white\/5 { background-color: rgb(28 25 23 / 0.05); }
+.light .bg-white\/10 { background-color: rgb(28 25 23 / 0.08); }
+.light .bg-white\/15 { background-color: rgb(28 25 23 / 0.10); }
+.light .bg-white\/20 { background-color: rgb(28 25 23 / 0.12); }
+.light .bg-white\/25 { background-color: rgb(28 25 23 / 0.14); }
+.light .bg-white\/40 { background-color: rgb(28 25 23 / 0.20); }
+.light .hover\:bg-white\/5:hover { background-color: rgb(28 25 23 / 0.05); }
+.light .hover\:bg-white\/10:hover { background-color: rgb(28 25 23 / 0.08); }
+.light .hover\:bg-white\/20:hover { background-color: rgb(28 25 23 / 0.12); }
+.light .hover\:bg-white\/40:hover { background-color: rgb(28 25 23 / 0.20); }
+.light .focus\:bg-white\/5:focus { background-color: rgb(28 25 23 / 0.05); }
+.light .focus\:bg-white\/10:focus { background-color: rgb(28 25 23 / 0.08); }
+
+/* ── Fundos pretos → fundos claros ── */
+.light .bg-black { background-color: #f7f5f0 !important; }
+.light .bg-black\/20 { background-color: rgb(255 255 255 / 0.50); }
+.light .bg-black\/30 { background-color: rgb(255 255 255 / 0.55); }
+.light .bg-black\/40 { background-color: rgb(255 255 255 / 0.60); }
+.light .bg-black\/50 { background-color: rgb(255 255 255 / 0.65); }
+.light .bg-black\/60 { background-color: rgb(255 255 255 / 0.70); }
+.light .bg-black\/65 { background-color: rgb(255 255 255 / 0.72); }
+.light .bg-black\/70 { background-color: rgb(255 255 255 / 0.75); }
+.light .bg-black\/80 { background-color: rgb(255 255 255 / 0.85); }
+.light .bg-black\/90 { background-color: rgb(255 255 255 / 0.90); }
+.light .bg-black\/95 { background-color: rgb(255 255 255 / 0.95); }
+.light .hover\:bg-black\/60:hover { background-color: rgb(255 255 255 / 0.70); }
+.light .hover\:bg-black\/80:hover { background-color: rgb(255 255 255 / 0.85); }
+
+/* ── Superfícies hex escuras → superfícies claras ── */
+.light .bg-\[\#050505\] { background-color: #f7f5f0 !important; }
+.light .bg-\[\#050505\]\/90 { background-color: rgb(247 245 240 / 0.92); }
+.light .bg-\[\#060606\]\/85 { background-color: rgb(247 245 240 / 0.88); }
+.light .bg-\[\#080808\] { background-color: #f7f5f0 !important; }
+.light .bg-\[\#0a0a0a\], .light .bg-\[\#0A0A0A\] { background-color: #ffffff !important; }
+.light .bg-\[\#0a0a0a\]\/80 { background-color: rgb(255 255 255 / 0.88); }
+.light .bg-\[\#0a0a0a\]\/95 { background-color: rgb(255 255 255 / 0.95); }
+.light .bg-\[\#0d0d0d\] { background-color: #ffffff !important; }
+.light .bg-\[\#0f0f0f\] { background-color: #fdfcfa !important; }
+.light .bg-\[\#0f0f0f\]\/40 { background-color: rgb(255 255 255 / 0.70); }
+.light .bg-\[\#0f0f0f\]\/50 { background-color: rgb(255 255 255 / 0.75); }
+.light .bg-\[\#0f0f0f\]\/60 { background-color: rgb(255 255 255 / 0.80); }
+.light .bg-\[\#0f0f0f\]\/80 { background-color: rgb(255 255 255 / 0.90); }
+.light .bg-\[\#0f0f0f\]\/95 { background-color: rgb(255 255 255 / 0.95); }
+.light .bg-\[\#111\] { background-color: #ffffff !important; }
+.light .bg-\[\#1b1b1b\]\/60 { background-color: rgb(255 255 255 / 0.80); }
+
+/* ── Dourado: texto mais escuro p/ contraste em fundo claro ── */
+.light .text-\[\#d4af37\], .light .text-\[\#D4AF37\], .light .text-\[\#f2ca50\] { color: #8a6a15 !important; }
+.light .text-\[\#d4af37\]\/70 { color: rgb(138 106 21 / 0.85); }
+.light .text-\[\#d4af37\]\/60 { color: rgb(138 106 21 / 0.80); }
+.light .text-\[\#d4af37\]\/50 { color: rgb(138 106 21 / 0.75); }
+.light .text-\[\#d4af37\]\/40 { color: rgb(138 106 21 / 0.70); }
+.light .text-\[\#d4af37\]\/30 { color: rgb(138 106 21 / 0.60); }
+.light .text-\[\#d4af37\]\/20 { color: rgb(138 106 21 / 0.50); }
+.light .text-\[\#d4af37\]\/10 { color: rgb(138 106 21 / 0.35); }
+
+.light .border-\[\#d4af37\], .light .border-\[\#D4AF37\] { border-color: #8a6a15; }
+.light .border-\[\#d4af37\]\/10 { border-color: rgb(138 106 21 / 0.25); }
+.light .border-\[\#d4af37\]\/15 { border-color: rgb(138 106 21 / 0.30); }
+.light .border-\[\#d4af37\]\/20, .light .border-\[\#D4AF37\]\/20 { border-color: rgb(138 106 21 / 0.35); }
+.light .border-\[\#d4af37\]\/25 { border-color: rgb(138 106 21 / 0.40); }
+.light .border-\[\#d4af37\]\/30, .light .border-\[\#D4AF37\]\/30 { border-color: rgb(138 106 21 / 0.45); }
+.light .border-\[\#d4af37\]\/40, .light .border-\[\#D4AF37\]\/40 { border-color: rgb(138 106 21 / 0.55); }
+.light .border-\[\#d4af37\]\/50 { border-color: rgb(138 106 21 / 0.65); }
+.light .border-\[\#D4AF37\]\/60 { border-color: rgb(138 106 21 / 0.70); }
+.light .border-\[\#f2ca50\]\/50 { border-color: rgb(138 106 21 / 0.65); }
+
+/* ── Gradientes escuros → claros ── */
+.light .from-black { --tw-gradient-from: #f7f5f0 var(--tw-gradient-from-position); }
+.light .from-black\/60 { --tw-gradient-from: rgb(247 245 240 / 0.65) var(--tw-gradient-from-position); }
+.light .from-black\/70 { --tw-gradient-from: rgb(247 245 240 / 0.75) var(--tw-gradient-from-position); }
+.light .from-black\/80 { --tw-gradient-from: rgb(247 245 240 / 0.85) var(--tw-gradient-from-position); }
+.light .from-black\/85 { --tw-gradient-from: rgb(247 245 240 / 0.88) var(--tw-gradient-from-position); }
+.light .from-black\/90 { --tw-gradient-from: rgb(247 245 240 / 0.92) var(--tw-gradient-from-position); }
+.light .from-\[\#050505\] { --tw-gradient-from: #f7f5f0 var(--tw-gradient-from-position); }
+.light .from-\[\#0f0f0f\] { --tw-gradient-from: #fdfcfa var(--tw-gradient-from-position); }
+.light .from-\[\#1a1a1a\] { --tw-gradient-from: #f2f0ea var(--tw-gradient-from-position); }
+.light .via-black\/20 { --tw-gradient-via: rgb(247 245 240 / 0.35); --tw-gradient-stops: var(--tw-gradient-from), var(--tw-gradient-via), var(--tw-gradient-to); }
+.light .via-black\/45 { --tw-gradient-via: rgb(247 245 240 / 0.55); --tw-gradient-stops: var(--tw-gradient-from), var(--tw-gradient-via), var(--tw-gradient-to); }
+.light .via-\[\#050505\]\/98 { --tw-gradient-via: rgb(247 245 240 / 0.98); --tw-gradient-stops: var(--tw-gradient-from), var(--tw-gradient-via), var(--tw-gradient-to); }
+.light .to-black { --tw-gradient-to: #f7f5f0 var(--tw-gradient-to-position); }
+.light .to-black\/30 { --tw-gradient-to: rgb(247 245 240 / 0.40) var(--tw-gradient-to-position); }
+.light .to-black\/50 { --tw-gradient-to: rgb(247 245 240 / 0.60) var(--tw-gradient-to-position); }
+.light .to-black\/85 { --tw-gradient-to: rgb(247 245 240 / 0.88) var(--tw-gradient-to-position); }
+.light .to-\[\#171717\] { --tw-gradient-to: #f2f0ea var(--tw-gradient-to-position); }
+
+/* ── Efeitos decorativos ── */
+/* lighten sobre fundo claro tornaria as fotos invisíveis */
+.light .mix-blend-lighten { mix-blend-mode: normal; }
+.light .lumina-spot { mix-blend-mode: multiply; }
+.light .lumina-grain::after { opacity: 0.02; }
+.light .text-glow { text-shadow: none; }
+.light .gold-glow { box-shadow: 0 2px 16px rgba(140, 106, 21, 0.18); }
+.light .gold-glow-hover:hover { box-shadow: 0 4px 24px rgba(140, 106, 21, 0.28); border-color: rgba(140, 106, 21, 0.5); }
