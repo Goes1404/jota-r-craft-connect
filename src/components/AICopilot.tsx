@@ -21,6 +21,7 @@ import {
   Diamond
 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
+import { hasOwnFixedActionBar } from '@/lib/mobileChrome';
 import { toast } from 'sonner';
 
 interface Message {
@@ -104,11 +105,14 @@ export const AICopilot: React.FC = () => {
   ];
 
   if (!isOpen) {
+    // No mobile, some onde a página já tem barra de compra fixa (produto/checkout)
+    // para não cobrir o CTA. No desktop continua visível.
+    const bubbleVisibility = hasOwnFixedActionBar(location.pathname) ? 'hidden md:flex' : 'flex';
     return (
       <button
         onClick={() => setIsOpen(true)}
         aria-label="Abrir assistente Lumina AI"
-        className="fixed bottom-24 right-4 md:bottom-8 md:right-8 z-[100] w-14 h-14 md:w-16 md:h-16 bg-[#0a0a0a] border border-[#d4af37]/40 rounded-full shadow-[0_0_40px_rgba(212,175,55,0.2)] flex items-center justify-center group hover:scale-110 transition-all duration-500 hover:border-[#d4af37]"
+        className={`fixed bottom-24 right-4 md:bottom-8 md:right-8 z-[100] w-14 h-14 md:w-16 md:h-16 bg-[#0a0a0a] border border-[#d4af37]/40 rounded-full shadow-[0_0_40px_rgba(212,175,55,0.2)] ${bubbleVisibility} items-center justify-center group hover:scale-110 transition-all duration-500 hover:border-[#d4af37]`}
       >
         <Sparkles className="w-8 h-8 text-[#d4af37] group-hover:rotate-12 transition-transform" />
         <div className="absolute -top-2 -right-2 bg-[#d4af37] text-black text-[7px] font-black px-2 py-0.5 rounded-full uppercase tracking-widest shadow-[0_0_10px_rgba(212,175,55,0.5)]">Lumina</div>

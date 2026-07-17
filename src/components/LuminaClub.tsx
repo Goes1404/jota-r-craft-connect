@@ -55,7 +55,7 @@ export const LuminaClub: React.FC<LuminaClubProps> = ({ totalSpent }) => {
             
             <div className="space-y-1">
               <p className="text-[10px] font-black uppercase tracking-[0.2em] text-white/20">Pontos Acumulados</p>
-              <h2 className="text-6xl font-serif font-black text-white tracking-tighter">
+              <h2 className="text-4xl sm:text-6xl font-serif font-black text-white tracking-tighter break-all">
                 {points.toLocaleString('pt-BR')}
               </h2>
             </div>

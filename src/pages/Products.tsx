@@ -134,7 +134,7 @@ const Products: React.FC = () => {
       <Header />
 
       {/* ── Layered background ── */}
-      <div aria-hidden="true" className="pointer-events-none fixed inset-0 z-0">
+      <div aria-hidden="true" className="pointer-events-none fixed inset-0 z-0 overflow-hidden">
         {/* Top gold wash */}
         <div className="absolute inset-x-0 top-0 h-[60vh] bg-[radial-gradient(ellipse_70%_60%_at_50%_-10%,rgba(212,175,55,0.10),transparent_70%)]" />
         {/* Bottom vignette for depth */}

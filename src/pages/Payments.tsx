@@ -85,7 +85,7 @@ const Payments: React.FC = () => {
                 <div className="flex justify-between items-start">
                   <div className="space-y-1">
                     <span className="text-[10px] font-black uppercase tracking-widest text-white/20">Cartão {card.type}</span>
-                    <h3 className="text-xl font-mono font-bold text-white tracking-widest">•••• •••• •••• {card.last4}</h3>
+                    <h3 className="text-base sm:text-xl font-mono font-bold text-white tracking-wide sm:tracking-widest whitespace-nowrap">•••• •••• •••• {card.last4}</h3>
                   </div>
                   <div className="text-[#d4af37] font-serif italic font-bold">{card.brand}</div>
                 </div>

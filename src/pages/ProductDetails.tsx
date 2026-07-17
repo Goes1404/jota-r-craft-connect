@@ -552,7 +552,7 @@ const ProductDetails = () => {
                   <button
                     onClick={() => setQty(q => Math.max(1, q - 1))}
                     disabled={qty <= 1}
-                    className="w-8 h-8 rounded-lg flex items-center justify-center text-white/40
+                    className="w-10 h-10 rounded-lg flex items-center justify-center text-white/40
                       hover:text-white hover:bg-white/5 transition-all disabled:opacity-20 disabled:hover:bg-transparent"
                   >
                     <Minus className="w-3.5 h-3.5" />
@@ -561,7 +561,7 @@ const ProductDetails = () => {
                   <button
                     onClick={() => setQty(q => Math.min(maxQty, q + 1))}
                     disabled={qty >= maxQty}
-                    className="w-8 h-8 rounded-lg flex items-center justify-center text-white/40
+                    className="w-10 h-10 rounded-lg flex items-center justify-center text-white/40
                       hover:text-white hover:bg-white/5 transition-all disabled:opacity-20 disabled:hover:bg-transparent"
                   >
                     <Plus className="w-3.5 h-3.5" />

@@ -12,9 +12,6 @@ import {
   LogOut,
   ChevronRight,
   Star,
-  Diamond,
-  Bell,
-  User,
   Heart,
   Download
 } from 'lucide-react';
@@ -282,23 +279,9 @@ const Profile: React.FC = () => {
       </main>
 
       <Footer />
-
-      {/* Mobile Nav Bar - Specific for Profile */}
-      <nav className="md:hidden bg-black/95 backdrop-blur-xl fixed bottom-0 w-full z-50 border-t border-white/5 flex justify-around items-center px-4 pt-4 pb-8">
-        <button className="flex flex-col items-center gap-1 text-white/20 hover:text-white transition-colors">
-          <ShoppingBag className="w-6 h-6" />
-          <span className="text-[8px] uppercase font-bold tracking-widest">Loja</span>
-        </button>
-        <button className="flex flex-col items-center gap-1 text-white/20 hover:text-white transition-colors">
-          <Diamond className="w-6 h-6" />
-          <span className="text-[8px] uppercase font-bold tracking-widest">Vault</span>
-        </button>
-        <button className="flex flex-col items-center gap-1 text-[#d4af37] relative">
-          <User className="w-6 h-6" />
-          <span className="text-[8px] uppercase font-bold tracking-widest">Conta</span>
-          <span className="absolute -bottom-2 w-1 h-1 bg-[#d4af37] rounded-full shadow-[0_0_8px_rgba(212,175,55,0.8)]"></span>
-        </button>
-      </nav>
+      {/* A navegação inferior no mobile vem do MobileBottomNav global (App.tsx).
+          A barra placeholder específica daqui foi removida — duplicava a global
+          e cobria o rodapé. */}
     </div>
   );
 };

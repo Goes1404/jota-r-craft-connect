@@ -45,8 +45,8 @@ const styles = {
   itemName: 'text-xs font-bold text-white truncate uppercase tracking-wider pr-6',
   itemPrice: 'text-xs font-serif font-black text-[#d4af37]',
   itemQtyRow: 'flex items-center gap-1 bg-black/60 rounded-full border border-white/10 p-1 w-fit',
-  itemQtyBtn: 'h-6 w-6 flex items-center justify-center text-white/40 hover:text-white transition-colors',
-  itemQtyNum: 'w-6 text-center text-[10px] font-black text-white',
+  itemQtyBtn: 'h-9 w-9 flex items-center justify-center text-white/50 hover:text-white transition-colors',
+  itemQtyNum: 'w-7 text-center text-xs font-black text-white',
   itemRemoveBtn: 'absolute top-4 right-4 text-white/20 hover:text-red-400 transition-colors p-2 bg-black/40 rounded-full opacity-0 group-hover:opacity-100',
   // Upsell
   upsellSection: 'pt-6 border-t border-white/5 animate-in fade-in slide-in-from-bottom-4 duration-700',
