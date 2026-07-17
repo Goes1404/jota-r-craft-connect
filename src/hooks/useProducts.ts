@@ -3,10 +3,15 @@ import { productService } from "@/services/productService";
 import { Product } from "@/types/database";
 import { toast } from "sonner";
 
+// staleTime evita refetch a cada foco de janela/navegação — as mutations já
+// invalidam o cache quando algo muda, então os dados nunca ficam defasados.
+const PRODUCTS_STALE_TIME = 60 * 1000;
+
 export const useProducts = () => {
   return useQuery({
     queryKey: ["products"],
     queryFn: productService.getProducts,
+    staleTime: PRODUCTS_STALE_TIME,
   });
 };
 
@@ -14,6 +19,7 @@ export const useAdminProducts = () => {
   return useQuery({
     queryKey: ["admin-products"],
     queryFn: productService.getAdminProducts,
+    staleTime: PRODUCTS_STALE_TIME,
   });
 };
 
@@ -21,6 +27,7 @@ export const useFeaturedProducts = (limit = 4) => {
   return useQuery({
     queryKey: ["featured-products", limit],
     queryFn: () => productService.getFeaturedProducts(limit),
+    staleTime: PRODUCTS_STALE_TIME,
   });
 };
 

@@ -2,6 +2,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
+import { normalizeCategory } from '@/lib/categories';
 import {
   Upload,
   FileText,
@@ -178,6 +179,8 @@ const PdfBulkImport: React.FC<Props> = ({ onImportComplete }) => {
     try {
       const rows = toSave.map(({ selected: _s, ...p }) => ({
         ...p,
+        name: p.name.trim(),
+        category: normalizeCategory(p.category),
         image: '',
         images: [],
         is_featured: false,

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { Navigate, useNavigate } from 'react-router-dom';
 import { AdminShell } from '@/components/admin/AdminShell';
 import { useAuth } from '@/contexts/AuthContext';
@@ -13,6 +13,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import MultiImageUpload from '@/components/MultiImageUpload';
 import ProductAdGenerator from '@/components/ProductAdGenerator';
+import { normalizeCategory } from '@/lib/categories';
 import {
   Plus,
   Edit,
@@ -88,24 +89,30 @@ const AdminProducts = () => {
   const [isPdfDialogOpen, setIsPdfDialogOpen] = useState(false);
 
   const { data: allProducts = [], isLoading } = useAdminProducts();
-  const { createProduct, updateProduct, deleteProduct } = useProductMutations();
+  const { createProduct, updateProduct, deleteProduct, isCreating, isUpdating } = useProductMutations();
+  const isSaving = isCreating || isUpdating;
 
-  const products = allProducts.filter(product => {
+  const products = useMemo(() => allProducts.filter(product => {
     const matchesName = product.name.toLowerCase().includes(nameFilter.toLowerCase());
     const matchesCategory = !categoryFilter || product.category?.toLowerCase().includes(categoryFilter.toLowerCase());
-    const matchesStatus = statusFilter === 'all' || 
+    const matchesStatus = statusFilter === 'all' ||
       (statusFilter === 'available' && product.stock > 0) ||
       (statusFilter === 'out-of-stock' && product.stock === 0) ||
       (statusFilter === 'featured' && product.is_featured);
-    
+
     return matchesName && matchesCategory && matchesStatus;
-  });
+  }), [allProducts, nameFilter, categoryFilter, statusFilter]);
 
-  const categories = [...new Set(allProducts.map(p => p.category).filter(Boolean))];
+  const categories = useMemo(
+    () => [...new Set(allProducts.map(p => p.category).filter(Boolean))].sort((a, b) => a.localeCompare(b, 'pt-BR')),
+    [allProducts]
+  );
 
-  const totalInventoryCost = allProducts.reduce((sum, p) => sum + (p.stock * (p.cost || 0)), 0);
-  const totalInventoryRetail = allProducts.reduce((sum, p) => sum + (p.stock * p.price), 0);
-  const highStockProducts = allProducts.filter(p => p.stock >= 20);
+  const { totalInventoryCost, totalInventoryRetail, highStockProducts } = useMemo(() => ({
+    totalInventoryCost: allProducts.reduce((sum, p) => sum + (p.stock * (p.cost || 0)), 0),
+    totalInventoryRetail: allProducts.reduce((sum, p) => sum + (p.stock * p.price), 0),
+    highStockProducts: allProducts.filter(p => p.stock >= 20),
+  }), [allProducts]);
 
   const resetForm = () => {
     setFormData({
@@ -150,21 +157,33 @@ const AdminProducts = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (isSaving) return; // evita duplo clique criando produto duplicado
     if (!formData.image && formData.images.length === 0) {
       toast({ title: 'Atenção', description: 'O upload de imagem é obrigatório para curadoria.', variant: 'destructive' });
       return;
     }
-    
+
+    const price = parseFloat(formData.price);
+    const stock = parseInt(formData.stock);
+    if (!Number.isFinite(price) || price <= 0) {
+      toast({ title: 'Preço inválido', description: 'Informe um preço de venda maior que zero.', variant: 'destructive' });
+      return;
+    }
+    if (!Number.isInteger(stock) || stock < 0) {
+      toast({ title: 'Estoque inválido', description: 'Informe uma quantidade de estoque válida (0 ou mais).', variant: 'destructive' });
+      return;
+    }
+
     const productData = {
-      name: formData.name,
-      price: parseFloat(formData.price),
+      name: formData.name.trim(),
+      price,
       cost: parseFloat(formData.cost) || 0,
       description: formData.description,
       detailed_description: formData.detailed_description,
       image: formData.image || formData.images[0],
       images: formData.images,
-      category: formData.category,
-      stock: parseInt(formData.stock),
+      category: normalizeCategory(formData.category),
+      stock,
       is_featured: formData.is_featured,
       weight: parseFloat(formData.weight) || 0.3,
       height: parseFloat(formData.height) || 10,
@@ -172,13 +191,18 @@ const AdminProducts = () => {
       length: parseFloat(formData.length) || 20,
     };
 
-    if (editingProduct) {
-      await updateProduct({ id: editingProduct.id, product: productData });
-    } else {
-      await createProduct(productData);
+    try {
+      if (editingProduct) {
+        await updateProduct({ id: editingProduct.id, product: productData });
+      } else {
+        await createProduct(productData);
+      }
+      resetForm();
+      setIsDialogOpen(false);
+    } catch {
+      // erro já exibido no toast da mutation; mantém o modal aberto
+      // para o lojista corrigir sem perder o que preencheu
     }
-    resetForm();
-    setIsDialogOpen(false);
   };
 
   const handleGenerateDescription = async () => {
@@ -291,7 +315,35 @@ const AdminProducts = () => {
                   </div>
                   <div className="space-y-4">
                     <Label className="text-[10px] font-bold uppercase tracking-widest text-white/30">Categoria</Label>
-                    <Input value={formData.category} onChange={(e) => setFormData({...formData, category: e.target.value})} className="bg-white/5 border-white/10 focus:border-[#d4af37]/40 h-12 rounded-xl" placeholder="Ex: Colares, Brincos" />
+                    <Input
+                      value={formData.category}
+                      onChange={(e) => setFormData({...formData, category: e.target.value})}
+                      list="category-suggestions"
+                      className="bg-white/5 border-white/10 focus:border-[#d4af37]/40 h-12 rounded-xl"
+                      placeholder="Ex: Fone via Bluetooth, Mouse"
+                    />
+                    {/* Sugestões das categorias já cadastradas — evita duplicatas por digitação */}
+                    <datalist id="category-suggestions">
+                      {categories.map((c) => <option key={c} value={c} />)}
+                    </datalist>
+                    {categories.length > 0 && (
+                      <div className="flex flex-wrap gap-1.5">
+                        {categories.map((c) => (
+                          <button
+                            key={c}
+                            type="button"
+                            onClick={() => setFormData({ ...formData, category: c })}
+                            className={`px-2.5 py-1 rounded-full text-[9px] font-bold uppercase tracking-widest border transition-colors ${
+                              formData.category === c
+                                ? 'border-[#d4af37]/60 bg-[#d4af37]/10 text-[#d4af37]'
+                                : 'border-white/10 text-white/30 hover:text-white/60 hover:border-white/20'
+                            }`}
+                          >
+                            {c}
+                          </button>
+                        ))}
+                      </div>
+                    )}
                   </div>
                 </div>
                 
@@ -386,8 +438,10 @@ const AdminProducts = () => {
                 </div>
 
                 <div className="flex justify-end gap-4 pt-4 border-t border-white/5">
-                  <Button type="button" variant="ghost" onClick={() => setIsDialogOpen(false)} className="text-white/40 hover:text-white font-bold uppercase tracking-widest text-[10px]">Cancelar</Button>
-                  <Button type="submit" className="bg-[#d4af37] text-black font-black uppercase tracking-widest text-[10px] px-10 h-12 rounded-full hover:bg-[#f2ca50] transition-all">Salvar Alterações</Button>
+                  <Button type="button" variant="ghost" onClick={() => setIsDialogOpen(false)} disabled={isSaving} className="text-white/40 hover:text-white font-bold uppercase tracking-widest text-[10px]">Cancelar</Button>
+                  <Button type="submit" disabled={isSaving} className="bg-[#d4af37] text-black font-black uppercase tracking-widest text-[10px] px-10 h-12 rounded-full hover:bg-[#f2ca50] transition-all disabled:opacity-60">
+                    {isSaving ? (<><Loader2 className="w-3.5 h-3.5 animate-spin mr-2" /> Salvando...</>) : 'Salvar Alterações'}
+                  </Button>
                 </div>
               </form>
             </DialogContent>
@@ -507,7 +561,7 @@ const AdminProducts = () => {
                         <TableCell className="py-6 px-8">
                           <div className="flex items-center gap-6">
                             <div className="w-16 h-16 rounded-2xl overflow-hidden bg-black border border-white/10 group-hover:scale-105 transition-transform flex-shrink-0">
-                              <img src={product.image} alt={product.name} className="w-full h-full object-cover" />
+                              <img src={product.image} alt={product.name} loading="lazy" decoding="async" className="w-full h-full object-cover" />
                             </div>
                             <div className="space-y-1">
                               <div className="flex items-center gap-2">

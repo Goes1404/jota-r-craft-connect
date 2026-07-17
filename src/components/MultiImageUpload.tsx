@@ -20,6 +20,7 @@ const MultiImageUpload: React.FC<MultiImageUploadProps> = ({
   maxImages = 10
 }) => {
   const [uploading, setUploading] = useState(false);
+  const [progress, setProgress] = useState<{ done: number; total: number } | null>(null);
   const [images, setImages] = useState<string[]>(currentImages);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -43,53 +44,76 @@ const MultiImageUpload: React.FC<MultiImageUploadProps> = ({
       return;
     }
 
+    const fileList = Array.from(files);
     setUploading(true);
+    setProgress({ done: 0, total: fileList.length });
 
     try {
-      const uploadPromises = Array.from(files).map(async (rawFile) => {
-        // Validar tipo de arquivo
-        if (!rawFile.type.match(/^image\/(jpeg|jpg|png|webp)$/)) {
-          throw new Error(`Formato inválido: ${rawFile.name}. Use apenas JPG, JPEG, PNG ou WEBP.`);
-        }
-
-        // Comprime no navegador — aceita fotos grandes (até 25MB) sem erro
-        const file = await compressImage(rawFile);
-
-        // Upload para Supabase Storage
+      const uploadFile = async (file: File): Promise<string> => {
         const fileExt = file.name.split('.').pop();
         const fileName = `${Math.random().toString(36).substring(2)}-${Date.now()}.${fileExt}`;
         const filePath = `products/${fileName}`;
 
         const { error: uploadError } = await supabase.storage
           .from('product-images')
-          .upload(filePath, file, {
-            cacheControl: '3600',
-            upsert: false
-          });
+          .upload(filePath, file, { cacheControl: '3600', upsert: false });
+        if (uploadError) throw uploadError;
 
-        if (uploadError) {
-          throw uploadError;
-        }
-
-        // Obter URL pública
         const { data: { publicUrl } } = supabase.storage
           .from('product-images')
           .getPublicUrl(filePath);
-
         return publicUrl;
-      });
+      };
 
-      const newUrls = await Promise.all(uploadPromises);
-      const updatedImages = [...images, ...newUrls];
-      
-      setImages(updatedImages);
-      onImagesChange(updatedImages);
+      // Comprime UMA foto por vez (canvas pesa na thread da interface — em
+      // paralelo travava a tela com várias fotos grandes). O upload de cada
+      // uma dispara em seguida e roda em paralelo, pois é só rede.
+      const uploadPromises: Promise<string>[] = [];
+      const compressErrors: string[] = [];
+      for (const rawFile of fileList) {
+        if (!rawFile.type.match(/^image\/(jpeg|jpg|png|webp)$/)) {
+          compressErrors.push(`Formato inválido: ${rawFile.name}. Use JPG, PNG ou WEBP.`);
+          continue;
+        }
+        try {
+          const file = await compressImage(rawFile);
+          uploadPromises.push(
+            uploadFile(file).finally(() =>
+              setProgress((p) => (p ? { ...p, done: p.done + 1 } : p))
+            )
+          );
+        } catch (err: any) {
+          compressErrors.push(err.message || `Falha ao processar ${rawFile.name}.`);
+        }
+        // Devolve o controle ao navegador entre uma compressão e outra
+        await new Promise((r) => setTimeout(r, 0));
+      }
 
-      toast({
-        title: 'Upload realizado!',
-        description: `${files.length} imagem(ns) carregada(s) com sucesso.`,
-      });
+      // Mantém as imagens que subiram mesmo se alguma falhar no meio
+      const results = await Promise.allSettled(uploadPromises);
+      const newUrls = results
+        .filter((r): r is PromiseFulfilledResult<string> => r.status === 'fulfilled')
+        .map((r) => r.value);
+      const failures = compressErrors.length + results.filter((r) => r.status === 'rejected').length;
 
+      if (newUrls.length > 0) {
+        const updatedImages = [...images, ...newUrls];
+        setImages(updatedImages);
+        onImagesChange(updatedImages);
+      }
+
+      if (failures === 0) {
+        toast({
+          title: 'Upload realizado!',
+          description: `${newUrls.length} imagem(ns) carregada(s) com sucesso.`,
+        });
+      } else {
+        toast({
+          title: newUrls.length > 0 ? 'Upload parcial' : 'Erro no upload',
+          description: `${newUrls.length} enviada(s), ${failures} falhou(aram). ${compressErrors[0] ?? 'Tente novamente as que faltaram.'}`,
+          variant: 'destructive',
+        });
+      }
     } catch (error: any) {
       console.error('Erro no upload:', error);
       toast({
@@ -99,6 +123,7 @@ const MultiImageUpload: React.FC<MultiImageUploadProps> = ({
       });
     } finally {
       setUploading(false);
+      setProgress(null);
       if (fileInputRef.current) {
         fileInputRef.current.value = '';
       }
@@ -141,7 +166,7 @@ const MultiImageUpload: React.FC<MultiImageUploadProps> = ({
             {uploading ? (
               <div className="flex items-center gap-2">
                 <div className="animate-spin rounded-full h-3 w-3 border-b-2 border-primary"></div>
-                Enviando...
+                {progress ? `Enviando ${Math.min(progress.done + 1, progress.total)}/${progress.total}...` : 'Enviando...'}
               </div>
             ) : (
               <div className="flex items-center gap-2">
@@ -162,6 +187,8 @@ const MultiImageUpload: React.FC<MultiImageUploadProps> = ({
                 <img
                   src={imageUrl}
                   alt={`Produto ${index + 1}`}
+                  loading="lazy"
+                  decoding="async"
                   className="w-full h-full object-cover"
                 />
               </div>
@@ -234,7 +261,7 @@ const MultiImageUpload: React.FC<MultiImageUploadProps> = ({
             {uploading ? (
               <div className="flex items-center gap-2">
                 <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-primary"></div>
-                Enviando...
+                {progress ? `Enviando ${Math.min(progress.done + 1, progress.total)}/${progress.total}...` : 'Enviando...'}
               </div>
             ) : (
               <div className="flex items-center gap-2">
