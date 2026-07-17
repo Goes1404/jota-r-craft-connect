@@ -11,6 +11,7 @@ const mockProduct: Product = {
   image: '/placeholder.svg',
   category: 'cintos',
   stock: 10,
+  is_featured: false,
 };
 
 const wrapper = ({ children }: { children: React.ReactNode }) => (

@@ -52,7 +52,10 @@ const AdminOrders = () => {
     queryFn: async () => {
       const { data, error } = await supabase
         .from('orders')
-        .select('*, user:profiles(full_name, email, phone), items:order_items(quantity, total_price, unit_price, product:products(name, image))')
+        // Sem embed de profiles: orders não tem FK para profiles (o PostgREST não
+        // consegue inferir a relação). Os dados do cliente já estão desnormalizados
+        // em customer_name / customer_email / customer_phone na própria order.
+        .select('*, items:order_items(quantity, total_price, unit_price, product:products(name, image))')
         .order('created_at', { ascending: false });
       
       if (error) throw error;
@@ -97,7 +100,7 @@ const AdminOrders = () => {
         },
       });
       // Send shipped WhatsApp
-      const clientPhone = selectedOrder.customer_phone || selectedOrder.user?.phone;
+      const clientPhone = selectedOrder.customer_phone;
       if (clientPhone) {
         await supabase.functions.invoke('send-whatsapp', {
           body: {
@@ -120,13 +123,13 @@ const AdminOrders = () => {
   };
 
   const notifyWhatsApp = (order: any) => {
-    const firstName = order.user?.full_name?.split(' ')[0] || 'Cliente';
+    const firstName = order.customer_name?.split(' ')[0] || 'Cliente';
     const statusText = order.status === 'Em Preparação' ? 'está sendo preparado com todo cuidado ✨' : 
                       order.status === 'Enviado' ? `acaba de ser enviado! 🚚\n\nCódigo de Rastreio: *${order.tracking_code || 'Em processamento'}*` : 
                       'foi entregue! Esperamos que você ame sua nova peça. 💎';
     
     const text = `Olá ${firstName}! Seu pedido da ${STORE.name} ${statusText}`;
-    const phone = order.customer_phone?.replace(/\D/g, '') || order.user?.phone?.replace(/\D/g, '') || order.shipping_address?.match(/\d{10,11}/)?.[0];
+    const phone = order.customer_phone?.replace(/\D/g, '') || order.shipping_address?.match(/\d{10,11}/)?.[0];
     
     if (phone) {
       window.open(`https://wa.me/55${phone}?text=${encodeURIComponent(text)}`, '_blank');
@@ -139,8 +142,7 @@ const AdminOrders = () => {
     const term = searchTerm.toLowerCase();
     return (
       o.id.toLowerCase().includes(term) ||
-      o.user?.full_name?.toLowerCase().includes(term) ||
-      o.customer_name?.toLowerCase().includes(term) ||
+            o.customer_name?.toLowerCase().includes(term) ||
       o.customer_email?.toLowerCase().includes(term) ||
       o.status.toLowerCase().includes(term)
     );
@@ -212,7 +214,7 @@ const AdminOrders = () => {
                           <p className="text-sm font-black text-white uppercase tracking-widest">#{order.id.slice(0, 8)}</p>
                           <Badge className={`${getStatusColor(order.status)} border text-[8px] font-black px-2 py-0.5`}>{order.status}</Badge>
                         </div>
-                        <p className="text-xs font-bold text-white/40">{order.user?.full_name || order.customer_name || 'Cliente'} • {format(new Date(order.created_at), "dd MMM, HH:mm", { locale: ptBR })}</p>
+                        <p className="text-xs font-bold text-white/40">{order.customer_name || 'Cliente'} • {format(new Date(order.created_at), "dd MMM, HH:mm", { locale: ptBR })}</p>
                       </div>
                     </div>
                     <div className="text-right">
@@ -247,9 +249,9 @@ const AdminOrders = () => {
                         <User className="w-5 h-5" />
                       </div>
                       <div className="flex-1 min-w-0">
-                        <p className="text-xs font-black text-white uppercase tracking-widest truncate">{selectedOrder.user?.full_name || selectedOrder.customer_name || 'Cliente'}</p>
-                        <p className="text-[10px] text-white/40 font-bold">{selectedOrder.customer_phone || selectedOrder.user?.phone || '—'}</p>
-                        <p className="text-[10px] text-white/30 font-bold truncate">{selectedOrder.customer_email || selectedOrder.user?.email || '—'}</p>
+                        <p className="text-xs font-black text-white uppercase tracking-widest truncate">{selectedOrder.customer_name || 'Cliente'}</p>
+                        <p className="text-[10px] text-white/40 font-bold">{selectedOrder.customer_phone || '—'}</p>
+                        <p className="text-[10px] text-white/30 font-bold truncate">{selectedOrder.customer_email || '—'}</p>
                       </div>
                       <Button variant="ghost" onClick={() => notifyWhatsApp(selectedOrder)} className="ml-auto text-[#25D366] hover:bg-[#25D366]/10 p-2 shrink-0">
                         <MessageCircle className="w-5 h-5" />

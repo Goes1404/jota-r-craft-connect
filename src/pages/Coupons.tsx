@@ -32,7 +32,7 @@ const Coupons: React.FC = () => {
       const { data, error } = await supabase
         .from('coupons')
         .select('*')
-        .eq('is_active', true)
+        .eq('active', true)
         .order('created_at', { ascending: false });
       
       if (error) return []; // Fallback to empty list if table doesn't exist yet

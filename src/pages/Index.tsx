@@ -9,7 +9,6 @@ import { useAnalytics } from '@/hooks/useAnalytics';
 import { GlassHero } from '@/components/GlassHero';
 import { WHATSAPP_LINK } from '@/config/constants';
 import { SmartShowcase } from '@/components/SmartShowcase';
-import { TrackingInText } from '@/components/animations/TrackingIn';
 import { MaskReveal } from '@/components/animations/MaskReveal';
 import { Reveal } from '@/components/animations/Reveal';
 import { useAppSettings } from '@/hooks/useProducts';
@@ -138,7 +137,6 @@ const Index: React.FC = () => {
               subtitle="Os acessórios mais escolhidos pelos nossos clientes esta semana."
               mode="trending"
               limit={4}
-              TitleComponent={TrackingInText}
             />
           </Reveal>
         </div>

@@ -1,11 +1,19 @@
 import { Link, useLocation } from 'react-router-dom';
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
+import type { LucideIcon } from 'lucide-react';
 import {
   LayoutDashboard, Package, ShoppingBag, Ticket, Users, Layers,
   ShoppingCart, Star, Settings, Sparkles, Menu, Diamond,
 } from 'lucide-react';
 
-const links = [
+interface AdminMenuLink {
+  label: string;
+  path: string;
+  icon: LucideIcon;
+  highlight?: boolean;
+}
+
+const links: AdminMenuLink[] = [
   { label: 'Painel', path: '/admin/dashboard', icon: LayoutDashboard },
   { label: 'Estúdio IA', path: '/admin/studio', icon: Sparkles, highlight: true },
   { label: 'Coleção', path: '/admin/products', icon: Package },
@@ -16,7 +24,7 @@ const links = [
   { label: 'Recuperar', path: '/admin/abandoned-carts', icon: ShoppingCart },
   { label: 'Reviews', path: '/admin/reviews', icon: Star },
   { label: 'Config', path: '/admin/settings', icon: Settings },
-] as const;
+];
 
 /** Menu flutuante de navegação do admin no mobile (sem mexer nos 11 headers). */
 export const AdminMobileMenu = () => {

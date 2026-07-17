@@ -26,13 +26,18 @@ export class ErrorBoundary extends Component<Props, State> {
     
     // Tenta registrar o erro no Supabase
     import('@/integrations/supabase/client').then(({ supabase }) => {
+      // O builder do Supabase é "thenable", mas não tem .catch — o erro do banco
+      // vem no campo { error }, não como rejeição. Tratamos ambos aqui.
       supabase.from('site_errors').insert({
         error_message: error.message,
         error_stack: error.stack,
         component_stack: info.componentStack,
         url: window.location.href,
         user_agent: navigator.userAgent
-      }).catch(err => console.error('Failed to log error to Supabase', err));
+      }).then(
+        ({ error: dbError }) => { if (dbError) console.error('Failed to log error to Supabase', dbError); },
+        (err) => console.error('Failed to log error to Supabase', err),
+      );
     }).catch(err => console.error('Failed to import supabase', err));
   }
 

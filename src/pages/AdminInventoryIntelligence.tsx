@@ -21,7 +21,6 @@ import { toast } from 'sonner';
 
 const AdminInventoryIntelligence = () => {
   const { user, loading: authLoading } = useAuth();
-  const navigate = useNavigate();
   const { data: products = [], isLoading: productsLoading } = useAdminProducts();
   const { data: sales = [] } = useSales();
 

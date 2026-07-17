@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { motion, AnimatePresence, useReducedMotion } from 'framer-motion';
+import { motion, AnimatePresence, useReducedMotion, type Variants } from 'framer-motion';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { useProducts } from '@/hooks/useProducts';
 
@@ -51,7 +51,7 @@ export const HeroCarousel: React.FC = () => {
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [nextSlide, prevSlide]);
 
-  const slideVariants = {
+  const slideVariants: Variants = {
     initial: (dir: number) => ({
       x: prefersReducedMotion ? 0 : dir > 0 ? 40 : -40,
       opacity: 0,
@@ -70,7 +70,7 @@ export const HeroCarousel: React.FC = () => {
     },
   };
 
-  const floatVariants = {
+  const floatVariants: Variants = {
     animate: {
       y: [0, -12, 0],
       transition: { duration: 4, repeat: Infinity, ease: 'easeInOut' },
