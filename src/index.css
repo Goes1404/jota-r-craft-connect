@@ -109,10 +109,16 @@
     @apply border-border;
   }
 
+  html, body {
+    /* Trava rolagem horizontal acidental (blobs/decorativos que vazam a tela no mobile) */
+    @apply overflow-x-hidden;
+    max-width: 100%;
+  }
+
   body {
     @apply bg-background text-foreground antialiased selection:bg-primary selection:text-primary-foreground;
   }
-  
+
   /* Custom scrollbar */
   ::-webkit-scrollbar {
     width: 6px;
