@@ -68,6 +68,8 @@ export const Header: React.FC = () => {
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const searchInputRef = useRef<HTMLInputElement>(null);
+  const searchBtnRef = useRef<HTMLButtonElement>(null);
+  const wasSearchOpen = useRef(false);
 
   useEffect(() => {
     const handleScroll = () => setIsScrolled(window.scrollY > 20);
@@ -75,11 +77,16 @@ export const Header: React.FC = () => {
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
-  // Focus the input when the search panel opens
+  // Foca o input ao abrir; devolve o foco ao botão da lupa ao fechar
   useEffect(() => {
     if (isSearchOpen) {
+      wasSearchOpen.current = true;
       const t = setTimeout(() => searchInputRef.current?.focus(), 80);
       return () => clearTimeout(t);
+    }
+    if (wasSearchOpen.current) {
+      wasSearchOpen.current = false;
+      searchBtnRef.current?.focus();
     }
   }, [isSearchOpen]);
 
@@ -103,6 +110,13 @@ export const Header: React.FC = () => {
 
   return (
     <header className={styles.header(isScrolled)}>
+      {/* Pular direto ao conteúdo (teclado/leitor de tela) */}
+      <a
+        href="#conteudo"
+        className="sr-only focus:not-sr-only focus:fixed focus:top-4 focus:left-4 focus:z-[100] focus:bg-[#d4af37] focus:text-black focus:px-5 focus:py-3 focus:rounded-full text-[10px] font-black uppercase tracking-widest"
+      >
+        Pular para o conteúdo
+      </a>
       <div className={styles.inner}>
         {/* Brand */}
         <Link to="/" className={styles.logoWrap}>
@@ -134,6 +148,7 @@ export const Header: React.FC = () => {
         <div className={styles.actions}>
           <ThemeToggle />
           <button
+            ref={searchBtnRef}
             onClick={() => setIsSearchOpen(true)}
             className={styles.searchBtn}
             aria-label="Buscar produtos"
@@ -202,6 +217,9 @@ export const Header: React.FC = () => {
           onClick={() => setIsSearchOpen(false)}
         >
           <div
+            role="dialog"
+            aria-modal="true"
+            aria-label="Buscar produtos"
             className="absolute top-0 inset-x-0 bg-black/95 border-b border-primary/20 p-4 sm:p-6 animate-in slide-in-from-top duration-300"
             onClick={(e) => e.stopPropagation()}
             style={{ paddingTop: 'max(1rem, env(safe-area-inset-top))' }}
@@ -214,6 +232,7 @@ export const Header: React.FC = () => {
                   type="search"
                   inputMode="search"
                   enterKeyHint="search"
+                  aria-label="Buscar produtos"
                   placeholder="O que você procura? (ex: capa, fone, carregador)"
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}

@@ -4,7 +4,7 @@ import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { useProducts } from '@/hooks/useProducts';
 
 export const HeroCarousel: React.FC = () => {
-  const { data: allProducts = [] } = useProducts();
+  const { data: allProducts = [], isLoading } = useProducts();
   const prefersReducedMotion = useReducedMotion();
   
   const ITEMS = React.useMemo(() => {
@@ -77,13 +77,13 @@ export const HeroCarousel: React.FC = () => {
     },
   };
 
-  if (ITEMS.length === 0) {
+  if (isLoading) {
     return (
-      <div className="w-72 h-[480px] rounded-[40px] bg-white/[0.03] backdrop-blur-2xl border border-white/10 flex items-center justify-center">
-        <div className="w-8 h-8 rounded-full border-2 border-[#D4AF37] border-t-transparent animate-spin" />
-      </div>
+      <div className="w-72 h-[480px] rounded-[40px] bg-white/[0.03] backdrop-blur-2xl border border-white/10 animate-pulse" />
     );
   }
+
+  if (ITEMS.length === 0) return null;
 
   const currentItem = ITEMS[currentIndex];
 

@@ -644,7 +644,7 @@ const Checkout = () => {
     <div className="min-h-screen bg-black text-[#e2e2e2] font-sans selection:bg-[#f2ca50]/30 selection:text-[#f2ca50]">
       <Header />
       
-      <main className="max-w-screen-2xl mx-auto px-6 py-32 relative z-10">
+      <main id="conteudo" tabIndex={-1} className="max-w-screen-2xl mx-auto px-6 py-32 relative z-10">
         <div className="flex flex-col lg:flex-row gap-16">
           
           {/* Form Side */}

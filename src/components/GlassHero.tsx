@@ -81,7 +81,7 @@ export const GlassHero: React.FC = () => {
       )}
 
       {/* ── Marcante Feixe Dourado / Glowing Golden Ray ── */}
-      <div className="absolute top-0 left-[20%] w-[350px] h-[150%] bg-gradient-to-b from-[#D4AF37]/35 via-[#D4AF37]/10 to-transparent rotate-[38deg] transform origin-top-left blur-[110px] pointer-events-none z-0 mix-blend-color-dodge opacity-80" />
+      <div className="hidden md:block absolute top-0 left-[20%] w-[350px] h-[150%] bg-gradient-to-b from-[#D4AF37]/35 via-[#D4AF37]/10 to-transparent rotate-[38deg] transform origin-top-left blur-[110px] pointer-events-none z-0 mix-blend-color-dodge opacity-80" />
 
       {/* ── Decorative golden gradient line at bottom ── */}
       <div className="absolute bottom-0 left-0 w-full h-[1px] bg-gradient-to-r from-transparent via-[#D4AF37]/40 to-transparent z-20" />
@@ -99,7 +99,7 @@ export const GlassHero: React.FC = () => {
         size={400}
         opacity={0.25}
         duration={12}
-        className="top-1/2 right-0"
+        className="hidden md:block top-1/2 right-0"
         xPath={[0, -70, 30, -50, 0]}
         yPath={[0, 50, -40, 20, 0]}
       />
@@ -219,7 +219,7 @@ export const GlassHero: React.FC = () => {
         animate={{ opacity: 1 }}
         transition={{ delay: 2.2, duration: 0.8 }}
       >
-        <p className="text-[9px] font-black uppercase tracking-[0.4em] text-white/20">Scroll</p>
+        <p className="text-[9px] font-black uppercase tracking-[0.4em] text-white/20">Deslize</p>
         <motion.div
           className="w-[1px] h-8 bg-gradient-to-b from-[#D4AF37]/40 to-transparent"
           animate={prefersReducedMotion ? {} : { scaleY: [1, 0.3, 1], opacity: [0.6, 0.2, 0.6] }}

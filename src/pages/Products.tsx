@@ -299,7 +299,7 @@ const Products: React.FC = () => {
       </div>
 
       {/* ── Main content ── */}
-      <main className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 pt-7 sm:pt-9 pb-36">
+      <main id="conteudo" tabIndex={-1} className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 pt-7 sm:pt-9 pb-36">
 
         {/* Result count + sort */}
         {!isLoading && (

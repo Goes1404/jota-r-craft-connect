@@ -3,6 +3,10 @@
   "installCommand": "npm ci",
   "rewrites": [
     {
+      "source": "/sitemap.xml",
+      "destination": "https://kpjmjwxcpzcipcxunthq.supabase.co/functions/v1/sitemap"
+    },
+    {
       "source": "/(.*)",
       "destination": "/index.html"
     }

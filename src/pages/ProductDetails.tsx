@@ -205,11 +205,11 @@ function Gallery({
         {/* Prev/Next arrows — desktop only */}
         {images.length > 1 && (
           <>
-            <button onClick={prev} disabled={active === 0}
+            <button onClick={prev} disabled={active === 0} aria-label="Imagem anterior"
               className="hidden lg:flex absolute left-3 top-1/2 -translate-y-1/2 w-9 h-9 rounded-full bg-black/60 backdrop-blur-md border border-white/10 items-center justify-center text-white/60 hover:text-white hover:border-white/30 transition-all disabled:opacity-20">
               <ChevronLeft className="w-4 h-4" />
             </button>
-            <button onClick={next} disabled={active === images.length - 1}
+            <button onClick={next} disabled={active === images.length - 1} aria-label="Próxima imagem"
               className="hidden lg:flex absolute right-3 top-1/2 -translate-y-1/2 w-9 h-9 rounded-full bg-black/60 backdrop-blur-md border border-white/10 items-center justify-center text-white/60 hover:text-white hover:border-white/30 transition-all disabled:opacity-20">
               <ChevronRight className="w-4 h-4" />
             </button>
@@ -218,7 +218,7 @@ function Gallery({
 
         {/* Dot indicators */}
         {images.length > 1 && (
-          <div className="absolute bottom-3 left-1/2 -translate-x-1/2 flex gap-1.5 pointer-events-none">
+          <div aria-hidden="true" className="absolute bottom-3 left-1/2 -translate-x-1/2 flex gap-1.5 pointer-events-none">
             {images.map((_, i) => (
               <span key={i} className={`h-1.5 rounded-full transition-all duration-300
                 ${i === active ? 'w-5 bg-[#d4af37]' : 'w-1.5 bg-white/25'}`} />
@@ -368,12 +368,13 @@ const ProductDetails = () => {
           xPath={[0, -50, 40, -20, 0]} yPath={[0, 40, -30, 20, 0]} />
       </div>
 
-      <main className="relative z-10 max-w-screen-xl mx-auto px-4 sm:px-6 pt-20 pb-36 lg:pt-28 lg:pb-24">
+      <main id="conteudo" tabIndex={-1} className="relative z-10 max-w-screen-xl mx-auto px-4 sm:px-6 pt-20 pb-36 lg:pt-28 lg:pb-24">
 
         {/* ── Back + Share row (mobile) ── */}
         <div className="flex items-center justify-between mb-6 lg:mb-8">
           <button
             onClick={() => navigate(-1)}
+            aria-label="Voltar"
             className="flex items-center gap-2 text-white/40 hover:text-white/80 transition-colors group"
           >
             <ArrowLeft className="w-4 h-4 transition-transform group-hover:-translate-x-1" />
@@ -552,15 +553,17 @@ const ProductDetails = () => {
                   <button
                     onClick={() => setQty(q => Math.max(1, q - 1))}
                     disabled={qty <= 1}
+                    aria-label="Diminuir quantidade"
                     className="w-10 h-10 rounded-lg flex items-center justify-center text-white/40
                       hover:text-white hover:bg-white/5 transition-all disabled:opacity-20 disabled:hover:bg-transparent"
                   >
                     <Minus className="w-3.5 h-3.5" />
                   </button>
-                  <span className="w-8 text-center text-sm font-black text-white font-mono">{qty}</span>
+                  <span aria-live="polite" className="w-8 text-center text-sm font-black text-white font-mono">{qty}</span>
                   <button
                     onClick={() => setQty(q => Math.min(maxQty, q + 1))}
                     disabled={qty >= maxQty}
+                    aria-label="Aumentar quantidade"
                     className="w-10 h-10 rounded-lg flex items-center justify-center text-white/40
                       hover:text-white hover:bg-white/5 transition-all disabled:opacity-20 disabled:hover:bg-transparent"
                   >

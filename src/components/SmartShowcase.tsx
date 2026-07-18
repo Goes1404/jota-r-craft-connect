@@ -1,7 +1,7 @@
 import React from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
-import { ProductCard } from './ProductCard';
+import { ProductCard, ProductCardSkeleton } from './ProductCard';
 import { Sparkles, ArrowRight, Diamond } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { Button } from './ui/button';
@@ -42,10 +42,17 @@ export const SmartShowcase: React.FC<SmartShowcaseProps> = ({
 
   if (isLoading) {
     return (
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
-        {[...Array(limit)].map((_, i) => (
-          <div key={i} className="aspect-[4/5] bg-white/5 animate-pulse rounded-3xl border border-white/5" />
-        ))}
+      <div className="space-y-10">
+        <div className="space-y-3">
+          <div className="h-4 w-44 bg-white/5 rounded animate-pulse" />
+          <div className="h-9 w-64 bg-white/5 rounded animate-pulse" />
+          <div className="h-4 w-80 bg-white/5 rounded animate-pulse" />
+        </div>
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-6">
+          {[...Array(limit)].map((_, i) => (
+            <ProductCardSkeleton key={i} />
+          ))}
+        </div>
       </div>
     );
   }
@@ -58,7 +65,7 @@ export const SmartShowcase: React.FC<SmartShowcaseProps> = ({
         <div className="space-y-3">
           <div className="flex items-center gap-2 text-[#d4af37]">
             <Sparkles className="w-4 h-4 fill-[#d4af37]/20" />
-            <span className="text-[10px] font-black uppercase tracking-[0.4em]">{mode === 'trending' ? 'Trending' : 'Personalized'} Selection</span>
+            <span className="text-[10px] font-black uppercase tracking-[0.4em]">{mode === 'trending' ? 'Seleção em Alta' : 'Seleção Personalizada'}</span>
           </div>
           <h2 className="text-3xl md:text-4xl font-serif font-bold text-white tracking-tight">
             {title}

@@ -32,9 +32,18 @@ export const Footer: React.FC = () => {
 
   const handleSubscribe = async (e: React.FormEvent) => {
     e.preventDefault();
+    const normalized = email.trim().toLowerCase();
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(normalized)) {
+      toast({
+        title: 'E-mail inválido',
+        description: 'Verifique o endereço informado e tente novamente.',
+        variant: 'destructive',
+      });
+      return;
+    }
     setIsLoading(true);
     try {
-      const { error } = await (supabase as any).from('newsletter').insert([{ email }]);
+      const { error } = await (supabase as any).from('newsletter').insert([{ email: normalized }]);
       if (error) throw error;
       toast({
         title: 'Inscrição Realizada!',
@@ -91,7 +100,7 @@ export const Footer: React.FC = () => {
           viewport={{ once: true }}
           transition={{ duration: 0.6 }}
         >
-          Scroll down to reveal
+          Role para descobrir
         </motion.p>
 
         {/* MAIN PARALLAX HEADING */}
@@ -234,6 +243,8 @@ export const Footer: React.FC = () => {
                 { label: 'Produtos', to: '/produtos' },
                 { label: 'Contato', to: '/contato' },
                 { label: 'Perfil', to: '/perfil' },
+                { label: 'Termos', to: '/termos' },
+                { label: 'Privacidade', to: '/privacidade' },
               ].map((item) => (
                 <Link
                   key={item.label}
@@ -272,11 +283,11 @@ export const Footer: React.FC = () => {
             © {new Date().getFullYear()} {STORE.name.toUpperCase()}
           </p>
           <div className="flex gap-8">
-            <Link to="/contato" className="text-[10px] uppercase tracking-[0.2em] font-bold text-white/10 hover:text-white/20 transition-colors">
+            <Link to="/privacidade" className="text-[10px] uppercase tracking-[0.2em] font-bold text-white/10 hover:text-white/20 transition-colors">
               Privacidade
             </Link>
-            <Link to="/contato" className="text-[10px] uppercase tracking-[0.2em] font-bold text-white/10 hover:text-white/20 transition-colors">
-              Segurança
+            <Link to="/termos" className="text-[10px] uppercase tracking-[0.2em] font-bold text-white/10 hover:text-white/20 transition-colors">
+              Termos de Uso
             </Link>
           </div>
         </div>
