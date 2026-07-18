@@ -11,7 +11,7 @@ export const IntroLoader = () => {
   const reduced = useReducedMotion();
   const [show, setShow] = useState(() => {
     if (typeof window === 'undefined') return false;
-    return !sessionStorage.getItem('intro-shown');
+    return !localStorage.getItem('intro-shown');
   });
 
   useEffect(() => {
@@ -20,9 +20,9 @@ export const IntroLoader = () => {
       return;
     }
     const t = setTimeout(() => {
-      sessionStorage.setItem('intro-shown', '1');
+      localStorage.setItem('intro-shown', '1');
       setShow(false);
-    }, 1800);
+    }, 1400);
     return () => clearTimeout(t);
   }, [show, reduced]);
 

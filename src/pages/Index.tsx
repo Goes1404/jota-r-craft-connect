@@ -1,5 +1,6 @@
 import React, { useEffect, useState, useRef } from 'react';
 import { Link } from 'react-router-dom';
+import { preloadProducts } from '@/lib/preloadRoutes';
 import { Diamond, MessageCircle, Smartphone, Watch, Zap, Plus, Truck, RefreshCw, Lock, Headphones, Shield, FileText } from 'lucide-react';
 import { Header } from '@/components/Header';
 import { Footer } from '@/components/Footer';
@@ -14,9 +15,15 @@ import { Reveal } from '@/components/animations/Reveal';
 import { useAppSettings } from '@/hooks/useProducts';
 
 
-/* ─── Countdown Hook ─── */
-function useCountdown(targetHours: number) {
-  const end = useRef(Date.now() + targetHours * 3600 * 1000);
+/* ─── Countdown Hook ───
+   Ancorado no fim do dia (23:59:59 local): todos os visitantes veem o mesmo
+   prazo e ele não reinicia a cada carregamento da página. */
+function useCountdown(_targetHours: number) {
+  const end = useRef((() => {
+    const d = new Date();
+    d.setHours(23, 59, 59, 999);
+    return d.getTime();
+  })());
   const calc = () => {
     const diff = Math.max(0, end.current - Date.now());
     return {
@@ -90,7 +97,7 @@ const Index: React.FC = () => {
                   </div>
                 </React.Fragment>
               ))}
-              <Link to="/produtos" className="w-full sm:w-auto sm:ml-3">
+              <Link to="/produtos" onPointerEnter={preloadProducts} onTouchStart={preloadProducts} className="w-full sm:w-auto sm:ml-3">
                 <Button size="sm" className="w-full rounded-full h-10 px-5 text-xs font-black shadow-lg shadow-primary/30">
                   Ver Ofertas
                 </Button>
@@ -168,7 +175,7 @@ const Index: React.FC = () => {
 
             {/* Destaque banner — spans 2 cols on all sizes */}
             <Link
-              to="/produtos"
+              to="/produtos" onPointerEnter={preloadProducts} onTouchStart={preloadProducts}
               className="relative col-span-2 h-48 md:h-56 rounded-2xl overflow-hidden bg-zinc-900 border border-primary/20 group cursor-pointer"
             >
               <div className="absolute inset-0 bg-zinc-800 bg-[url('https://images.unsplash.com/photo-1592899677977-9c10ca588bbd?w=800&auto=format&fit=crop')] bg-cover bg-center brightness-[0.4] group-hover:brightness-50 transition-all duration-700 group-hover:scale-105" />
@@ -215,7 +222,7 @@ const Index: React.FC = () => {
                 </p>
               </div>
               <Link
-                to="/produtos"
+                to="/produtos" onPointerEnter={preloadProducts} onTouchStart={preloadProducts}
                 className="text-[9px] font-black uppercase tracking-widest text-primary/50 group-hover:text-primary transition-colors relative z-10"
               >
                 Ver Produtos →

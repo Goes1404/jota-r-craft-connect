@@ -1,3 +1,4 @@
+import { preloadProducts, preloadProductDetails } from '@/lib/preloadRoutes';
 import { lazy, Suspense, useEffect, useState } from "react";
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
@@ -50,8 +51,8 @@ const DeferredOverlays = () => {
 
 // ─── lazy page imports ────────────────────────────────────────────────────────
 const Index = lazy(() => import("./pages/Index"));
-const Products = lazy(() => import("./pages/Products"));
-const ProductDetails = lazy(() => import("./pages/ProductDetails"));
+const Products = lazy(preloadProducts);
+const ProductDetails = lazy(preloadProductDetails);
 const Contact = lazy(() => import("./pages/Contact"));
 const AdminLogin = lazy(() => import("./pages/AdminLogin"));
 const ForgotPassword = lazy(() => import("./pages/ForgotPassword"));

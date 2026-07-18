@@ -26,29 +26,17 @@ export const SmartShowcase: React.FC<SmartShowcaseProps> = ({
   const { data: products = [], isLoading } = useQuery({
     queryKey: ['smart-showcase', mode, category, excludeProductId],
     queryFn: async () => {
-      let query = supabase.from('products').select('*');
-      
-      if (category) {
-        query = query.eq('category', category);
-      }
-      
-      if (excludeProductId) {
-        query = query.neq('id', excludeProductId);
-      }
-
-      // If mode is trending, we could join with product_views if we had a view count column,
-      // but let's simulate it with featured + random for variety for now.
-      const { data, error } = await query.limit(12);
-      
+      // Filtro e ordenação no servidor: busca só as colunas que o card usa
+      // e apenas `limit` linhas (antes: 12 linhas completas para exibir 4).
+      let query = supabase
+        .from('products')
+        .select('id,name,price,cost,image,images,stock,category,is_featured,description');
+      if (category) query = query.eq('category', category);
+      if (excludeProductId) query = query.neq('id', excludeProductId);
+      if (mode === 'trending') query = query.order('is_featured', { ascending: false });
+      const { data, error } = await query.limit(limit);
       if (error) throw error;
-
-      // Sort logic for "Smart" feel
-      let sorted = [...data];
-      if (mode === 'trending') {
-        sorted = sorted.sort((a, b) => (b.is_featured ? 1 : 0) - (a.is_featured ? 1 : 0));
-      }
-
-      return sorted.slice(0, limit);
+      return data;
     }
   });
 

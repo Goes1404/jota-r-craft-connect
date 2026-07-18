@@ -49,7 +49,7 @@ export const STORE = {
     defaultTitle: "JR Acessórios — Produtos e Acessórios | Entrega Rápida",
     defaultDescription:
       "JR Acessórios — sua loja de acessórios e produtos variados. Ótimos preços, pagamento com PIX e cartão, entrega no mesmo dia em Osasco/SP e para todo o Brasil.",
-    defaultImage: "/hero-bg.png",
+    defaultImage: "/og-image.jpg",
     priceRange: "$$",
   },
 

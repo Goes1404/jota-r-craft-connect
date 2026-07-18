@@ -1,3 +1,4 @@
+import { preloadProductDetails } from '@/lib/preloadRoutes';
 import React, { useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion, useInView } from 'framer-motion';
@@ -80,6 +81,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product, onViewDetails
     addToCart(product);
     toast({ title: 'Adicionado ✨', description: product.name });
   };
+  const warmDetail = () => { preloadProductDetails(); };
   const handleNavigate = () => {
     if (onViewDetails) onViewDetails(product);
     else navigate(`/produto/${product.id}`);
@@ -98,7 +100,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product, onViewDetails
     return (
       <motion.article
         ref={cardRef as React.RefObject<HTMLDivElement>}
-        onClick={handleNavigate}
+        onClick={handleNavigate} onPointerEnter={warmDetail} onTouchStart={warmDetail}
         onMouseMove={handlePointer}
         whileHover={reduced ? undefined : { y: -6 }}
         {...entrance}
@@ -192,7 +194,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product, onViewDetails
   return (
     <motion.article
       ref={cardRef as React.RefObject<HTMLDivElement>}
-      onClick={handleNavigate}
+      onClick={handleNavigate} onPointerEnter={warmDetail} onTouchStart={warmDetail}
       onMouseMove={handlePointer}
       whileHover={reduced ? undefined : { y: -8 }}
       {...entrance}

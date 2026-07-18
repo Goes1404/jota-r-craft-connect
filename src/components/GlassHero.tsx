@@ -3,6 +3,7 @@ import { motion, useReducedMotion } from 'framer-motion';
 import { Link } from 'react-router-dom';
 import { ShoppingBag, MessageCircle, Star, Shield, Zap } from 'lucide-react';
 import { GoldenBlob } from '@/components/animations/GoldenBlob';
+import { preloadProducts } from '@/lib/preloadRoutes';
 import { Magnetic } from '@/components/animations/Magnetic';
 import { TrackingInText } from '@/components/animations/TrackingIn';
 import { MaskReveal } from '@/components/animations/MaskReveal';
@@ -30,21 +31,54 @@ export const GlassHero: React.FC = () => {
   const VIDEO_URL =
     "https://d8j0ntlcm91z4.cloudfront.net/user_38xzZboKViGWJOttwIXH07lWA1P/hf_20260210_031346_d87182fb-b0af-4273-84d1-c6fd17d6bf0f.mp4";
 
+  // O vídeo de fundo pesa ~28MB: só montamos depois que a página está ociosa,
+  // e nunca em conexões com economia de dados ou com movimento reduzido.
+  // A seção já tem visual completo sem ele (o vídeo entra a opacity-30).
+  const [playVideo, setPlayVideo] = React.useState(false);
+  React.useEffect(() => {
+    const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    const saveData = (navigator as any).connection?.saveData === true;
+    if (reduce || saveData) return;
+    const show = () => setPlayVideo(true);
+    if ('requestIdleCallback' in window) {
+      const id = (window as any).requestIdleCallback(show, { timeout: 2500 });
+      return () => (window as any).cancelIdleCallback(id);
+    }
+    const t = setTimeout(show, 1500);
+    return () => clearTimeout(t);
+  }, []);
+
+  // Carrossel de destaque: display:none no mobile não evita o download das
+  // imagens — só renderiza o componente quando a tela é desktop de verdade.
+  const [isDesktop, setIsDesktop] = React.useState(false);
+  React.useEffect(() => {
+    const mql = window.matchMedia('(min-width: 1024px)');
+    const sync = () => setIsDesktop(mql.matches);
+    sync();
+    mql.addEventListener('change', sync);
+    return () => mql.removeEventListener('change', sync);
+  }, []);
+
   return (
     <section
       className="relative w-full min-h-[90svh] md:min-h-[100svh] overflow-hidden bg-[#0A0A0A] flex items-center"
       aria-label="Hero principal"
     >
-      {/* ── Video Background ── */}
-      <video
-        autoPlay
-        loop
-        muted
-        playsInline
-        className="absolute inset-0 w-full h-full object-cover z-0 opacity-30 brightness-[0.6] mix-blend-lighten"
-      >
-        <source src={VIDEO_URL} type="video/mp4" />
-      </video>
+      {/* ── Video Background (montado após idle; ver gate acima) ── */}
+      {playVideo && (
+        <video
+          autoPlay
+          loop
+          muted
+          playsInline
+          preload="metadata"
+          aria-hidden="true"
+          className="absolute inset-0 w-full h-full object-cover z-0 opacity-0 [&.loaded]:opacity-30 brightness-[0.6] mix-blend-lighten transition-opacity duration-700"
+          onCanPlay={(e) => e.currentTarget.classList.add('loaded')}
+        >
+          <source src={VIDEO_URL} type="video/mp4" />
+        </video>
+      )}
 
       {/* ── Marcante Feixe Dourado / Glowing Golden Ray ── */}
       <div className="absolute top-0 left-[20%] w-[350px] h-[150%] bg-gradient-to-b from-[#D4AF37]/35 via-[#D4AF37]/10 to-transparent rotate-[38deg] transform origin-top-left blur-[110px] pointer-events-none z-0 mix-blend-color-dodge opacity-80" />
@@ -120,7 +154,7 @@ export const GlassHero: React.FC = () => {
             transition={{ duration: 0.6, delay: 1.4 }}
           >
             <Magnetic strength={0.4}>
-              <Link to="/produtos">
+              <Link to="/produtos" onPointerEnter={preloadProducts} onTouchStart={preloadProducts}>
                 <motion.button
                   className="flex items-center gap-3 px-8 py-4 rounded-full bg-[#D4AF37] text-black font-black text-sm uppercase tracking-widest shadow-[0_0_40px_rgba(212,175,55,0.35)] border border-[#D4AF37]/60"
                   whileHover={prefersReducedMotion ? {} : { scale: 1.05, boxShadow: '0 0 60px rgba(212,175,55,0.6)' }}
@@ -174,7 +208,7 @@ export const GlassHero: React.FC = () => {
           {/* Glow ring behind image */}
           <div className="absolute w-80 h-80 rounded-full bg-[#D4AF37]/10 blur-[60px]" />
 
-          <HeroCarousel />
+          {isDesktop && <HeroCarousel />}
         </div>
       </div>
 
