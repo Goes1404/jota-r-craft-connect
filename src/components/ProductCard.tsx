@@ -59,6 +59,8 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product, onViewDetails
 
   const fmt = (v: number) => v.toLocaleString('pt-BR', { minimumFractionDigits: 2 });
   const installment = (product.price / 10).toLocaleString('pt-BR', { minimumFractionDigits: 2 });
+  // Mesmo desconto prometido na home e aplicado no checkout (5% OFF no PIX)
+  const pixPrice = (product.price * 0.95).toLocaleString('pt-BR', { minimumFractionDigits: 2 });
 
   // Spotlight que segue o cursor (desktop) — atualiza CSS vars sem re-render.
   const handlePointer = (e: React.MouseEvent<HTMLElement>) => {
@@ -100,13 +102,18 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product, onViewDetails
     return (
       <motion.article
         ref={cardRef as React.RefObject<HTMLDivElement>}
+        role="link"
+        tabIndex={0}
+        aria-label={`Ver ${product.name}`}
+        onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); handleNavigate(); } }}
         onClick={handleNavigate} onPointerEnter={warmDetail} onTouchStart={warmDetail}
         onMouseMove={handlePointer}
         whileHover={reduced ? undefined : { y: -6 }}
         {...entrance}
         className={`group lumina-card relative overflow-hidden rounded-3xl bg-[#0a0a0a] border border-white/[0.07]
           cursor-pointer transition-[border-color,box-shadow] duration-500 hover:border-[#d4af37]/30
-          hover:shadow-[0_30px_80px_-30px_rgba(212,175,55,0.28)] ${className}`}
+          hover:shadow-[0_30px_80px_-30px_rgba(212,175,55,0.28)]
+          focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#d4af37] focus-visible:ring-offset-2 focus-visible:ring-offset-black ${className}`}
       >
         {/* Spotlight glow */}
         <div className="lumina-spot pointer-events-none absolute inset-0 z-[1] opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
@@ -163,6 +170,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product, onViewDetails
                 R$ {fmt(product.price)}
               </p>
               <p className="text-white/30 text-[9px] mt-1">10× R$ {installment}</p>
+              <p className="text-emerald-400/80 text-[9px] font-bold mt-0.5">R$ {pixPrice} no PIX</p>
             </div>
           </div>
 
@@ -194,6 +202,10 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product, onViewDetails
   return (
     <motion.article
       ref={cardRef as React.RefObject<HTMLDivElement>}
+      role="link"
+      tabIndex={0}
+      aria-label={`Ver ${product.name}`}
+      onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); handleNavigate(); } }}
       onClick={handleNavigate} onPointerEnter={warmDetail} onTouchStart={warmDetail}
       onMouseMove={handlePointer}
       whileHover={reduced ? undefined : { y: -8 }}
@@ -201,7 +213,8 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product, onViewDetails
       className={`group lumina-card relative flex flex-col overflow-hidden rounded-2xl bg-[#0a0a0a]
         border border-white/[0.07] cursor-pointer
         transition-[border-color,box-shadow] duration-400 hover:border-[#d4af37]/25
-        hover:shadow-[0_20px_60px_-24px_rgba(212,175,55,0.32)] ${className}`}
+        hover:shadow-[0_20px_60px_-24px_rgba(212,175,55,0.32)]
+        focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#d4af37] focus-visible:ring-offset-2 focus-visible:ring-offset-black ${className}`}
     >
       {/* Spotlight glow follows cursor */}
       <div className="lumina-spot pointer-events-none absolute inset-0 z-[1] opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
@@ -233,17 +246,17 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product, onViewDetails
           <Heart className={`w-3.5 h-3.5 ${isFavorite ? 'fill-red-400' : ''}`} />
         </button>
 
-        {/* Badge */}
-        {product.is_featured && !isOutOfStock && (
-          <div className="absolute top-2.5 left-2.5 z-[3]">
-            <span className="px-2 py-0.5 rounded-full bg-[#d4af37]/15 backdrop-blur-md border border-[#d4af37]/30 text-[#d4af37] text-[8px] font-black uppercase tracking-widest">Destaque</span>
-          </div>
-        )}
-        {isLowStock && (
-          <div className="absolute top-2.5 left-2.5 z-[3]">
-            <span className="px-2 py-0.5 rounded-full bg-amber-500/15 backdrop-blur-md border border-amber-400/30 text-amber-400 text-[8px] font-black uppercase tracking-widest flex items-center gap-1">
-              <Zap className="w-2 h-2" />Últimas {product.stock}
-            </span>
+        {/* Badges empilhados: Destaque + Últimas X sem sobreposição */}
+        {(product.is_featured || isLowStock) && !isOutOfStock && (
+          <div className="absolute top-2.5 left-2.5 z-[3] flex flex-col items-start gap-1">
+            {product.is_featured && (
+              <span className="px-2 py-0.5 rounded-full bg-[#d4af37]/15 backdrop-blur-md border border-[#d4af37]/30 text-[#d4af37] text-[8px] font-black uppercase tracking-widest">Destaque</span>
+            )}
+            {isLowStock && (
+              <span className="px-2 py-0.5 rounded-full bg-amber-500/15 backdrop-blur-md border border-amber-400/30 text-amber-400 text-[8px] font-black uppercase tracking-widest flex items-center gap-1">
+                <Zap className="w-2 h-2" />Últimas {product.stock}
+              </span>
+            )}
           </div>
         )}
 
@@ -282,10 +295,13 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product, onViewDetails
         {rating && rating.review_count > 0 && (
           <RatingInline avg={rating.avg_rating} count={rating.review_count} />
         )}
-        <p className="text-white/25 text-[10px] font-medium mt-auto">
-          {product.category && <span className="text-white/35">{product.category} · </span>}
-          10× R$ {installment}
-        </p>
+        <div className="mt-auto space-y-0.5">
+          <p className="text-[10px] font-bold text-emerald-400">R$ {pixPrice} <span className="text-emerald-400/60 font-medium">no PIX</span></p>
+          <p className="text-white/25 text-[10px] font-medium">
+            {product.category && <span className="text-white/35">{product.category} · </span>}
+            10× R$ {installment}
+          </p>
+        </div>
       </div>
     </motion.article>
   );

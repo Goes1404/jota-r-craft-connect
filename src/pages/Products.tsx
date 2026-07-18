@@ -16,9 +16,12 @@ import { Magnetic } from '@/components/animations/Magnetic';
 import { TrackingIn } from '@/components/animations/Reveal';
 import {
   Search, SlidersHorizontal, Phone, Watch, Headphones,
-  Shield, Zap, LayoutGrid, Bot, X, RefreshCcw, Sparkles,
+  Shield, Zap, LayoutGrid, Bot, X, RefreshCcw, Sparkles, Tag,
 } from 'lucide-react';
 import { useSearchParams } from 'react-router-dom';
+
+// Busca insensível a acentos (pt-BR): "fone bluetooth" encontra "Fone via Bluetooth"
+const norm = (s: string) => s.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
 
 // ─── Category pills data ──────────────────────────────────────────────────────
 const CATEGORIES = [
@@ -35,7 +38,7 @@ const Products: React.FC = () => {
   const { usePageVisit } = useAnalytics();
   usePageVisit('products');
 
-  const [searchParams] = useSearchParams();
+  const [searchParams, setSearchParams] = useSearchParams();
   const initialCategory = searchParams.get('category') || '';
   const initialQuery = searchParams.get('q') || '';
 
@@ -49,6 +52,15 @@ const Products: React.FC = () => {
     inStockOnly: false,
     featuredOnly: false,
   });
+
+  // Espelha busca/categoria na URL: voltar do produto, refresh ou compartilhar
+  // o link preserva os filtros. replace evita poluir o histórico a cada tecla.
+  useEffect(() => {
+    const params = new URLSearchParams();
+    if (filters.search) params.set('q', filters.search);
+    if (filters.category) params.set('category', filters.category);
+    setSearchParams(params, { replace: true });
+  }, [filters.search, filters.category, setSearchParams]);
 
   const [isAiSearching, setIsAiSearching] = useState(false);
   const [aiMatchIds, setAiMatchIds] = useState<string[] | null>(null);
@@ -105,10 +117,10 @@ const Products: React.FC = () => {
   const filteredProducts = useMemo(() => {
     let list = [...products];
     if (filters.search) {
-      const q = filters.search.toLowerCase();
+      const q = norm(filters.search);
       list = list.filter(p =>
-        p.name.toLowerCase().includes(q) ||
-        p.description?.toLowerCase().includes(q) ||
+        norm(p.name).includes(q) ||
+        (p.description && norm(p.description).includes(q)) ||
         aiMatchIds?.includes(p.id)
       );
     }
@@ -124,6 +136,22 @@ const Products: React.FC = () => {
     }
     return list;
   }, [products, filters, aiMatchIds]);
+
+  // Pills geradas dos dados: categorias novas aparecem automaticamente e
+  // pills de categorias sem produto somem (os ícones das conhecidas ficam).
+  const pillCategories = useMemo(() => {
+    const known = new Set(CATEGORIES.map(c => c.value));
+    const base = CATEGORIES.filter(c => c.value === '' || dynamicCategories.includes(c.value));
+    const extras = dynamicCategories
+      .filter(c => !known.has(c))
+      .map(label => ({ label, value: label, icon: Tag }));
+    return [...base, ...extras];
+  }, [dynamicCategories]);
+
+  // Paginação client-side: renderiza 24 por vez (catálogos grandes não travam o grid)
+  const PAGE_SIZE = 24;
+  const [visibleCount, setVisibleCount] = useState(PAGE_SIZE);
+  useEffect(() => { setVisibleCount(PAGE_SIZE); }, [filters, aiMatchIds]);
 
   const hasActiveFilters = filters.search || filters.category || filters.inStockOnly || filters.featuredOnly;
   const activeFilterCount = [filters.inStockOnly, filters.featuredOnly, !!filters.category].filter(Boolean).length;
@@ -197,20 +225,22 @@ const Products: React.FC = () => {
               placeholder="Buscar produto ou intenção..."
               value={filters.search}
               onChange={e => setFilters(prev => ({ ...prev, search: e.target.value }))}
+              aria-label="Buscar produtos"
               className="w-full h-10 bg-white/[0.06] border border-white/[0.08] focus:border-[#d4af37]/40
                 pl-10 pr-10 rounded-xl text-sm text-white placeholder:text-white/20
-                outline-none transition-all"
+                outline-none transition-all [&::-webkit-search-cancel-button]:hidden"
             />
-            {filters.search && (
+            {filters.search && !isAiSearching && (
               <button
                 onClick={() => setFilters(prev => ({ ...prev, search: '' }))}
+                aria-label="Limpar busca"
                 className="absolute right-3 top-1/2 -translate-y-1/2 text-white/30 hover:text-white/60"
               >
                 <X className="w-3.5 h-3.5" />
               </button>
             )}
             {isAiSearching && (
-              <RefreshCcw className="absolute right-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-[#d4af37] animate-spin" />
+              <RefreshCcw className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-[#d4af37] animate-spin" />
             )}
           </div>
 
@@ -242,7 +272,7 @@ const Products: React.FC = () => {
         {/* ── Category pills ── */}
         <div className="overflow-x-auto scrollbar-hide">
           <div className="flex gap-2 px-3 sm:px-6 pb-3 w-max min-w-full">
-            {CATEGORIES.map(({ label, value, icon: Icon }, i) => {
+            {pillCategories.map(({ label, value, icon: Icon }, i) => {
               const active = filters.category === value;
               return (
                 <motion.button
@@ -326,7 +356,7 @@ const Products: React.FC = () => {
           </div>
         ) : filteredProducts.length > 0 ? (
           <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-3 sm:gap-4 lg:gap-5">
-            {filteredProducts.map((product, index) => (
+            {filteredProducts.slice(0, visibleCount).map((product, index) => (
               <ProductCard
                 key={product.id}
                 product={product}
@@ -340,7 +370,18 @@ const Products: React.FC = () => {
               />
             ))}
           </div>
-        ) : (
+        ) : null}
+        {!isLoading && filteredProducts.length > visibleCount && (
+          <div className="flex justify-center mt-10">
+            <Button
+              onClick={() => setVisibleCount(c => c + PAGE_SIZE)}
+              className="h-11 px-8 rounded-full bg-white/[0.06] border border-[#d4af37]/25 text-[#d4af37] font-black text-[10px] uppercase tracking-widest hover:bg-[#d4af37]/10"
+            >
+              Carregar mais ({filteredProducts.length - visibleCount} restantes)
+            </Button>
+          </div>
+        )}
+        {!isLoading && filteredProducts.length === 0 && (
           <div className="flex flex-col items-center justify-center py-24 text-center">
             <div className="w-16 h-16 rounded-2xl bg-[#d4af37]/[0.06] border border-[#d4af37]/10 flex items-center justify-center mb-5">
               <Bot className="w-7 h-7 text-[#d4af37]/30" />
