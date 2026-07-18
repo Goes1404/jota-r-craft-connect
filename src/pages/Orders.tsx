@@ -21,11 +21,17 @@ import {
   Loader2,
   Search,
   AlertCircle,
+  Copy,
+  ExternalLink,
+  RotateCcw,
 } from 'lucide-react';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { Input } from '@/components/ui/input';
+import { useToast } from '@/hooks/use-toast';
+import { useCart } from '@/contexts/CartContext';
+import { WHATSAPP_LINK } from '@/config/constants';
 
 const Orders = () => {
   const { user } = useAuth();
@@ -72,7 +78,7 @@ const Orders = () => {
       // guest purchases to an account.
       const { data, error } = await supabase
         .from('orders')
-        .select('*, items:order_items(quantity, total_price, product:products(name, image))')
+        .select('*, items:order_items(quantity, total_price, product:products(*))')
         .or(`user_id.eq.${user.id},and(customer_email.eq.${user.email},user_id.is.null)`)
         .order('created_at', { ascending: false });
 
@@ -250,6 +256,53 @@ const Orders = () => {
 
 // Shared order detail component
 function OrderDetail({ order, steps, getStatusStep }: { order: any; steps: any[]; getStatusStep: (s: string) => number }) {
+  const { toast } = useToast();
+  const { addToCart } = useCart();
+  const navigate = useNavigate();
+
+  const copyTrackingCode = () => {
+    navigator.clipboard.writeText(order.tracking_code);
+    toast({
+      title: 'Código copiado!',
+      description: 'O código de rastreio foi copiado para sua área de transferência.',
+    });
+  };
+
+  const handleReorder = () => {
+    let added = 0;
+    (order.items || []).forEach((item: any) => {
+      const product = item.product;
+      if (product && product.stock > 0) {
+        for (let i = 0; i < (item.quantity || 1); i++) {
+          addToCart(product);
+        }
+        added++;
+      }
+    });
+
+    if (added > 0) {
+      toast({
+        title: 'Itens adicionados ao carrinho!',
+        description: 'Revise sua sacola e finalize a compra.',
+      });
+      navigate('/checkout');
+    } else {
+      toast({
+        variant: 'destructive',
+        title: 'Itens indisponíveis',
+        description: 'Os produtos deste pedido não estão mais disponíveis em estoque.',
+      });
+    }
+  };
+
+  const handleSupport = () => {
+    window.open(
+      `${WHATSAPP_LINK}?text=${encodeURIComponent(`Olá! Preciso de ajuda com meu pedido #${order.id?.slice(0, 8).toUpperCase()}`)}`,
+      '_blank',
+      'noopener'
+    );
+  };
+
   return (
     <div className="bg-[#0a0a0a] border border-white/5 rounded-[48px] overflow-hidden shadow-2xl animate-in fade-in zoom-in-95 duration-700">
       {/* Header */}
@@ -260,10 +313,32 @@ function OrderDetail({ order, steps, getStatusStep }: { order: any; steps: any[]
         <div className="relative z-10 flex flex-col md:flex-row justify-between items-end gap-8">
           <div>
             <h2 className="text-4xl font-serif font-black text-white mb-4 tracking-tighter">Status da <span className="text-[#d4af37]">Experiência</span></h2>
-            <div className="flex items-center gap-4 text-white/40 text-xs font-bold uppercase tracking-widest">
+            <div className="flex flex-wrap items-center gap-4 text-white/40 text-xs font-bold uppercase tracking-widest">
               <span>Ref: {order.id?.slice(0, 12)}</span>
               <span>•</span>
-              <span className="text-[#d4af37]">Tracking: {order.tracking_code || 'Em processamento'}</span>
+              {order.tracking_code ? (
+                <div className="flex flex-wrap items-center gap-2">
+                  <span className="px-4 py-1.5 rounded-full bg-[#d4af37]/10 border border-[#d4af37]/20 text-[#d4af37] font-mono text-xs tracking-widest normal-case">
+                    {order.tracking_code}
+                  </span>
+                  <button
+                    onClick={copyTrackingCode}
+                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-white/5 border border-white/10 text-white/60 hover:text-white hover:border-[#d4af37]/40 transition-all text-[9px] font-black uppercase tracking-widest"
+                  >
+                    <Copy className="w-3 h-3" /> Copiar
+                  </button>
+                  <a
+                    href={`https://rastreamento.correios.com.br/app/index.php?objeto=${order.tracking_code}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-[#d4af37] text-black hover:bg-[#f2ca50] transition-all text-[9px] font-black uppercase tracking-widest"
+                  >
+                    <ExternalLink className="w-3 h-3" /> Rastrear
+                  </a>
+                </div>
+              ) : (
+                <span className="text-[#d4af37]">Tracking: Em processamento</span>
+              )}
             </div>
           </div>
           <div className="w-full md:w-auto p-4 bg-white/5 rounded-3xl border border-white/5 flex items-center gap-4">
@@ -344,9 +419,22 @@ function OrderDetail({ order, steps, getStatusStep }: { order: any; steps: any[]
           <ShieldCheck className="w-5 h-5 text-green-500" />
           <p className="text-[9px] font-black uppercase tracking-widest text-white/30">Garantia de Autenticidade Ativada</p>
         </div>
-        <Button variant="outline" className="border-white/10 text-white/40 hover:text-white rounded-full px-10 h-14 text-[9px] font-black uppercase tracking-widest">
-          Solicitar Suporte Concierge
-        </Button>
+        <div className="flex flex-col sm:flex-row items-center gap-4">
+          <Button
+            onClick={handleReorder}
+            className="bg-[#d4af37] text-black hover:bg-[#f2ca50] rounded-full px-10 h-14 text-[9px] font-black uppercase tracking-widest transition-all"
+          >
+            <RotateCcw className="w-4 h-4 mr-2" />
+            Comprar Novamente
+          </Button>
+          <Button
+            onClick={handleSupport}
+            variant="outline"
+            className="border-white/10 text-white/40 hover:text-white rounded-full px-10 h-14 text-[9px] font-black uppercase tracking-widest"
+          >
+            Solicitar Suporte Concierge
+          </Button>
+        </div>
       </div>
     </div>
   );

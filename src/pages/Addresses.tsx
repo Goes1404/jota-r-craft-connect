@@ -20,6 +20,17 @@ import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from '@/components/ui/alert-dialog';
 
 const Addresses: React.FC = () => {
   const { user, loading: authLoading } = useAuth();
@@ -115,6 +126,29 @@ const Addresses: React.FC = () => {
     }
   });
 
+  const handleZipChange = (value: string) => {
+    setFormData(prev => ({ ...prev, zip_code: value }));
+    const digits = value.replace(/\D/g, '');
+    if (digits.length === 8) {
+      fetch(`https://viacep.com.br/ws/${digits}/json/`)
+        .then(res => res.json())
+        .then(data => {
+          if (data && !data.erro) {
+            setFormData(prev => ({
+              ...prev,
+              street: data.logradouro || prev.street,
+              neighborhood: data.bairro || prev.neighborhood,
+              city: data.localidade || prev.city,
+              state: data.uf || prev.state,
+            }));
+          }
+        })
+        .catch(() => {
+          // Silent: user can still fill the address manually
+        });
+    }
+  };
+
   const handleEdit = (address: any) => {
     setFormData({
       street: address.street,
@@ -179,13 +213,16 @@ const Addresses: React.FC = () => {
             <form onSubmit={(e) => { e.preventDefault(); saveMutation.mutate(formData); }} className="grid grid-cols-1 md:grid-cols-2 gap-8">
               <div className="space-y-2 md:col-span-2">
                 <Label className="text-[10px] font-bold text-[#d4af37] uppercase tracking-widest">CEP</Label>
-                <Input 
+                <Input
                   value={formData.zip_code}
-                  onChange={(e) => setFormData({ ...formData, zip_code: e.target.value })}
+                  onChange={(e) => handleZipChange(e.target.value)}
                   placeholder="00000-000"
                   className="bg-black/40 border-white/10 h-14 rounded-2xl text-white outline-none focus:border-[#d4af37]/40"
                   required
                 />
+                <p className="text-[10px] text-white/30 font-medium pt-1">
+                  Digite o CEP e preenchemos o endereço para você.
+                </p>
               </div>
               
               <div className="space-y-2 md:col-span-2">
@@ -323,13 +360,35 @@ const Addresses: React.FC = () => {
                       >
                         <Edit2 className="w-4 h-4" />
                       </Button>
-                      <Button 
-                        onClick={() => deleteMutation.mutate(address.id)}
-                        variant="ghost" 
-                        className="flex-1 md:w-12 h-12 rounded-xl bg-white/5 text-white/40 hover:text-red-400 hover:bg-red-400/10 transition-all p-0"
-                      >
-                        <Trash2 className="w-4 h-4" />
-                      </Button>
+                      <AlertDialog>
+                        <AlertDialogTrigger asChild>
+                          <Button
+                            variant="ghost"
+                            className="flex-1 md:w-12 h-12 rounded-xl bg-white/5 text-white/40 hover:text-red-400 hover:bg-red-400/10 transition-all p-0"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </Button>
+                        </AlertDialogTrigger>
+                        <AlertDialogContent className="bg-[#0f0f0f] border border-white/10 rounded-[32px]">
+                          <AlertDialogHeader>
+                            <AlertDialogTitle className="font-serif text-white">Remover endereço?</AlertDialogTitle>
+                            <AlertDialogDescription className="text-white/40">
+                              {address.street}, {address.number} — {address.city}/{address.state} será removido permanentemente da sua conta.
+                            </AlertDialogDescription>
+                          </AlertDialogHeader>
+                          <AlertDialogFooter>
+                            <AlertDialogCancel className="bg-white/5 border-white/10 text-white hover:bg-white/10 hover:text-white rounded-xl font-bold text-[10px] uppercase tracking-widest">
+                              Cancelar
+                            </AlertDialogCancel>
+                            <AlertDialogAction
+                              onClick={() => deleteMutation.mutate(address.id)}
+                              className="bg-red-500/90 hover:bg-red-500 text-white rounded-xl font-black text-[10px] uppercase tracking-widest"
+                            >
+                              Remover
+                            </AlertDialogAction>
+                          </AlertDialogFooter>
+                        </AlertDialogContent>
+                      </AlertDialog>
                     </div>
                   </div>
                 </div>

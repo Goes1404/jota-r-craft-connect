@@ -1,7 +1,6 @@
 import React from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { Header } from '@/components/Header';
-import { STORE } from '@/config/store';
 import { Footer } from '@/components/Footer';
 import { 
   Tag, 
@@ -56,11 +55,8 @@ const Coupons: React.FC = () => {
     );
   }
 
-  // Placeholder coupons if DB is empty/not ready
-  const displayCoupons = coupons && coupons.length > 0 ? coupons : [
-    { id: '1', code: 'BEMVINDO10', discount_percentage: 10, description: 'Desconto de boas-vindas para sua primeira aquisição premium.', expiry_date: '2024-12-31' },
-    { id: '2', code: 'JRLUXO', discount_percentage: 15, description: `Cupom exclusivo para membros do Programa ${STORE.name}.`, expiry_date: '2024-10-15' }
-  ];
+  // Only real, non-expired coupons from the database
+  const validCoupons = (coupons ?? []).filter(c => !c.expires_at || new Date(c.expires_at) >= new Date());
 
   return (
     <div className="min-h-screen bg-black text-[#e2e2e2] font-sans selection:bg-[#f2ca50]/30 selection:text-[#f2ca50]">
@@ -91,7 +87,19 @@ const Coupons: React.FC = () => {
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
           {couponsLoading ? (
             [1, 2].map(i => <div key={i} className="h-48 w-full bg-white/5 rounded-[32px] animate-pulse"></div>)
-          ) : displayCoupons.map((coupon) => (
+          ) : validCoupons.length === 0 ? (
+            <div className="md:col-span-2 flex flex-col items-center justify-center py-20 px-8 text-center space-y-6 bg-[#0f0f0f]/40 backdrop-blur-2xl border border-dashed border-white/10 rounded-[40px]">
+              <div className="w-16 h-16 rounded-full bg-white/5 flex items-center justify-center">
+                <Tag className="w-7 h-7 text-white/10" />
+              </div>
+              <div className="space-y-2">
+                <h3 className="font-serif text-xl font-bold text-white">Nenhum cupom disponível no momento</h3>
+                <p className="text-xs text-white/30 max-w-xs mx-auto leading-relaxed">
+                  Fique de olho: novos benefícios exclusivos são liberados periodicamente para nossos clientes.
+                </p>
+              </div>
+            </div>
+          ) : validCoupons.map((coupon) => (
             <div 
               key={coupon.id} 
               className="group relative bg-[#0f0f0f]/40 backdrop-blur-2xl border border-white/5 rounded-[32px] p-8 overflow-hidden transition-all duration-500 hover:border-[#d4af37]/30"
@@ -110,14 +118,16 @@ const Coupons: React.FC = () => {
               <div className="space-y-2 mb-8">
                 <h3 className="text-xl font-serif font-bold text-white uppercase tracking-tight">{coupon.code}</h3>
                 <p className="text-white/40 text-xs leading-relaxed">
-                  {coupon.description}
+                  {coupon.min_order_amount
+                    ? `Válido em compras acima de R$ ${Number(coupon.min_order_amount).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`
+                    : 'Use este código no checkout e garanta seu desconto.'}
                 </p>
               </div>
 
               <div className="flex items-center justify-between pt-6 border-t border-white/5">
                 <div className="flex items-center gap-2 text-[10px] font-bold text-white/20 uppercase tracking-widest">
                   <Clock className="w-3.5 h-3.5" />
-                  Expira em: {new Date(coupon.expiry_date).toLocaleDateString('pt-BR')}
+                  {coupon.expires_at ? `Expira em: ${new Date(coupon.expires_at).toLocaleDateString('pt-BR')}` : 'Sem prazo de validade'}
                 </div>
                 <Button 
                   onClick={() => copyToClipboard(coupon.code)}

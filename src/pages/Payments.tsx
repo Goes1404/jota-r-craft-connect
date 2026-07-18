@@ -1,40 +1,20 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { Header } from '@/components/Header';
 import { Footer } from '@/components/Footer';
-import { 
-  CreditCard, 
-  Plus, 
-  Trash2, 
+import {
+  CreditCard,
   ArrowLeft,
-  Diamond,
   ShieldCheck,
   Lock,
   ChevronRight
 } from 'lucide-react';
-import { Button } from '@/components/ui/button';
 import { useNavigate } from 'react-router-dom';
-import { useToast } from '@/hooks/use-toast';
 import { STORE } from '@/config/store';
 
 const Payments: React.FC = () => {
   const { user, loading: authLoading } = useAuth();
   const navigate = useNavigate();
-  const { toast } = useToast();
-
-  // Mock data for saved cards
-  const [cards, setCards] = useState([
-    { id: '1', brand: 'Mastercard', last4: '8842', expiry: '12/28', primary: true, type: 'Black' },
-    { id: '2', brand: 'Visa', last4: '4410', expiry: '08/26', primary: false, type: 'Infinite' }
-  ]);
-
-  const handleDelete = (id: string) => {
-    setCards(cards.filter(c => c.id !== id));
-    toast({
-      title: "Cartão Removido",
-      description: "Sua forma de pagamento foi excluída com segurança.",
-    });
-  };
 
   if (authLoading) {
     return (
@@ -70,61 +50,33 @@ const Payments: React.FC = () => {
           </div>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-12">
-          {cards.map((card) => (
-            <div 
-              key={card.id} 
-              className="group relative bg-gradient-to-br from-[#1a1a1a] to-black border border-white/5 rounded-[32px] p-8 overflow-hidden transition-all duration-500 hover:border-[#d4af37]/30 hover:shadow-2xl hover:shadow-[#d4af37]/5"
-            >
-              {/* Chip Visual */}
-              <div className="w-12 h-9 bg-gradient-to-br from-[#d4af37]/40 to-[#d4af37]/10 rounded-lg mb-8 border border-[#d4af37]/20 relative overflow-hidden">
-                <div className="absolute inset-0 opacity-20 bg-[radial-gradient(circle,transparent_20%,#000_20%,#000_40%,transparent_40%,transparent_60%,#000_60%,#000_80%,transparent_80%)] bg-[length:4px_4px]"></div>
-              </div>
+        {/* Informational Panel */}
+        <div className="bg-[#0f0f0f]/40 backdrop-blur-2xl border border-white/5 rounded-[40px] p-10 md:p-14 relative overflow-hidden">
+          <div className="absolute -right-10 -top-10 w-40 h-40 bg-[#d4af37]/5 rounded-full blur-3xl"></div>
 
-              <div className="space-y-6">
-                <div className="flex justify-between items-start">
-                  <div className="space-y-1">
-                    <span className="text-[10px] font-black uppercase tracking-widest text-white/20">Cartão {card.type}</span>
-                    <h3 className="text-base sm:text-xl font-mono font-bold text-white tracking-wide sm:tracking-widest whitespace-nowrap">•••• •••• •••• {card.last4}</h3>
-                  </div>
-                  <div className="text-[#d4af37] font-serif italic font-bold">{card.brand}</div>
-                </div>
-
-                <div className="flex justify-between items-end pt-4">
-                  <div className="space-y-1">
-                    <span className="text-[10px] font-black uppercase tracking-widest text-white/20">Validade</span>
-                    <p className="text-sm font-bold text-white/60">{card.expiry}</p>
-                  </div>
-                  <Button 
-                    onClick={() => handleDelete(card.id)}
-                    variant="ghost" 
-                    className="p-0 h-auto text-white/10 hover:text-red-500 transition-colors"
-                  >
-                    <Trash2 className="w-5 h-5" />
-                  </Button>
-                </div>
-              </div>
-
-              {card.primary && (
-                <div className="absolute top-6 right-6">
-                  <div className="px-3 py-1 rounded-full bg-[#d4af37] text-black text-[9px] font-black uppercase tracking-widest">Primário</div>
-                </div>
-              )}
+          <div className="flex flex-col items-center text-center gap-8 relative z-10">
+            <div className="w-20 h-20 rounded-full bg-[#d4af37]/10 border border-[#d4af37]/20 flex items-center justify-center text-[#d4af37]">
+              <CreditCard className="w-9 h-9" />
             </div>
-          ))}
 
-          {/* Add Card Placeholder */}
-          <button 
-            className="group relative border-2 border-dashed border-white/5 rounded-[32px] p-8 flex flex-col items-center justify-center gap-4 transition-all hover:border-[#d4af37]/40 hover:bg-[#d4af37]/5 min-h-[220px]"
-          >
-            <div className="w-14 h-14 rounded-full bg-white/5 flex items-center justify-center text-white/20 group-hover:bg-[#d4af37] group-hover:text-black transition-all">
-              <Plus className="w-6 h-6" />
+            <div className="space-y-4 max-w-xl">
+              <h2 className="text-2xl md:text-3xl font-serif font-bold text-white">Pagamento direto no checkout</h2>
+              <p className="text-white/40 text-sm leading-relaxed">
+                Você escolhe a forma de pagamento na hora de finalizar a compra: PIX com aprovação imediata
+                e 5% OFF, ou cartão de crédito em até 10x. A {STORE.name} não armazena dados de cartão —
+                cada transação é processada com segurança no momento do checkout.
+              </p>
             </div>
-            <div className="text-center">
-              <span className="block text-[10px] font-black uppercase tracking-widest text-white/20 group-hover:text-white transition-colors">Adicionar Novo Método</span>
-              <span className="text-[9px] font-bold text-white/10 group-hover:text-[#d4af37]/60">Cartão de Crédito ou Débito</span>
+
+            <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
+              <span className="px-5 py-2.5 rounded-full bg-[#d4af37]/10 border border-[#d4af37]/20 text-[#d4af37] text-[10px] font-black uppercase tracking-widest">
+                PIX · aprovação imediata + 5% OFF
+              </span>
+              <span className="px-5 py-2.5 rounded-full bg-white/5 border border-white/10 text-white/60 text-[10px] font-black uppercase tracking-widest">
+                Cartão · até 10x sem juros
+              </span>
             </div>
-          </button>
+          </div>
         </div>
 
         {/* Security Badge */}
