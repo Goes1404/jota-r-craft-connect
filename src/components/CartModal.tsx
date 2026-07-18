@@ -57,8 +57,8 @@ const styles = {
   // Footer
   footer: 'p-8 bg-[#0a0a0a] border-t border-white/5 space-y-6 relative z-20',
   summaryRow: 'flex items-center justify-between',
-  summaryLabel: 'text-[10px] font-black uppercase tracking-[0.3em] text-white/30',
-  shippingValueText: (free: boolean) => `text-xs font-bold ${free ? 'text-green-500' : 'text-white/60'}`,
+  summaryLabel: 'text-[10px] font-black uppercase tracking-[0.3em] text-white/70',
+  shippingValueText: (free: boolean) => `text-xs font-bold ${free ? 'text-green-500' : 'text-white/80'}`,
   totalRow: 'flex items-center justify-between pt-4 border-t border-white/5',
   totalLabel: 'text-[10px] font-black uppercase tracking-[0.3em] text-white',
   totalValue: 'text-3xl font-serif font-black text-[#d4af37] drop-shadow-[0_0_15px_rgba(212,175,55,0.2)]',
@@ -75,7 +75,7 @@ interface CartModalProps {
 }
 
 export const CartModal: React.FC<CartModalProps> = ({ isOpen, onClose }) => {
-  const { cartItems, updateQuantity, removeFromCart, getTotalPrice, addToCart } = useCart();
+  const { cartItems, updateQuantity, removeFromCart, getTotalPrice, getTotalItems, addToCart } = useCart();
   const { data: allProducts = [] } = useProducts();
   const { data: settings } = useAppSettings();
   const FREE_SHIPPING_THRESHOLD = Number(settings?.free_shipping_threshold) || 500;
@@ -166,7 +166,7 @@ export const CartModal: React.FC<CartModalProps> = ({ isOpen, onClose }) => {
               <div className="space-y-4">
                 <div className={styles.itemsHeaderRow}>
                   <span className={styles.itemsHeaderLabel}>Itens Selecionados</span>
-                  <span className={styles.itemsHeaderLabel}>{cartItems.length} Itens</span>
+                  <span className={styles.itemsHeaderLabel}>{getTotalItems()} {getTotalItems() === 1 ? 'Item' : 'Itens'}</span>
                 </div>
                 {cartItems.map((item) => (
                   <div key={item.id} className={styles.itemRow}>
@@ -186,15 +186,19 @@ export const CartModal: React.FC<CartModalProps> = ({ isOpen, onClose }) => {
                         >
                           <Minus className="h-3 w-3" />
                         </button>
-                        <span className={styles.itemQtyNum}>{item.quantity}</span>
+                        <span className={styles.itemQtyNum} aria-live="polite">{item.quantity}</span>
                         <button
-                          onClick={() => updateQuantity(item.id, item.quantity + 1)}
-                          className={styles.itemQtyBtn}
+                          onClick={() => updateQuantity(item.id, Math.min(item.quantity + 1, item.stock))}
+                          disabled={item.quantity >= item.stock}
+                          className={`${styles.itemQtyBtn} disabled:opacity-20 disabled:cursor-not-allowed`}
                           aria-label="Aumentar quantidade"
                         >
                           <Plus className="h-3 w-3" />
                         </button>
                       </div>
+                      {item.quantity >= item.stock && (
+                        <span className="text-[9px] text-amber-400 font-bold">Máx. {item.stock} un. em estoque</span>
+                      )}
                     </div>
                     <button
                       onClick={() => removeFromCart(item.id)}
@@ -274,6 +278,17 @@ export const CartModal: React.FC<CartModalProps> = ({ isOpen, onClose }) => {
               </span>
               <div className={styles.checkoutShine} />
             </Button>
+
+            <button
+              onClick={() => { onClose(); navigate('/produtos'); }}
+              className="w-full text-center text-[9px] font-black uppercase tracking-[0.3em] text-white/30 hover:text-[#d4af37] transition-colors py-1"
+            >
+              Continuar Comprando
+            </button>
+
+            <p className="text-center text-[9px] uppercase tracking-[0.25em] font-black text-white/40">
+              <span className="text-[#25D366]">5% OFF no PIX</span> · aplicado no checkout
+            </p>
 
             <div className={styles.reserveNote}>
               <Zap className="w-3 h-3 text-[#d4af37]" />

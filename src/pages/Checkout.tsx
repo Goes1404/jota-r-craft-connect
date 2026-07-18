@@ -79,9 +79,20 @@ const Checkout = () => {
   const [couponCode, setCouponCode] = useState('');
   const [discount, setDiscount] = useState(0);
 
-  const finalTotal = total + shippingCost - discount;
+  // Desconto PIX de 5% — honra a promessa exibida na home e na página do
+  // produto ("5% OFF no PIX"). Aplica sobre a mercadoria (não sobre o frete).
+  const PIX_DISCOUNT_RATE = 0.05;
+  const pixDiscount = paymentMethod === 'pix'
+    ? Math.round((total - discount) * PIX_DISCOUNT_RATE * 100) / 100
+    : 0;
+  // cardTotal: valor sem desconto PIX — usado pelas carteiras digitais
+  // (Apple/Google Pay), que são trilho de cartão independente do método selecionado.
+  const cardTotal = total + shippingCost - discount;
+  const finalTotal = cardTotal - pixDiscount;
 
   const [createAccount, setCreateAccount] = useState(false);
+  // Snapshot dos itens no momento da compra — permite "Gerar novo PIX" quando expira
+  const [orderItemsSnapshot, setOrderItemsSnapshot] = useState<typeof cartItems>([]);
   const [formData, setFormData] = useState({
     fullName: user?.user_metadata?.full_name || '',
     email: user?.email || '',
@@ -475,6 +486,7 @@ const Checkout = () => {
 
       setOrderTotal(finalTotal);
       setOrderItemCount(cartItems.reduce((acc, i) => acc + i.quantity, 0));
+      setOrderItemsSnapshot(cartItems);
       clearCart();
       setOrderSuccess(true);
     } catch (error: any) {
@@ -496,7 +508,7 @@ const Checkout = () => {
           </div>
           <h1 className="text-4xl font-serif font-bold mb-4">{isPaid ? 'Pagamento Confirmado!' : isExpired ? 'PIX Expirado' : 'Aguardando Pagamento'}</h1>
           <p className="text-white/40 max-w-md mb-2 leading-relaxed">
-            {isPaid ? 'Seu pagamento foi recebido! Estamos preparando seu envio.' : isExpired ? 'O PIX expirou. Refaça o pedido.' : 'Escaneie o QR Code ou copie o código para pagar.'}
+            {isPaid ? 'Seu pagamento foi recebido! Estamos preparando seu envio.' : isExpired ? 'O PIX expirou, mas seus itens estão guardados — gere um novo código abaixo.' : 'Escaneie o QR Code ou copie o código para pagar.'}
           </p>
           {createdOrderId && (
             <p className="text-[11px] font-black uppercase tracking-[0.25em] text-[#d4af37]/60 mb-8">
@@ -596,9 +608,27 @@ const Checkout = () => {
           )}
 
           <div className="flex flex-col sm:flex-row gap-4">
+            {isExpired && orderItemsSnapshot.length > 0 && (
+              <Button
+                onClick={() => {
+                  orderItemsSnapshot.forEach(item => {
+                    for (let i = 0; i < item.quantity; i++) addToCart(item);
+                  });
+                  setOrderSuccess(false);
+                  setPaymentStatus('aguardando');
+                  setPixData(null);
+                  setPixTimeLeft(PIX_EXPIRATION_MINUTES * 60);
+                }}
+                className="bg-[#d4af37] text-black h-14 rounded-full px-12 font-bold uppercase tracking-widest text-[10px]"
+              >
+                Gerar Novo PIX
+              </Button>
+            )}
             <Button
               onClick={() => navigate(user ? '/pedidos' : `/pedidos?orderId=${createdOrderId}`)}
-              className="bg-[#d4af37] text-black h-14 rounded-full px-12 font-bold uppercase tracking-widest text-[10px]"
+              className={isExpired && orderItemsSnapshot.length > 0
+                ? 'bg-white/10 text-white h-14 rounded-full px-12 font-bold uppercase tracking-widest text-[10px] hover:bg-white/20'
+                : 'bg-[#d4af37] text-black h-14 rounded-full px-12 font-bold uppercase tracking-widest text-[10px]'}
             >
               Acompanhar Pedido
             </Button>
@@ -642,59 +672,59 @@ const Checkout = () => {
                 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                   <div className="space-y-3 md:col-span-2">
-                    <Label className="text-[9px] font-black uppercase tracking-widest text-white/30">Nome Completo</Label>
-                    <Input required name="fullName" value={formData.fullName} onChange={handleInputChange} className="bg-white/5 border-white/10 h-14 rounded-2xl" />
+                    <Label htmlFor="checkout-fullName" className="text-[9px] font-black uppercase tracking-widest text-white/30">Nome Completo</Label>
+                    <Input id="checkout-fullName" required name="fullName" autoComplete="name" value={formData.fullName} onChange={handleInputChange} className="bg-white/5 border-white/10 h-14 rounded-2xl" />
                   </div>
                   <div className="space-y-3 md:col-span-2">
-                    <Label className="text-[9px] font-black uppercase tracking-widest text-white/30">E-mail</Label>
-                    <Input required type="email" name="email" value={formData.email} onChange={handleInputChange} placeholder="seu@email.com" className="bg-white/5 border-white/10 h-14 rounded-2xl" />
+                    <Label htmlFor="checkout-email" className="text-[9px] font-black uppercase tracking-widest text-white/30">E-mail</Label>
+                    <Input id="checkout-email" required type="email" name="email" autoComplete="email" inputMode="email" value={formData.email} onChange={handleInputChange} placeholder="seu@email.com" className="bg-white/5 border-white/10 h-14 rounded-2xl" />
                   </div>
                   <div className="space-y-3">
-                    <Label className="text-[9px] font-black uppercase tracking-widest text-white/30">CPF</Label>
-                    <Input required name="cpf" value={formData.cpf} onChange={handleCpfChange} placeholder="000.000.000-00" className="bg-white/5 border-white/10 h-14 rounded-2xl" />
+                    <Label htmlFor="checkout-cpf" className="text-[9px] font-black uppercase tracking-widest text-white/30">CPF</Label>
+                    <Input id="checkout-cpf" required name="cpf" inputMode="numeric" maxLength={14} value={formData.cpf} onChange={handleCpfChange} placeholder="000.000.000-00" className="bg-white/5 border-white/10 h-14 rounded-2xl" />
                   </div>
                   <div className="space-y-3">
-                    <Label className="text-[9px] font-black uppercase tracking-widest text-white/30">Telefone</Label>
-                    <Input required name="phone" value={formData.phone} onChange={handlePhoneChange} placeholder="(11) 99999-9999" className="bg-white/5 border-white/10 h-14 rounded-2xl" />
+                    <Label htmlFor="checkout-phone" className="text-[9px] font-black uppercase tracking-widest text-white/30">Telefone</Label>
+                    <Input id="checkout-phone" required type="tel" name="phone" inputMode="tel" autoComplete="tel-national" value={formData.phone} onChange={handlePhoneChange} placeholder="(11) 99999-9999" className="bg-white/5 border-white/10 h-14 rounded-2xl" />
                   </div>
                   <div className="space-y-3">
-                    <Label className="text-[9px] font-black uppercase tracking-widest text-white/30">CEP</Label>
-                    <Input required name="cep" value={formData.cep} onChange={handleCepChange} placeholder="00000-000" className="bg-white/5 border-white/10 h-14 rounded-2xl" />
+                    <Label htmlFor="checkout-cep" className="text-[9px] font-black uppercase tracking-widest text-white/30">CEP</Label>
+                    <Input id="checkout-cep" required name="cep" inputMode="numeric" maxLength={9} autoComplete="postal-code" value={formData.cep} onChange={handleCepChange} placeholder="00000-000" className="bg-white/5 border-white/10 h-14 rounded-2xl" />
                   </div>
                   <div className="space-y-3">
-                    <Label className="text-[9px] font-black uppercase tracking-widest text-white/30">Bairro</Label>
-                    <Input required name="neighborhood" value={formData.neighborhood} onChange={handleInputChange} className="bg-white/5 border-white/10 h-14 rounded-2xl" />
+                    <Label htmlFor="checkout-neighborhood" className="text-[9px] font-black uppercase tracking-widest text-white/30">Bairro</Label>
+                    <Input id="checkout-neighborhood" required name="neighborhood" autoComplete="address-level3" value={formData.neighborhood} onChange={handleInputChange} className="bg-white/5 border-white/10 h-14 rounded-2xl" />
                   </div>
                   <div className="space-y-3">
-                    <Label className="text-[9px] font-black uppercase tracking-widest text-white/30">Cidade</Label>
-                    <Input required name="city" value={formData.city} onChange={handleInputChange} className="bg-white/5 border-white/10 h-14 rounded-2xl" />
+                    <Label htmlFor="checkout-city" className="text-[9px] font-black uppercase tracking-widest text-white/30">Cidade</Label>
+                    <Input id="checkout-city" required name="city" autoComplete="address-level2" value={formData.city} onChange={handleInputChange} className="bg-white/5 border-white/10 h-14 rounded-2xl" />
                   </div>
                   <div className="space-y-3 md:col-span-2">
-                    <Label className="text-[9px] font-black uppercase tracking-widest text-white/30">Endereço</Label>
-                    <Input required name="address" value={formData.address} onChange={handleInputChange} className="bg-white/5 border-white/10 h-14 rounded-2xl" />
+                    <Label htmlFor="checkout-address" className="text-[9px] font-black uppercase tracking-widest text-white/30">Endereço</Label>
+                    <Input id="checkout-address" required name="address" autoComplete="address-line1" value={formData.address} onChange={handleInputChange} className="bg-white/5 border-white/10 h-14 rounded-2xl" />
                   </div>
                   <div className="space-y-3">
-                    <Label className="text-[9px] font-black uppercase tracking-widest text-white/30">Número</Label>
-                    <Input ref={numberInputRef} required name="number" value={formData.number} onChange={handleInputChange} className="bg-white/5 border-white/10 h-14 rounded-2xl" />
+                    <Label htmlFor="checkout-number" className="text-[9px] font-black uppercase tracking-widest text-white/30">Número</Label>
+                    <Input id="checkout-number" ref={numberInputRef} required name="number" inputMode="numeric" value={formData.number} onChange={handleInputChange} className="bg-white/5 border-white/10 h-14 rounded-2xl" />
                   </div>
                   <div className="space-y-3">
-                    <Label className="text-[9px] font-black uppercase tracking-widest text-white/30">Complemento</Label>
-                    <Input name="complement" value={formData.complement} onChange={handleInputChange} placeholder="Apto 101, etc." className="bg-white/5 border-white/10 h-14 rounded-2xl" />
+                    <Label htmlFor="checkout-complement" className="text-[9px] font-black uppercase tracking-widest text-white/30">Complemento</Label>
+                    <Input id="checkout-complement" name="complement" autoComplete="address-line2" value={formData.complement} onChange={handleInputChange} placeholder="Apto 101, etc." className="bg-white/5 border-white/10 h-14 rounded-2xl" />
                   </div>
 
                   {!user && (
                     <div className="md:col-span-2 pt-6 border-t border-white/5 space-y-4">
                       <label className="flex items-center gap-3 cursor-pointer group">
-                        <div className={`w-5 h-5 rounded flex items-center justify-center transition-all ${createAccount ? 'bg-[#d4af37]' : 'bg-white/5 border border-white/10 group-hover:border-white/30'}`}>
+                        <input type="checkbox" className="peer sr-only" checked={createAccount} onChange={(e) => setCreateAccount(e.target.checked)} />
+                        <div aria-hidden="true" className={`w-5 h-5 rounded flex items-center justify-center transition-all peer-focus-visible:ring-2 peer-focus-visible:ring-[#d4af37] peer-focus-visible:ring-offset-2 peer-focus-visible:ring-offset-black ${createAccount ? 'bg-[#d4af37]' : 'bg-white/5 border border-white/10 group-hover:border-white/30'}`}>
                           {createAccount && <Check className="w-3 h-3 text-black" />}
                         </div>
-                        <input type="checkbox" className="hidden" checked={createAccount} onChange={(e) => setCreateAccount(e.target.checked)} />
                         <span className="text-[11px] font-bold text-white/60">Criar uma conta para acompanhar meu pedido (opcional)</span>
                       </label>
                       {createAccount && (
                         <div className="space-y-3 animate-in fade-in">
-                          <Label className="text-[9px] font-black uppercase tracking-widest text-white/30">Senha para sua nova conta</Label>
-                          <Input required type="password" name="password" value={formData.password} onChange={handleInputChange} placeholder="Sua senha" className="bg-white/5 border-white/10 h-14 rounded-2xl" />
+                          <Label htmlFor="checkout-password" className="text-[9px] font-black uppercase tracking-widest text-white/30">Senha para sua nova conta</Label>
+                          <Input id="checkout-password" required type="password" name="password" autoComplete="new-password" value={formData.password} onChange={handleInputChange} placeholder="Sua senha" className="bg-white/5 border-white/10 h-14 rounded-2xl" />
                         </div>
                       )}
                     </div>
@@ -712,11 +742,11 @@ const Checkout = () => {
                 </div>
 
                 <PaymentRequestButton
-                  amount={finalTotal}
+                  amount={cardTotal}
                   label={STORE.name}
                   onCreateOrder={createWalletOrder}
                   onSuccess={() => {
-                    setOrderTotal(finalTotal);
+                    setOrderTotal(cardTotal);
                     setOrderItemCount(cartItems.reduce((acc, i) => acc + i.quantity, 0));
                     clearCart();
                     setPaymentStatus('pago');
@@ -726,19 +756,19 @@ const Checkout = () => {
                   onError={(msg) => toast.error(msg)}
                 />
 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <button type="button" onClick={() => setPaymentMethod('pix')} className={`p-6 rounded-3xl border-2 flex items-center justify-between transition-all ${paymentMethod === 'pix' ? 'border-[#25D366] bg-[#25D366]/5' : 'border-white/5 bg-white/[0.02]'}`}>
+                <div role="group" aria-label="Forma de pagamento" className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <button type="button" aria-pressed={paymentMethod === 'pix'} onClick={() => setPaymentMethod('pix')} className={`p-6 rounded-3xl border-2 flex items-center justify-between transition-all ${paymentMethod === 'pix' ? 'border-[#25D366] bg-[#25D366]/5' : 'border-white/5 bg-white/[0.02]'}`}>
                     <div className="flex items-center gap-4">
                       <QrCode className={`w-6 h-6 ${paymentMethod === 'pix' ? 'text-[#25D366]' : 'text-white/20'}`} />
                       <div className="text-left">
                         <p className="text-xs font-black uppercase tracking-widest text-white">PIX</p>
-                        <p className="text-[9px] text-white/40">Aprovação em segundos</p>
+                        <p className="text-[9px] text-white/40"><span className="text-[#25D366] font-black">5% OFF</span> · Aprovação em segundos</p>
                       </div>
                     </div>
                     {paymentMethod === 'pix' && <CheckCircle2 className="w-5 h-5 text-[#25D366]" />}
                   </button>
 
-                  <button type="button" onClick={() => setPaymentMethod('credit_card')} className={`p-6 rounded-3xl border-2 flex items-center justify-between transition-all ${paymentMethod === 'credit_card' ? 'border-[#d4af37] bg-[#d4af37]/5' : 'border-white/5 bg-white/[0.02]'}`}>
+                  <button type="button" aria-pressed={paymentMethod === 'credit_card'} onClick={() => setPaymentMethod('credit_card')} className={`p-6 rounded-3xl border-2 flex items-center justify-between transition-all ${paymentMethod === 'credit_card' ? 'border-[#d4af37] bg-[#d4af37]/5' : 'border-white/5 bg-white/[0.02]'}`}>
                     <div className="flex items-center gap-4">
                       <CreditCard className={`w-6 h-6 ${paymentMethod === 'credit_card' ? 'text-[#d4af37]' : 'text-white/20'}`} />
                       <div className="text-left">
@@ -753,19 +783,26 @@ const Checkout = () => {
               
               <div className="space-y-4">
                 <label className="flex items-start gap-3 cursor-pointer group">
-                  <div className={`w-5 h-5 rounded flex items-center justify-center shrink-0 transition-all ${acceptedTerms ? 'bg-[#d4af37]' : 'bg-white/5 border border-white/10 group-hover:border-white/30'}`}>
+                  <input type="checkbox" className="peer sr-only" checked={acceptedTerms} onChange={(e) => setAcceptedTerms(e.target.checked)} aria-required="true" />
+                  <div aria-hidden="true" className={`w-5 h-5 rounded flex items-center justify-center shrink-0 transition-all peer-focus-visible:ring-2 peer-focus-visible:ring-[#d4af37] peer-focus-visible:ring-offset-2 peer-focus-visible:ring-offset-black ${acceptedTerms ? 'bg-[#d4af37]' : 'bg-white/5 border border-white/10 group-hover:border-white/30'}`}>
                     {acceptedTerms && <Check className="w-3 h-3 text-black" />}
                   </div>
-                  <input type="checkbox" className="hidden" checked={acceptedTerms} onChange={(e) => setAcceptedTerms(e.target.checked)} />
-                  <span className="text-[10px] text-white/40 leading-relaxed">
-                    Eu li e concordo com os <a href="#" className="text-[#d4af37] hover:underline">Termos e Condições</a> e a <a href="#" className="text-[#d4af37] hover:underline">Política de Privacidade</a> da {STORE.name}. *
+                  <span className="text-[10px] text-white/50 leading-relaxed">
+                    Eu li e concordo com os <a href="/termos" target="_blank" rel="noopener" className="text-[#d4af37] hover:underline">Termos e Condições</a> e a <a href="/privacidade" target="_blank" rel="noopener" className="text-[#d4af37] hover:underline">Política de Privacidade</a> da {STORE.name}. *
                   </span>
                 </label>
               </div>
 
               <Button type="submit" disabled={isProcessing} className="w-full h-20 bg-[#d4af37] text-black font-black uppercase tracking-[0.2em] text-[11px] rounded-[24px] shadow-2xl shadow-[#d4af37]/10 hover:bg-[#f2ca50] transition-all">
-                {isProcessing ? <Loader2 className="w-6 h-6 animate-spin" /> : `Finalizar Pedido — R$ ${finalTotal.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`}
+                {isProcessing
+                  ? <span className="flex items-center gap-3"><Loader2 className="w-6 h-6 animate-spin" /> Processando…</span>
+                  : paymentMethod === 'pix'
+                    ? <span className="flex items-center gap-2"><QrCode className="w-4 h-4" /> Gerar QR Code PIX — R$ {finalTotal.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</span>
+                    : <span className="flex items-center gap-2"><Lock className="w-4 h-4" /> Ir para Pagamento — R$ {finalTotal.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</span>}
               </Button>
+              <p className="text-center text-[9px] text-white/30 uppercase tracking-[0.25em] flex items-center justify-center gap-1.5">
+                <Lock className="w-3 h-3 text-[#d4af37]/60" /> Pagamento criptografado · MercadoPago &amp; Stripe
+              </p>
             </form>
           </div>
 
@@ -778,7 +815,7 @@ const Checkout = () => {
                 {cartItems.map((item) => (
                   <div key={item.id} className="flex gap-4 items-center">
                     <div className="w-16 h-16 rounded-2xl bg-black border border-white/5 p-2">
-                      <img src={item.image} className="w-full h-full object-contain mix-blend-lighten" />
+                      <img src={item.image} alt="" className="w-full h-full object-contain mix-blend-lighten" />
                     </div>
                     <div className="flex-1">
                       <h4 className="text-xs font-bold text-white line-clamp-1">{item.name}</h4>
@@ -801,7 +838,7 @@ const Checkout = () => {
                       <div key={product.id} className="bg-white/[0.03] border border-white/5 p-4 rounded-[24px] flex items-center justify-between group hover:border-[#d4af37]/30 transition-all">
                         <div className="flex items-center gap-3">
                           <div className="w-10 h-10 rounded-lg bg-black p-1">
-                            <img src={product.image} className="w-full h-full object-contain" />
+                            <img src={product.image} alt="" className="w-full h-full object-contain" />
                           </div>
                           <div>
                             <p className="text-[10px] font-bold text-white leading-tight">{product.name}</p>
@@ -810,8 +847,9 @@ const Checkout = () => {
                         </div>
                         <button 
                           type="button"
+                          aria-label={`Adicionar ${product.name} ao carrinho`}
                           onClick={() => { addToCart(product); toast.success(`${product.name} adicionado!`); }}
-                          className="w-8 h-8 rounded-full bg-white/5 flex items-center justify-center hover:bg-[#d4af37] hover:text-black transition-all"
+                          className="w-9 h-9 rounded-full bg-white/5 flex items-center justify-center hover:bg-[#d4af37] hover:text-black transition-all"
                         >
                           <Plus className="w-4 h-4" />
                         </button>
@@ -827,7 +865,13 @@ const Checkout = () => {
                     <Label className="text-[9px] font-black uppercase tracking-widest text-white/30">Opções de Entrega</Label>
                     {isCalculatingShipping && <Loader2 className="w-3 h-3 text-[#d4af37] animate-spin" />}
                   </div>
-                  <div className="grid grid-cols-2 gap-4">
+                  {formData.cep.replace(/\D/g, '').length !== 8 && shippingOptions.length === 0 ? (
+                    <div className="p-4 rounded-2xl border border-dashed border-white/10 bg-white/[0.02] flex items-center gap-3">
+                      <Truck className="w-4 h-4 text-[#d4af37]/60 shrink-0" />
+                      <p className="text-[10px] text-white/40 font-bold uppercase tracking-wider">Informe seu CEP acima para ver prazos e valores de entrega</p>
+                    </div>
+                  ) : (
+                  <div role="group" aria-label="Opções de entrega" className="grid grid-cols-2 gap-4">
                     {(shippingOptions.length > 0 ? shippingOptions : [
                       { id: 'normal', name: 'Normal', price: 15.90, deadline: '7 a 10 dias úteis' },
                       { id: 'express', name: 'Expressa', price: 0, deadline: '2 a 4 dias úteis' },
@@ -835,6 +879,7 @@ const Checkout = () => {
                       <button
                         key={opt.id}
                         type="button"
+                        aria-pressed={shippingOption === opt.id}
                         onClick={() => { setShippingOption(opt.id as 'normal' | 'express'); setShippingCost(opt.price); }}
                         className={`p-4 rounded-2xl border-2 text-left transition-all ${shippingOption === opt.id ? 'border-[#d4af37] bg-[#d4af37]/5' : 'border-white/5 bg-white/[0.02]'}`}
                       >
@@ -846,12 +891,13 @@ const Checkout = () => {
                       </button>
                     ))}
                   </div>
+                  )}
                 </div>
 
                 <div className="space-y-3">
-                  <Label className="text-[9px] font-black uppercase tracking-widest text-white/30">Cupom de Desconto</Label>
+                  <Label htmlFor="checkout-coupon" className="text-[9px] font-black uppercase tracking-widest text-white/30">Cupom de Desconto</Label>
                   <div className="flex gap-2">
-                    <Input value={couponCode} onChange={(e) => setCouponCode(e.target.value.toUpperCase())} placeholder="Código" className="bg-white/5 border-white/10 h-12 rounded-xl flex-1 uppercase" />
+                    <Input id="checkout-coupon" value={couponCode} onChange={(e) => setCouponCode(e.target.value.toUpperCase())} placeholder="Código" className="bg-white/5 border-white/10 h-12 rounded-xl flex-1 uppercase" />
                     <Button type="button" onClick={async () => {
                       if (!couponCode.trim()) return;
                       const { data, error } = await (supabase as any).rpc('apply_coupon', { p_code: couponCode.trim() });
@@ -869,14 +915,22 @@ const Checkout = () => {
               </div>
 
               <div className="mt-8 pt-8 border-t border-white/5 space-y-4">
-                <div className="flex justify-between text-[10px] font-bold uppercase tracking-widest text-white/30">
+                <div className="flex justify-between text-[10px] font-bold uppercase tracking-widest text-white/70">
                   <span>Subtotal</span>
                   <span>R$ {total.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</span>
                 </div>
-                <div className="flex justify-between text-[10px] font-bold uppercase tracking-widest text-white/30">
+                <div className="flex justify-between text-[10px] font-bold uppercase tracking-widest text-white/70">
                   <span>Frete</span>
-                  <span className={shippingCost === 0 ? "text-green-500" : ""}>{shippingCost === 0 ? 'Grátis' : `R$ ${shippingCost.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`}</span>
+                  {formData.cep.replace(/\D/g, '').length !== 8 && shippingOptions.length === 0
+                    ? <span className="text-white/40 normal-case tracking-normal">Informe o CEP</span>
+                    : <span className={shippingCost === 0 ? "text-green-500" : ""}>{shippingCost === 0 ? 'Grátis' : `R$ ${shippingCost.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`}</span>}
                 </div>
+                {pixDiscount > 0 && (
+                  <div className="flex justify-between text-[10px] font-bold uppercase tracking-widest text-[#25D366]">
+                    <span>Desconto PIX (5%)</span>
+                    <span>- R$ {pixDiscount.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</span>
+                  </div>
+                )}
                 {discount > 0 && (
                   <div className="flex justify-between text-[10px] font-bold uppercase tracking-widest text-[#d4af37]">
                     <span>Desconto</span>
@@ -885,7 +939,7 @@ const Checkout = () => {
                 )}
                 <div className="flex justify-between items-end pt-6 border-t border-white/5">
                   <div>
-                    <p className="text-[10px] font-black uppercase tracking-widest text-white/20">Valor Total</p>
+                    <p className="text-[10px] font-black uppercase tracking-widest text-white/60">Valor Total</p>
                     <p className="text-3xl font-serif font-black text-white">R$ {finalTotal.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</p>
                   </div>
                   <Diamond className="w-6 h-6 text-[#d4af37]/20" />
