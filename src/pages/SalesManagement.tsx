@@ -29,9 +29,11 @@ import {
   Filter,
   Search,
   ShoppingCart,
-  ArrowUpRight
+  ArrowUpRight,
+  Camera,
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import SalePhotoImport from '@/components/SalePhotoImport';
 import { AdminShell } from '@/components/admin/AdminShell';
 
 import { useProducts } from '@/hooks/useProducts';
@@ -41,6 +43,7 @@ const SalesManagement = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
   const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [isPhotoDialogOpen, setIsPhotoDialogOpen] = useState(false);
   const [selectedProduct, setSelectedProduct] = useState('');
   const [quantity, setQuantity] = useState('');
   const [unitPrice, setUnitPrice] = useState('');
@@ -137,6 +140,25 @@ const SalesManagement = () => {
             <Button variant="ghost" onClick={handleExportCSV} className="text-white/40 hover:text-white hover:bg-white/5 font-bold text-[10px] uppercase tracking-widest px-6 h-12 rounded-full">
               <Download className="h-4 w-4 mr-2" /> Exportar
             </Button>
+            <Dialog open={isPhotoDialogOpen} onOpenChange={setIsPhotoDialogOpen}>
+              <DialogTrigger asChild>
+                <Button className="bg-white/5 border border-white/10 text-white/70 hover:text-white hover:border-[#d4af37]/40 font-bold text-[10px] uppercase tracking-widest px-6 h-12 rounded-full transition-all">
+                  <Camera className="h-4 w-4 mr-2" /> Lançar por Foto
+                </Button>
+              </DialogTrigger>
+              <DialogContent className="max-w-2xl bg-[#0a0a0a] border-white/10 text-white rounded-[32px] overflow-hidden p-0">
+                <div className="p-8 border-b border-white/5 bg-black/50">
+                  <DialogHeader>
+                    <DialogTitle className="text-2xl font-serif font-bold text-white">Lançar por Foto</DialogTitle>
+                    <DialogDescription className="text-white/40 text-xs uppercase tracking-widest font-bold mt-1">
+                      Fotografe a página do caderno e confira antes de lançar.
+                    </DialogDescription>
+                  </DialogHeader>
+                </div>
+                <SalePhotoImport onImportComplete={() => setIsPhotoDialogOpen(false)} />
+              </DialogContent>
+            </Dialog>
+
             <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
               <DialogTrigger asChild>
                 <Button onClick={resetForm} className="bg-[#d4af37] text-black font-black text-[10px] uppercase tracking-widest px-8 h-12 rounded-full transition-all hover:bg-[#f2ca50] shadow-xl shadow-[#d4af37]/10">
@@ -381,7 +403,12 @@ const SalesManagement = () => {
                       </TableCell>
                       <TableCell className="py-6">
                         <div className="flex flex-col">
-                          <span className="text-sm font-bold text-white uppercase tracking-tight">{sale.product?.name || 'Item Removido'}</span>
+                          <span className="text-sm font-bold text-white uppercase tracking-tight flex items-center gap-1.5">
+                            {sale.product?.name || 'Item Removido'}
+                            {sale.notes?.startsWith('Lançado por foto') && (
+                              <Camera className="h-3 w-3 text-[#d4af37]/70 shrink-0" aria-label="Lançada por foto do caderno" />
+                            )}
+                          </span>
                           <span className="text-[9px] font-black text-white/20 uppercase tracking-widest">{sale.category || 'Geral'}</span>
                         </div>
                       </TableCell>

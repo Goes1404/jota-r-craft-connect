@@ -11,6 +11,15 @@
 
 export const MAX_INPUT_SIZE = 25 * 1024 * 1024; // 25MB de arquivo original
 
+/** Lê um File como data URL (`data:image/webp;base64,...`), pronto para enviar à IA. */
+export const fileToBase64 = (file: File): Promise<string> =>
+  new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(reader.result as string);
+    reader.onerror = reject;
+    reader.readAsDataURL(file);
+  });
+
 interface CompressOptions {
   maxDimension?: number; // maior lado, em px
   quality?: number;      // 0..1

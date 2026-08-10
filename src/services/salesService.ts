@@ -61,9 +61,24 @@ export const salesService = {
       .insert([saleData])
       .select()
       .single();
-    
+
     if (error) throw error;
     return data as Sale;
+  },
+
+  /**
+   * Insere várias vendas de uma vez (usado pelo lançamento por foto do caderno).
+   * Um único INSERT do PostgREST é uma instrução só: ou grava tudo ou nada —
+   * evita o cenário de lote parcial com o estoque meio baixado pelo trigger.
+   */
+  async createSales(rows: (Omit<Sale, 'id' | 'sale_date' | 'product'> & { sale_date?: string })[]) {
+    const { data, error } = await supabase
+      .from('sales')
+      .insert(rows)
+      .select();
+
+    if (error) throw error;
+    return (data ?? []) as Sale[];
   },
 
   async deleteSale(id: string) {
