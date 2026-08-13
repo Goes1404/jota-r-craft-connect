@@ -64,6 +64,7 @@ PREÇO UNITÁRIO x TOTAL
 O QUE NÃO É VENDA (ignore por completo, não crie linha)
 - Linhas de "TOTAL", "SOMA", "Total do dia", somas de coluna.
 - Datas isoladas, cabeçalhos, numeração de página.
+- Texto IMPRESSO da agenda (dias da semana, "JUEVES/THURSDAY", números como "121/244", feriados). Só interessa o que foi escrito à MÃO.
 - Nomes de clientes sozinhos e recados.
 - Formas de pagamento isoladas ("pix", "fiado", "cartão", "dinheiro"). Se a forma de pagamento estiver na mesma linha da venda, mantenha em raw_text mas não crie linha separada.
 
@@ -75,10 +76,11 @@ QUANDO ESTIVER EM DÚVIDA (regra mais importante)
 - NUNCA invente número. Se o preço está ilegível, devolva unit_price: null e warnings ["preco_ilegivel"]. Se a quantidade está ilegível, quantity: null e ["quantidade_ilegivel"]. Um campo nulo faz o lojista conferir; um valor chutado vira faturamento errado silencioso.
 - NUNCA junte duas linhas nem divida uma linha em duas.
 - NUNCA crie uma linha que não esteja na foto.
+- Itens repetidos com valores diferentes são vendas SEPARADAS e legítimas (ex: duas linhas "PELICULA" com preços distintos). Devolva as duas.
 
 CASAMENTO COM O CATÁLOGO
 - Você recebe uma lista numerada "índice | nome | categoria | preço".
-- Devolva "product_index" apenas quando for razoavelmente o mesmo item. Abreviações são esperadas: "fone bt" → Fone Bluetooth, "carreg tipo c" → Carregador USB-C, "capinha 15" → Capa iPhone 15.
+- Devolva "product_index" apenas quando for razoavelmente o mesmo item. Abreviações são esperadas: "fone bt" → Fone Bluetooth, "carreg tipo c" → Carregador USB-C, "capinha" → Capa, "pelicula" → Película.
 - Se dois itens forem igualmente plausíveis, product_index: null e warnings ["produto_ambiguo"].
 - NÃO escolha um item só porque é o único da categoria.
 - Sempre preencha "product_name_guess" com sua melhor leitura do nome escrito, mesmo quando product_index for null.
@@ -99,7 +101,7 @@ FORMATO DE SAÍDA
  * permanente (crédito acabou) vira "tente de novo em instantes" e o lojista
  * fica tentando para sempre achando que é bug.
  */
-function describeOpenAiFailure(status: number, body: string): string {
+function describeOpenAiFailure(status: number, body: string, org: string, project: string): string {
   let code = "";
   let type = "";
   try {
@@ -109,7 +111,7 @@ function describeOpenAiFailure(status: number, body: string): string {
   } catch { /* corpo não-JSON: cai nas regras por status */ }
 
   if (type === "insufficient_quota" || code === "credit_balance_exhausted") {
-    return "Os créditos da OpenAI acabaram. Adicione créditos em platform.openai.com (Settings → Billing) para voltar a usar a leitura por foto. Enquanto isso, use o botão 'Registrar Venda' para lançar manualmente.";
+    return `A conta da OpenAI usada por esta chave está sem crédito (organização: ${org}, projeto: ${project}). Se você acabou de adicionar saldo, confirme que foi NESTA organização e que o projeto não está com limite de gasto zerado. Enquanto isso, use 'Registrar Venda' para lançar manualmente.`;
   }
   if (status === 401 || code === "invalid_api_key") {
     return "A chave da OpenAI está inválida ou expirou. Atualize o secret OPENAI_API_KEY no painel do Supabase.";
@@ -154,7 +156,26 @@ serve(async (req) => {
     const OPENAI_API_KEY = Deno.env.get("OPENAI_API_KEY");
     if (!OPENAI_API_KEY) return json({ error: "OPENAI_API_KEY não configurada" }, 500);
 
-    const { imageBase64 } = await req.json();
+    const { imageBase64, diagnose } = await req.json();
+
+    // Diagnóstico de conta (admin): consulta /v1/models, que NÃO consome
+    // crédito, só para revelar se a chave é válida e de qual organização ela é.
+    // Não devolve a chave — apenas prefixo mascarado e cabeçalhos da OpenAI.
+    if (diagnose === true) {
+      const probe = await fetch("https://api.openai.com/v1/models", {
+        headers: { Authorization: `Bearer ${OPENAI_API_KEY}` },
+      });
+      const probeBody = await probe.text();
+      return json({
+        key_prefix: `${OPENAI_API_KEY.slice(0, 12)}…${OPENAI_API_KEY.slice(-4)}`,
+        key_length: OPENAI_API_KEY.length,
+        models_status: probe.status,
+        openai_organization: probe.headers.get("openai-organization"),
+        openai_project: probe.headers.get("openai-project"),
+        body_preview: probeBody.slice(0, 400),
+      });
+    }
+
     if (!imageBase64 || typeof imageBase64 !== "string") {
       return json({ error: "Envie uma imagem (imageBase64)" }, 400);
     }
@@ -233,9 +254,13 @@ serve(async (req) => {
 
     if (!openaiResp.ok) {
       const detail = await openaiResp.text();
-      console.error("parse-sale-photo: OpenAI", openaiResp.status, detail);
+      // Loga a org/projeto dono da chave: quando o saldo é adicionado na conta
+      // errada, é isto que mostra onde o crédito precisa entrar.
+      const org = openaiResp.headers.get("openai-organization") ?? "?";
+      const project = openaiResp.headers.get("openai-project") ?? "?";
+      console.error("parse-sale-photo: OpenAI", openaiResp.status, "| org:", org, "| project:", project, detail);
       // 200 + { error }: functions.invoke opaca qualquer não-2xx e a mensagem se perde.
-      return json({ error: describeOpenAiFailure(openaiResp.status, detail) });
+      return json({ error: describeOpenAiFailure(openaiResp.status, detail, org, project) });
     }
 
     const completion = await openaiResp.json();
