@@ -94,6 +94,35 @@ FOTO IMPRESTÁVEL
 FORMATO DE SAÍDA
 {"page_date": "AAAA-MM-DD"|null, "unreadable": false, "lines": [{"raw_text": string, "product_index": number|null, "product_name_guess": string, "quantity": number|null, "unit_price": number|null, "confidence": number 0..1, "warnings": string[]}]}`;
 
+/**
+ * Traduz a falha da OpenAI numa instrução acionável. Sem isso, um problema
+ * permanente (crédito acabou) vira "tente de novo em instantes" e o lojista
+ * fica tentando para sempre achando que é bug.
+ */
+function describeOpenAiFailure(status: number, body: string): string {
+  let code = "";
+  let type = "";
+  try {
+    const parsed = JSON.parse(body);
+    code = String(parsed?.error?.code ?? "");
+    type = String(parsed?.error?.type ?? "");
+  } catch { /* corpo não-JSON: cai nas regras por status */ }
+
+  if (type === "insufficient_quota" || code === "credit_balance_exhausted") {
+    return "Os créditos da OpenAI acabaram. Adicione créditos em platform.openai.com (Settings → Billing) para voltar a usar a leitura por foto. Enquanto isso, use o botão 'Registrar Venda' para lançar manualmente.";
+  }
+  if (status === 401 || code === "invalid_api_key") {
+    return "A chave da OpenAI está inválida ou expirou. Atualize o secret OPENAI_API_KEY no painel do Supabase.";
+  }
+  if (status === 429) {
+    return "Muitas leituras seguidas. Espere alguns segundos e tente de novo.";
+  }
+  if (status >= 500) {
+    return "A OpenAI está instável agora. Tente de novo em alguns instantes.";
+  }
+  return "A IA não conseguiu processar a foto agora. Tente de novo em instantes.";
+}
+
 serve(async (req) => {
   const corsHeaders = makeCors(req.headers.get("origin"));
   const json = (body: unknown, status = 200) =>
@@ -206,7 +235,7 @@ serve(async (req) => {
       const detail = await openaiResp.text();
       console.error("parse-sale-photo: OpenAI", openaiResp.status, detail);
       // 200 + { error }: functions.invoke opaca qualquer não-2xx e a mensagem se perde.
-      return json({ error: "A IA não conseguiu processar a foto agora. Tente de novo em instantes." });
+      return json({ error: describeOpenAiFailure(openaiResp.status, detail) });
     }
 
     const completion = await openaiResp.json();
