@@ -259,16 +259,16 @@ const AdminCommissions = () => {
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 transition={{ delay: i * 0.03 }}
-                className="flex items-center justify-between px-6 py-4 gap-4 hover:bg-white/[0.02] transition-colors"
+                className="flex items-center justify-between px-4 sm:px-6 py-4 gap-3 sm:gap-4 hover:bg-white/[0.02] transition-colors"
               >
-                <div className="min-w-0">
+                <div className="min-w-0 flex-1">
                   <p className="text-sm font-bold text-white truncate">{o.customer_name || 'Cliente'}</p>
-                  <div className="flex items-center gap-2 mt-0.5">
-                    <span className="text-[10px] text-white/30">
+                  <div className="flex flex-wrap items-center gap-2 mt-0.5">
+                    <span className="text-[10px] text-white/30 tabular-nums">
                       {new Date(o.created_at).toLocaleDateString('pt-BR')}
                     </span>
                     <span
-                      className={`text-[9px] font-black uppercase tracking-wider px-2 py-0.5 rounded-full border ${
+                      className={`shrink-0 whitespace-nowrap text-[9px] font-black uppercase tracking-wider px-2 py-0.5 rounded-full border ${
                         o.payment_method === 'pix'
                           ? 'text-green-400 border-green-400/30 bg-green-400/10'
                           : 'text-violet-400 border-violet-400/30 bg-violet-400/10'
@@ -279,8 +279,8 @@ const AdminCommissions = () => {
                   </div>
                 </div>
                 <div className="text-right shrink-0">
-                  <p className="text-xs text-white/30">Venda: {fmt(o.total_amount)}</p>
-                  <p className="text-base font-bold text-[#d4af37]">{fmt(o.platform_fee_amount)}</p>
+                  <p className="whitespace-nowrap text-[10px] sm:text-xs text-white/30 tabular-nums">Venda: {fmt(o.total_amount)}</p>
+                  <p className="whitespace-nowrap text-sm sm:text-base font-bold text-[#d4af37] tabular-nums">{fmt(o.platform_fee_amount)}</p>
                 </div>
               </motion.div>
             ))}

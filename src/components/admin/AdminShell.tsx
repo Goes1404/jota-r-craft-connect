@@ -199,7 +199,8 @@ export const AdminShell: React.FC<AdminShellProps> = ({ title, subtitle, eyebrow
       </header>
 
       {/* ── Conteúdo ──────────────────────────────────────────────────────── */}
-      <div className="lg:pl-72 relative z-10 overflow-x-hidden">
+      {/* overflow-x-clip (não -hidden) para não criar contexto de rolagem e quebrar `position: sticky` */}
+      <div className="lg:pl-72 relative z-10 overflow-x-clip">
         <main className="mx-auto w-full max-w-screen-2xl px-4 sm:px-6 lg:px-10 pt-6 lg:pt-10 pb-[calc(7rem_+_env(safe-area-inset-bottom))] lg:pb-16">
           {/* Cabeçalho da página */}
           <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between sm:gap-5 mb-7 lg:mb-10">
