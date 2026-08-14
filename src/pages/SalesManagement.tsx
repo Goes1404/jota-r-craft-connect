@@ -34,6 +34,7 @@ import {
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import SalePhotoImport from '@/components/SalePhotoImport';
+import { salePhotoStore } from '@/lib/salePhotoStore';
 import { AdminShell } from '@/components/admin/AdminShell';
 
 import { useProducts } from '@/hooks/useProducts';
@@ -43,7 +44,9 @@ const SalesManagement = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
   const [isDialogOpen, setIsDialogOpen] = useState(false);
-  const [isPhotoDialogOpen, setIsPhotoDialogOpen] = useState(false);
+  // Reabre sozinho se havia leitura em andamento ou páginas prontas quando o
+  // lojista saiu da página — o progresso vive fora deste componente.
+  const [isPhotoDialogOpen, setIsPhotoDialogOpen] = useState(() => salePhotoStore.hasPendingWork());
   const [selectedProduct, setSelectedProduct] = useState('');
   const [quantity, setQuantity] = useState('');
   const [unitPrice, setUnitPrice] = useState('');

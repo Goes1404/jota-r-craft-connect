@@ -1,7 +1,6 @@
-import React, { useEffect, useMemo, useRef, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState, useSyncExternalStore } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import {
   Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList,
@@ -19,49 +18,11 @@ import {
 import { normalizeCategory } from '@/lib/categories';
 import { AdminConfirmDialog } from '@/components/admin/ui';
 import { Product } from '@/types/database';
+import { salePhotoStore, ApiLine, ExtractedLine, PageResult } from '@/lib/salePhotoStore';
 import {
   Camera, ImageIcon, Loader2, Trash2, AlertTriangle, Check, Plus,
   RefreshCcw, NotebookPen, X, ChevronsUpDown,
 } from 'lucide-react';
-
-// ─── Contrato da edge function parse-sale-photo ──────────────────────────────
-interface ApiLine {
-  raw_text: string;
-  product_id: string | null;
-  product_name_guess: string;
-  quantity: number | null;
-  unit_price: number | null;
-  confidence: number;
-  warnings: string[];
-}
-
-interface ExtractedLine extends ApiLine {
-  uid: string;
-  selected: boolean;
-  /** Produto veio do casamento local (apelido ou aproximado), não da IA. */
-  suggested: boolean;
-  /** Casou por apelido aprendido — já foi confirmado por você antes. */
-  fromAlias: boolean;
-  /** Havia mais de uma variante com o mesmo nome; o preço lido decidiu qual. */
-  resolvedByPrice: boolean;
-  /**
-   * Quando o nome achado tem variantes (mesmo nome, preços diferentes) e o
-   * preço lido não decide sozinho, guarda só essa família — a lista de
-   * escolha fica pequena e certeira, em vez do catálogo inteiro.
-   */
-  candidates: { id: string; name: string }[];
-}
-
-/** Uma foto lida = uma página do caderno, com suas linhas, data e total. */
-interface PageResult {
-  uid: string;
-  preview: string;
-  hash: string;
-  pageDate: string;
-  pageTotal: number | null;
-  duplicateOf: string | null;
-  lines: ExtractedLine[];
-}
 
 const WARNING_LABEL: Record<string, string> = {
   preco_ilegivel: 'preço ilegível',
@@ -88,34 +49,31 @@ const SalePhotoImport: React.FC<Props> = ({ onImportComplete }) => {
   const { data: products = [] } = useProducts();
   const { createSales, isCreatingBatch } = useSalesMutations();
 
-  const [step, setStep] = useState<'idle' | 'analyzing' | 'review' | 'saving'>('idle');
-  const [pages, setPages] = useState<PageResult[]>([]);
-  const [errorMsg, setErrorMsg] = useState<string | null>(null);
-  const [creatingFor, setCreatingFor] = useState<string | null>(null);
-  const [zoom, setZoom] = useState<string | null>(null);
-  const [dupWarning, setDupWarning] = useState<string | null>(null);
-  const [justCreated, setJustCreated] = useState<Product[]>([]);
-  /** apelido normalizado → product_id, aprendido nos lançamentos anteriores. */
-  const [aliases, setAliases] = useState<Map<string, string>>(new Map());
-  /** Formulário de "novo produto" aberto para uma linha — editável antes de confirmar. */
-  const [createDraft, setCreateDraft] = useState<{
-    uid: string; name: string; category: string; price: string;
-  } | null>(null);
-  /** Quando várias fotos são escolhidas de uma vez, mostra "foto 2 de 5" etc. */
-  const [batchProgress, setBatchProgress] = useState<{ current: number; total: number } | null>(null);
+  // Estado vive fora do componente (salePhotoStore): fechar este diálogo ou
+  // navegar para outra página não perde a leitura em andamento nem as
+  // páginas já lidas — ao voltar, tudo continua exatamente onde parou.
+  const {
+    step, pages, errorMsg, creatingFor, zoom, dupWarning, justCreated,
+    aliases, aliasesLoaded, createDraft, batchProgress,
+  } = useSyncExternalStore(salePhotoStore.subscribe, salePhotoStore.getState);
 
   const cameraRef = useRef<HTMLInputElement>(null);
   const galleryRef = useRef<HTMLInputElement>(null);
 
-  // Apelidos são carregados uma vez: é o que faz "capinha" casar sozinho na
-  // segunda vez, sem depender da IA nem do casamento aproximado.
+  // Apelidos são carregados uma vez por sessão: é o que faz "capinha" casar
+  // sozinho na segunda vez, sem depender da IA nem do casamento aproximado.
   useEffect(() => {
+    if (aliasesLoaded) return;
     let active = true;
     supabase.from('product_aliases').select('alias, product_id').then(({ data }) => {
-      if (active && data) setAliases(new Map(data.map((a) => [a.alias, a.product_id])));
+      if (!active) return;
+      salePhotoStore.setState({
+        aliases: data ? new Map(data.map((a) => [a.alias, a.product_id])) : new Map(),
+        aliasesLoaded: true,
+      });
     });
     return () => { active = false; };
-  }, []);
+  }, [aliasesLoaded]);
 
   const catalog = useMemo(() => {
     const byId = new Map(products.map((p) => [p.id, p]));
@@ -156,19 +114,12 @@ const SalePhotoImport: React.FC<Props> = ({ onImportComplete }) => {
   const blockers = selectedLines.map(lineIssue).filter(Boolean) as string[];
   const grandTotal = selectedLines.reduce((s, l) => s + lineTotal(l), 0);
 
-  const reset = () => {
-    setStep('idle');
-    setPages([]);
-    setErrorMsg(null);
-    setJustCreated([]);
-    setCreateDraft(null);
-    setBatchProgress(null);
-  };
+  const reset = () => salePhotoStore.reset();
 
   // ── 1. Foto → IA ───────────────────────────────────────────────────────────
   const handleFile = async (rawFile?: File) => {
     if (!rawFile) return;
-    setErrorMsg(null);
+    salePhotoStore.setState({ errorMsg: null });
 
     let file: File;
     try {
@@ -179,14 +130,14 @@ const SalePhotoImport: React.FC<Props> = ({ onImportComplete }) => {
       return;
     }
 
-    const previousStep = step;
-    setStep('analyzing');
+    const previousStep = salePhotoStore.getState().step;
+    salePhotoStore.setState({ step: 'analyzing' });
     try {
       const [base64, hash] = await Promise.all([fileToBase64(file), hashFile(file)]);
 
-      if (pages.some((p) => p.hash === hash)) {
+      if (salePhotoStore.getState().pages.some((p) => p.hash === hash)) {
         toast({ title: 'Esta página já está no lote', variant: 'destructive' });
-        setStep(previousStep === 'idle' ? 'idle' : 'review');
+        salePhotoStore.setState({ step: previousStep === 'idle' ? 'idle' : 'review' });
         return;
       }
 
@@ -216,12 +167,13 @@ const SalePhotoImport: React.FC<Props> = ({ onImportComplete }) => {
         lines: apiLines.map((line, i) => reconcile(line, i)),
       };
 
-      setPages((prev) => [...prev, page]);
-      setStep('review');
-      if (page.duplicateOf) setDupWarning(page.duplicateOf);
+      salePhotoStore.setState((s) => ({ pages: [...s.pages, page], step: 'review' }));
+      if (page.duplicateOf) salePhotoStore.setState({ dupWarning: page.duplicateOf });
     } catch (err: any) {
-      setErrorMsg(err.message || 'Falha ao ler a foto.');
-      setStep(pages.length > 0 ? 'review' : 'idle');
+      salePhotoStore.setState((s) => ({
+        errorMsg: err.message || 'Falha ao ler a foto.',
+        step: s.pages.length > 0 ? 'review' : 'idle',
+      }));
     }
   };
 
@@ -233,10 +185,10 @@ const SalePhotoImport: React.FC<Props> = ({ onImportComplete }) => {
       return;
     }
     for (let i = 0; i < files.length; i++) {
-      setBatchProgress({ current: i + 1, total: files.length });
+      salePhotoStore.setState({ batchProgress: { current: i + 1, total: files.length } });
       await handleFile(files[i]);
     }
-    setBatchProgress(null);
+    salePhotoStore.setState({ batchProgress: null });
   };
 
   /**
@@ -334,70 +286,80 @@ const SalePhotoImport: React.FC<Props> = ({ onImportComplete }) => {
 
   // ── 2. Edição ──────────────────────────────────────────────────────────────
   const patch = (uid: string, changes: Partial<ExtractedLine>) =>
-    setPages((prev) => prev.map((p) => ({
-      ...p,
-      lines: p.lines.map((l) => (l.uid === uid ? { ...l, ...changes } : l)),
-    })));
+    salePhotoStore.setState((s) => ({
+      pages: s.pages.map((p) => ({
+        ...p,
+        lines: p.lines.map((l) => (l.uid === uid ? { ...l, ...changes } : l)),
+      })),
+    }));
 
   const dropLine = (uid: string) => {
-    setPages((prev) => prev
-      .map((p) => ({ ...p, lines: p.lines.filter((l) => l.uid !== uid) }))
-      .filter((p) => p.lines.length > 0));
-    setCreateDraft((prev) => (prev?.uid === uid ? null : prev));
+    salePhotoStore.setState((s) => ({
+      pages: s.pages
+        .map((p) => ({ ...p, lines: p.lines.filter((l) => l.uid !== uid) }))
+        .filter((p) => p.lines.length > 0),
+      createDraft: s.createDraft?.uid === uid ? null : s.createDraft,
+    }));
   };
 
-  const dropPage = (uid: string) => setPages((prev) => prev.filter((p) => p.uid !== uid));
+  const dropPage = (uid: string) =>
+    salePhotoStore.setState((s) => ({ pages: s.pages.filter((p) => p.uid !== uid) }));
 
   const patchPage = (uid: string, changes: Partial<PageResult>) =>
-    setPages((prev) => prev.map((p) => (p.uid === uid ? { ...p, ...changes } : p)));
+    salePhotoStore.setState((s) => ({ pages: s.pages.map((p) => (p.uid === uid ? { ...p, ...changes } : p)) }));
 
   const handleProductChange = (uid: string, productId: string) => {
     const product = catalog.find((p) => p.id === productId);
-    setPages((prev) => prev.map((page) => ({
-      ...page,
-      lines: page.lines.map((l) => {
-        if (l.uid !== uid) return l;
-        // Preço do papel manda: só preenche se a IA não leu nenhum.
-        const unit_price = l.unit_price === null ? Number(product?.price ?? 0) : l.unit_price;
-        return {
-          ...l, product_id: productId, unit_price,
-          suggested: false, fromAlias: false, resolvedByPrice: false, candidates: [],
-        };
-      }),
-    })));
+    salePhotoStore.setState((s) => ({
+      pages: s.pages.map((page) => ({
+        ...page,
+        lines: page.lines.map((l) => {
+          if (l.uid !== uid) return l;
+          // Preço do papel manda: só preenche se a IA não leu nenhum.
+          const unit_price = l.unit_price === null ? Number(product?.price ?? 0) : l.unit_price;
+          return {
+            ...l, product_id: productId, unit_price,
+            suggested: false, fromAlias: false, resolvedByPrice: false, candidates: [],
+          };
+        }),
+      })),
+    }));
   };
 
   /** Abre o formulário de cadastro pré-preenchido com o que a IA leu — tudo editável. */
   const openCreateDraft = (line: ExtractedLine) => {
-    setCreateDraft({
-      uid: line.uid,
-      name: (line.product_name_guess || line.raw_text).trim().slice(0, 120),
-      category: '',
-      price: line.unit_price !== null ? String(line.unit_price) : '',
+    salePhotoStore.setState({
+      createDraft: {
+        uid: line.uid,
+        name: (line.product_name_guess || line.raw_text).trim().slice(0, 120),
+        category: '',
+        price: line.unit_price !== null ? String(line.unit_price) : '',
+      },
     });
   };
 
   const submitCreateDraft = async () => {
-    if (!createDraft) return;
-    const name = createDraft.name.trim();
+    const draft = salePhotoStore.getState().createDraft;
+    if (!draft) return;
+    const name = draft.name.trim();
     if (!name) {
       toast({ title: 'Informe o nome do produto', variant: 'destructive' });
       return;
     }
-    const price = parseFloat(createDraft.price.replace(',', '.'));
+    const price = parseFloat(draft.price.replace(',', '.'));
     if (Number.isNaN(price) || price < 0) {
       toast({ title: 'Informe um preço válido', variant: 'destructive' });
       return;
     }
 
-    const line = allLines.find((l) => l.uid === createDraft.uid);
-    setCreatingFor(createDraft.uid);
+    const line = allLines.find((l) => l.uid === draft.uid);
+    salePhotoStore.setState({ creatingFor: draft.uid });
     try {
       const { data, error } = await supabase.from('products').insert({
         name,
         price,
         cost: 0,
-        category: normalizeCategory(createDraft.category),
+        category: normalizeCategory(draft.category),
         // A venda já aconteceu e o estoque não é mais ajustado automaticamente
         // por venda: nasce zerado (ajuste manual depois em Produtos, se for o caso).
         stock: 0,
@@ -405,26 +367,26 @@ const SalePhotoImport: React.FC<Props> = ({ onImportComplete }) => {
       }).select().single();
       if (error) throw error;
 
-      setJustCreated((prev) => [...prev, data as Product]);
-      patch(createDraft.uid, {
+      salePhotoStore.setState((s) => ({ justCreated: [...s.justCreated, data as Product] }));
+      patch(draft.uid, {
         product_id: (data as Product).id, unit_price: price,
         suggested: false, resolvedByPrice: false, candidates: [],
       });
       queryClient.invalidateQueries({ queryKey: ['products'] });
       queryClient.invalidateQueries({ queryKey: ['admin-products'] });
       toast({ title: 'Produto cadastrado', description: `${name} — ajuste o estoque depois em Produtos.` });
-      setCreateDraft(null);
+      salePhotoStore.setState({ createDraft: null });
     } catch (err: any) {
       toast({ title: 'Erro ao cadastrar produto', description: err.message, variant: 'destructive' });
     } finally {
-      setCreatingFor(null);
+      salePhotoStore.setState({ creatingFor: null });
     }
   };
 
   // ── 3. Salvar ──────────────────────────────────────────────────────────────
   const handleSave = async () => {
     if (selectedLines.length === 0 || blockers.length > 0) return;
-    setStep('saving');
+    salePhotoStore.setState({ step: 'saving' });
     try {
       const rows = pages.flatMap((page) =>
         page.lines.filter((l) => l.selected).map((l) => {
@@ -448,11 +410,11 @@ const SalePhotoImport: React.FC<Props> = ({ onImportComplete }) => {
 
       await createSales(rows);
       await learnAliases();
-      reset();
+      salePhotoStore.reset();
       onImportComplete();
     } catch {
       // Erro já exibido pelo toast da mutation; mantém a revisão intacta.
-      setStep('review');
+      salePhotoStore.setState({ step: 'review' });
     }
   };
 
@@ -469,10 +431,10 @@ const SalePhotoImport: React.FC<Props> = ({ onImportComplete }) => {
     try {
       await supabase.from('product_aliases')
         .upsert(unique.map((r) => ({ ...r, updated_at: new Date().toISOString() })), { onConflict: 'alias' });
-      setAliases((prev) => {
-        const next = new Map(prev);
+      salePhotoStore.setState((s) => {
+        const next = new Map(s.aliases);
         unique.forEach((r) => next.set(r.alias, r.product_id));
-        return next;
+        return { aliases: next };
       });
     } catch { /* aprendizado é bônus — nunca derruba o lançamento */ }
   };
@@ -488,7 +450,9 @@ const SalePhotoImport: React.FC<Props> = ({ onImportComplete }) => {
               ? `A IA está lendo a foto ${batchProgress.current} de ${batchProgress.total}…`
               : 'A IA está lendo sua página…'}
           </p>
-          <p className="text-[11px] text-white/40">Pode levar até 40 segundos por foto.</p>
+          <p className="text-[11px] text-white/40">
+            Pode levar até 40 segundos por foto — pode fechar esta tela ou sair da página, a leitura continua sozinha.
+          </p>
         </div>
       </div>
     );
@@ -545,25 +509,25 @@ const SalePhotoImport: React.FC<Props> = ({ onImportComplete }) => {
     <div className="p-5 md:p-8 space-y-5">
       <AdminConfirmDialog
         open={!!dupWarning}
-        onOpenChange={(open) => !open && setDupWarning(null)}
+        onOpenChange={(open) => !open && salePhotoStore.setState({ dupWarning: null })}
         title="Esta foto já foi lançada"
         description={`Encontramos vendas desta mesma foto em ${dupWarning}. Se lançar de novo, as vendas ficarão duplicadas.`}
         confirmLabel="Entendi, vou conferir"
         destructive={false}
-        onConfirm={() => setDupWarning(null)}
+        onConfirm={() => salePhotoStore.setState({ dupWarning: null })}
       />
 
       {/* Foto ampliada */}
       {zoom && (
         <div
           className="fixed inset-0 z-[80] bg-black/90 backdrop-blur-sm flex items-center justify-center p-4"
-          onClick={() => setZoom(null)}
+          onClick={() => salePhotoStore.setState({ zoom: null })}
           role="dialog"
           aria-label="Foto ampliada"
         >
           <img src={zoom} alt="Página do caderno" className="max-w-full max-h-full object-contain rounded-xl" />
           <button
-            onClick={() => setZoom(null)}
+            onClick={() => salePhotoStore.setState({ zoom: null })}
             aria-label="Fechar"
             className="absolute top-4 right-4 w-10 h-10 rounded-full bg-white/10 text-white flex items-center justify-center"
           >
@@ -589,7 +553,7 @@ const SalePhotoImport: React.FC<Props> = ({ onImportComplete }) => {
               <div className="flex flex-wrap items-center gap-3 p-4 border-b border-white/5 bg-white/[0.02]">
                 <button
                   type="button"
-                  onClick={() => setZoom(page.preview)}
+                  onClick={() => salePhotoStore.setState({ zoom: page.preview })}
                   className="w-14 h-14 rounded-xl overflow-hidden border border-white/10 shrink-0 hover:border-[#d4af37]/50 transition-colors"
                   aria-label="Ampliar foto da página"
                 >
@@ -737,7 +701,7 @@ const SalePhotoImport: React.FC<Props> = ({ onImportComplete }) => {
                               <div className="grid grid-cols-1 sm:grid-cols-[1fr_1fr_6rem] gap-2">
                                 <Input
                                   value={createDraft.name}
-                                  onChange={(e) => setCreateDraft({ ...createDraft, name: e.target.value })}
+                                  onChange={(e) => salePhotoStore.setState({ createDraft: { ...createDraft, name: e.target.value } })}
                                   placeholder="Nome do produto"
                                   className="bg-white/5 border-white/10 h-10 rounded-xl text-xs"
                                   aria-label="Nome do novo produto"
@@ -745,7 +709,7 @@ const SalePhotoImport: React.FC<Props> = ({ onImportComplete }) => {
                                 <Input
                                   list="sale-photo-category-suggestions"
                                   value={createDraft.category}
-                                  onChange={(e) => setCreateDraft({ ...createDraft, category: e.target.value })}
+                                  onChange={(e) => salePhotoStore.setState({ createDraft: { ...createDraft, category: e.target.value } })}
                                   placeholder="Categoria"
                                   className="bg-white/5 border-white/10 h-10 rounded-xl text-xs"
                                   aria-label="Categoria do novo produto"
@@ -753,7 +717,7 @@ const SalePhotoImport: React.FC<Props> = ({ onImportComplete }) => {
                                 <Input
                                   type="number" min="0" step="0.01"
                                   value={createDraft.price}
-                                  onChange={(e) => setCreateDraft({ ...createDraft, price: e.target.value })}
+                                  onChange={(e) => salePhotoStore.setState({ createDraft: { ...createDraft, price: e.target.value } })}
                                   placeholder="Preço"
                                   className="bg-white/5 border-white/10 h-10 rounded-xl text-xs"
                                   aria-label="Preço do novo produto"
@@ -774,7 +738,7 @@ const SalePhotoImport: React.FC<Props> = ({ onImportComplete }) => {
                                 <Button
                                   type="button" variant="ghost" size="sm"
                                   disabled={creatingFor === line.uid}
-                                  onClick={() => setCreateDraft(null)}
+                                  onClick={() => salePhotoStore.setState({ createDraft: null })}
                                   className="h-8 px-3 text-[9px] font-black uppercase tracking-widest text-white/40 hover:text-white rounded-lg"
                                 >
                                   Cancelar

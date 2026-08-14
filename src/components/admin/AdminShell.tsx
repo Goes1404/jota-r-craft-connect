@@ -3,6 +3,7 @@ import { NavLink, useLocation, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useAuth } from '@/contexts/AuthContext';
 import { ThemeToggle } from '@/components/ThemeToggle';
+import { SalePhotoStatusPill } from '@/components/admin/SalePhotoStatusPill';
 import {
   LayoutDashboard,
   ShoppingBag,
@@ -352,6 +353,8 @@ export const AdminShell: React.FC<AdminShellProps> = ({ title, subtitle, eyebrow
           </>
         )}
       </AnimatePresence>
+
+      <SalePhotoStatusPill />
     </div>
   );
 };
