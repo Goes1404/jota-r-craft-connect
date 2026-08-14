@@ -101,6 +101,8 @@ const SalePhotoImport: React.FC<Props> = ({ onImportComplete }) => {
   const [createDraft, setCreateDraft] = useState<{
     uid: string; name: string; category: string; price: string;
   } | null>(null);
+  /** Quando várias fotos são escolhidas de uma vez, mostra "foto 2 de 5" etc. */
+  const [batchProgress, setBatchProgress] = useState<{ current: number; total: number } | null>(null);
 
   const cameraRef = useRef<HTMLInputElement>(null);
   const galleryRef = useRef<HTMLInputElement>(null);
@@ -131,26 +133,12 @@ const SalePhotoImport: React.FC<Props> = ({ onImportComplete }) => {
   const allLines = useMemo(() => pages.flatMap((p) => p.lines), [pages]);
   const selectedLines = allLines.filter((l) => l.selected);
 
-  // Estoque comprometido POR PRODUTO somando TODAS as páginas — o mesmo item
-  // pode aparecer em páginas diferentes do mesmo lote.
-  const allocated = useMemo(() => {
-    const map = new Map<string, number>();
-    selectedLines.forEach((l) => {
-      if (l.product_id) map.set(l.product_id, (map.get(l.product_id) ?? 0) + (l.quantity ?? 0));
-    });
-    return map;
-  }, [selectedLines]);
-
+  // Estoque não bloqueia mais o lançamento — a loja controla isso à parte.
   const lineIssue = (line: ExtractedLine): string | null => {
     if (!line.selected) return null;
     if (!line.product_id) return 'Escolha a peça';
     if (!line.quantity || line.quantity <= 0) return 'Informe a quantidade';
     if (line.unit_price === null || line.unit_price < 0) return 'Informe o preço';
-    const product = productOf(line.product_id);
-    const used = allocated.get(line.product_id) ?? 0;
-    if (product && used > (product.stock ?? 0)) {
-      return `Estoque insuficiente — ${product.stock ?? 0} disponíveis, ${used} no lote`;
-    }
     return null;
   };
 
@@ -174,6 +162,7 @@ const SalePhotoImport: React.FC<Props> = ({ onImportComplete }) => {
     setErrorMsg(null);
     setJustCreated([]);
     setCreateDraft(null);
+    setBatchProgress(null);
   };
 
   // ── 1. Foto → IA ───────────────────────────────────────────────────────────
@@ -234,6 +223,20 @@ const SalePhotoImport: React.FC<Props> = ({ onImportComplete }) => {
       setErrorMsg(err.message || 'Falha ao ler a foto.');
       setStep(pages.length > 0 ? 'review' : 'idle');
     }
+  };
+
+  /** Seleção múltipla da galeria: processa uma foto de cada vez, empilhando as páginas. */
+  const handleFiles = async (fileList: FileList | null) => {
+    const files = fileList ? Array.from(fileList) : [];
+    if (files.length <= 1) {
+      await handleFile(files[0]);
+      return;
+    }
+    for (let i = 0; i < files.length; i++) {
+      setBatchProgress({ current: i + 1, total: files.length });
+      await handleFile(files[i]);
+    }
+    setBatchProgress(null);
   };
 
   /**
@@ -480,8 +483,12 @@ const SalePhotoImport: React.FC<Props> = ({ onImportComplete }) => {
       <div className="p-8 md:p-12 text-center space-y-5">
         <Loader2 className="w-10 h-10 text-[#d4af37] animate-spin mx-auto" />
         <div className="space-y-1.5">
-          <p className="text-sm font-bold text-white">A IA está lendo sua página…</p>
-          <p className="text-[11px] text-white/40">Pode levar até 40 segundos.</p>
+          <p className="text-sm font-bold text-white">
+            {batchProgress
+              ? `A IA está lendo a foto ${batchProgress.current} de ${batchProgress.total}…`
+              : 'A IA está lendo sua página…'}
+          </p>
+          <p className="text-[11px] text-white/40">Pode levar até 40 segundos por foto.</p>
         </div>
       </div>
     );
@@ -526,8 +533,9 @@ const SalePhotoImport: React.FC<Props> = ({ onImportComplete }) => {
         {/* capture="environment" abre a câmera traseira direto no celular */}
         <input ref={cameraRef} type="file" accept="image/*" capture="environment" className="hidden"
           onChange={(e) => { handleFile(e.target.files?.[0]); e.target.value = ''; }} />
-        <input ref={galleryRef} type="file" accept="image/*" className="hidden"
-          onChange={(e) => { handleFile(e.target.files?.[0]); e.target.value = ''; }} />
+        {/* multiple: dá para escolher várias páginas de uma vez na galeria */}
+        <input ref={galleryRef} type="file" accept="image/*" multiple className="hidden"
+          onChange={(e) => { handleFiles(e.target.files); e.target.value = ''; }} />
       </div>
     );
   }
@@ -773,15 +781,23 @@ const SalePhotoImport: React.FC<Props> = ({ onImportComplete }) => {
                                 </Button>
                               </div>
                             </div>
-                          ) : missingProduct && (
+                          ) : (
+                            // Sempre visível — mesmo quando um produto já casou (errado) com a
+                            // linha, precisa dar para cadastrar o item certo do zero.
                             <Button
                               type="button" variant="ghost" size="sm"
                               onClick={() => openCreateDraft(line)}
-                              className="h-8 px-3 text-[9px] font-black uppercase tracking-widest text-[#d4af37] hover:bg-[#d4af37]/10 rounded-lg max-w-full"
+                              className={`h-8 px-3 text-[9px] font-black uppercase tracking-widest rounded-lg max-w-full ${
+                                missingProduct
+                                  ? 'text-[#d4af37] hover:bg-[#d4af37]/10'
+                                  : 'text-white/35 hover:text-[#d4af37] hover:bg-[#d4af37]/10'
+                              }`}
                             >
                               <Plus className="w-3 h-3 mr-1.5 shrink-0" />
                               <span className="truncate">
-                                Cadastrar "{(line.product_name_guess || line.raw_text).slice(0, 22)}"
+                                {missingProduct
+                                  ? `Cadastrar "${(line.product_name_guess || line.raw_text).slice(0, 22)}"`
+                                  : 'Nenhum destes? Cadastrar produto novo'}
                               </span>
                             </Button>
                           )}
@@ -853,8 +869,8 @@ const SalePhotoImport: React.FC<Props> = ({ onImportComplete }) => {
       {/* usados também pelo botão "Outra página" */}
       <input ref={cameraRef} type="file" accept="image/*" capture="environment" className="hidden"
         onChange={(e) => { handleFile(e.target.files?.[0]); e.target.value = ''; }} />
-      <input ref={galleryRef} type="file" accept="image/*" className="hidden"
-        onChange={(e) => { handleFile(e.target.files?.[0]); e.target.value = ''; }} />
+      <input ref={galleryRef} type="file" accept="image/*" multiple className="hidden"
+        onChange={(e) => { handleFiles(e.target.files); e.target.value = ''; }} />
     </div>
   );
 };

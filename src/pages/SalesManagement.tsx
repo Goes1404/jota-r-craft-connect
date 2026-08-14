@@ -72,10 +72,6 @@ const SalesManagement = () => {
     const product = products.find(p => p.id === selectedProduct);
     if (!product) return;
     const quantityNum = parseInt(quantity);
-    if (quantityNum > product.stock) {
-      toast.error(`Estoque insuficiente: ${product.stock} disponíveis`);
-      return;
-    }
     const unitPriceNum = parseFloat(unitPrice);
     const costNum = parseFloat(costAtSale || '0');
 
