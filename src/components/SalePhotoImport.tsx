@@ -492,6 +492,11 @@ const SalePhotoImport: React.FC<Props> = ({ onImportComplete }) => {
               <ImageIcon className="w-4 h-4 mr-2" /> Escolher da galeria
             </Button>
           </div>
+          <p className="text-[10px] text-white/25 mt-4 max-w-xs mx-auto leading-relaxed">
+            Dica para escolher várias fotos de uma vez: toque em cada foto (ou mantenha o
+            dedo pressionado na primeira até marcar) antes de confirmar — depende do
+            seletor de fotos do seu aparelho.
+          </p>
         </div>
 
         {/* capture="environment" abre a câmera traseira direto no celular */}
