@@ -360,9 +360,9 @@ const SalePhotoImport: React.FC<Props> = ({ onImportComplete }) => {
         price,
         cost: 0,
         category: normalizeCategory(draft.category),
-        // A venda já aconteceu e o estoque não é mais ajustado automaticamente
-        // por venda: nasce zerado (ajuste manual depois em Produtos, se for o caso).
-        stock: 0,
+        // Estoque não é controlado por venda por enquanto — todo produto novo
+        // nasce com 999, igual ao padrão do catálogo.
+        stock: 999,
         image: '', images: [], is_featured: false,
       }).select().single();
       if (error) throw error;
