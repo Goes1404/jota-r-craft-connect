@@ -179,7 +179,7 @@ export const AdminShell: React.FC<AdminShellProps> = ({ title, subtitle, eyebrow
 
       {/* ── Top bar (mobile) ──────────────────────────────────────────────── */}
       <header className="lg:hidden sticky top-0 z-40 h-16 flex items-center justify-between gap-2 px-4 border-b border-white/5 bg-black/60 backdrop-blur-2xl">
-        <div className="min-w-0 overflow-hidden">
+        <div className="min-w-0">
           <Brand onClick={() => navigate('/')} />
         </div>
         <div className="flex shrink-0 items-center gap-1.5">

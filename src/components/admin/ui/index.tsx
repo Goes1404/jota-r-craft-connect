@@ -328,7 +328,7 @@ export const AdminConfirmDialog: React.FC<AdminConfirmDialogProps> = ({
           </AlertDialogDescription>
         )}
       </AlertDialogHeader>
-      <AlertDialogFooter className="flex-col-reverse gap-2 mt-2 sm:flex-row sm:space-x-0">
+      <AlertDialogFooter className="flex-col-reverse gap-2 mt-2 sm:flex-row">
         <AlertDialogCancel
           className="mt-0 w-full sm:flex-1 bg-white/5 border-white/10 text-white/60 hover:text-white hover:bg-white/10 rounded-xl h-11 text-[10px] font-black uppercase tracking-widest"
         >
