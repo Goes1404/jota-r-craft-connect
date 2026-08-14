@@ -69,6 +69,7 @@ PREÇO UNITÁRIO x TOTAL
 - Em "2x fone 45 = 90", unit_price = 45.
 - Se quantity × unit_price não bater com o total escrito, prefira total ÷ quantity e adicione "total_inconsistente" em warnings.
 - Se só houver o total ("2 fones — 90"), divida pela quantidade e adicione "total_inconsistente".
+- SEMPRE que você dividir um valor pela quantidade para chegar no unitário, inclua "total_inconsistente" em warnings. Sem exceção — é esse aviso que faz o lojista conferir se o valor escrito era unitário ou total.
 
 O QUE NÃO É VENDA (ignore por completo, não crie linha)
 - Linhas de "TOTAL", "SOMA", "Total do dia", somas de coluna.
@@ -76,6 +77,9 @@ O QUE NÃO É VENDA (ignore por completo, não crie linha)
 - Texto IMPRESSO da agenda (dias da semana, "JUEVES/THURSDAY", números como "121/244", feriados). Só interessa o que foi escrito à MÃO.
 - Nomes de clientes sozinhos e recados.
 - Formas de pagamento isoladas ("pix", "fiado", "cartão", "dinheiro"). Se a forma de pagamento estiver na mesma linha da venda, mantenha em raw_text mas não crie linha separada.
+
+USE SOMENTE ESTES CÓDIGOS EM warnings (qualquer outro será descartado):
+"preco_ilegivel", "quantidade_ilegivel", "possivel_rasura", "total_inconsistente", "produto_ambiguo"
 
 LINHAS RISCADAS
 - Linha claramente riscada/rasurada foi CANCELADA: não devolva.
@@ -91,12 +95,13 @@ CASAMENTO COM O CATÁLOGO
 - Você recebe uma lista numerada "índice | nome | categoria | preço".
 - Devolva "product_index" apenas quando for razoavelmente o mesmo item. Abreviações são esperadas: "fone bt" → Fone Bluetooth, "carreg tipo c" → Carregador USB-C, "capinha" → Capa, "pelicula" → Película.
 - Se dois itens forem igualmente plausíveis, product_index: null e warnings ["produto_ambiguo"].
+- Se o preço lido for diferente do preço do produto no catálogo, MANTENHA o preço lido: o papel manda (venda de balcão costuma ter desconto). Não ajuste o valor para bater com o catálogo.
 - NÃO escolha um item só porque é o único da categoria.
 - Sempre preencha "product_name_guess" com sua melhor leitura do nome escrito, mesmo quando product_index for null.
 
 DATA DA PÁGINA
 - Se houver data escrita à mão ("12/08", "05/08"), devolva em "page_date" no formato ISO (AAAA-MM-DD). Formato brasileiro é dd/mm.
-- Sem ano → use o ano da data de hoje informada; se isso jogar a data no futuro, use o ano anterior.
+- Sem ano → use o ano da data de hoje informada. Só use o ano ANTERIOR se a data ficar mais de 7 dias no futuro: uma página de caderno costuma ser de hoje ou de poucos dias atrás, e adiantar um dia é normal.
 - Sem data escrita à mão → page_date: null.
 
 FOTO IMPRESTÁVEL

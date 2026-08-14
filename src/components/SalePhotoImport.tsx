@@ -44,9 +44,12 @@ const WARNING_LABEL: Record<string, string> = {
   preco_ilegivel: 'preço ilegível',
   quantidade_ilegivel: 'qtd. ilegível',
   possivel_rasura: 'possível rasura',
-  total_inconsistente: 'total não bateu',
+  total_inconsistente: 'confira: valor pode ser o total',
   produto_ambiguo: 'produto ambíguo',
 };
+
+/** Alerta de preço bem fora do catálogo — pega erro de leitura (120 lido como 12). */
+const PRICE_GAP_ALERT = 0.3;
 
 const money = (v: number) => v.toLocaleString('pt-BR', { minimumFractionDigits: 2 });
 const todayISO = () => new Date().toLocaleDateString('sv-SE'); // AAAA-MM-DD local
@@ -104,6 +107,18 @@ const SalePhotoImport: React.FC<Props> = ({ onImportComplete }) => {
       return `Estoque insuficiente — ${product.stock ?? 0} disponíveis, ${used} nesta página`;
     }
     return null;
+  };
+
+  /**
+   * Preço lido muito fora do catálogo — pega erro de leitura (120,00 virando
+   * 12,00). Calculado com os números reais, não com julgamento da IA: desconto
+   * de balcão é normal, então só destaca diferença grande.
+   */
+  const priceGap = (line: ExtractedLine): boolean => {
+    const product = productOf(line.product_id);
+    const catalogPrice = Number(product?.price ?? 0);
+    if (!product || !catalogPrice || line.unit_price === null) return false;
+    return Math.abs(line.unit_price - catalogPrice) / catalogPrice > PRICE_GAP_ALERT;
   };
 
   const selectedLines = lines.filter((l) => l.selected);
@@ -499,6 +514,11 @@ const SalePhotoImport: React.FC<Props> = ({ onImportComplete }) => {
                     {line.warnings.map((w) => (
                       <Badge key={w} tone="amber">{WARNING_LABEL[w] ?? w}</Badge>
                     ))}
+                    {priceGap(line) && (
+                      <Badge tone="amber">
+                        catálogo: R$ {money(Number(productOf(line.product_id)!.price))}
+                      </Badge>
+                    )}
                     {issue && <Badge tone={missingProduct ? 'amber' : 'red'}>{issue}</Badge>}
                   </div>
 
