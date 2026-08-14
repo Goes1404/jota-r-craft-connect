@@ -264,14 +264,14 @@ const AdminProducts = () => {
             {/* PDF Bulk Import */}
             <Dialog open={isPdfDialogOpen} onOpenChange={setIsPdfDialogOpen}>
               <DialogTrigger asChild>
-                <Button variant="ghost" className="border border-white/10 text-white/50 hover:text-[#d4af37] hover:border-[#d4af37]/30 font-black text-[10px] uppercase tracking-widest px-6 h-12 rounded-full transition-all">
+                <Button variant="ghost" className="border border-white/10 text-white/50 hover:text-[#d4af37] hover:border-[#d4af37]/30 font-black text-[10px] uppercase tracking-widest px-4 sm:px-6 h-11 sm:h-12 rounded-full transition-all">
                   <FileText className="h-4 w-4 mr-2" /> Importar PDF
                 </Button>
               </DialogTrigger>
-              <DialogContent className="max-w-2xl bg-[#0a0a0a] border-white/10 text-white rounded-[32px] overflow-hidden p-0">
-                <div className="p-8 border-b border-white/5 bg-black/50">
+              <DialogContent className="max-w-2xl bg-[#0a0a0a] border-white/10 text-white rounded-[24px] sm:rounded-[32px] overflow-hidden p-0">
+                <div className="p-5 md:p-8 border-b border-white/5 bg-black/50">
                   <DialogHeader>
-                    <DialogTitle className="text-2xl font-serif font-bold text-white">
+                    <DialogTitle className="text-xl sm:text-2xl font-serif font-bold text-white pr-8">
                       Importar Produtos via PDF
                     </DialogTitle>
                     <DialogDescription className="text-white/40 text-xs uppercase tracking-widest font-bold mt-1">
@@ -279,7 +279,7 @@ const AdminProducts = () => {
                     </DialogDescription>
                   </DialogHeader>
                 </div>
-                <div className="p-8">
+                <div className="p-5 md:p-8 max-h-[70vh] overflow-y-auto custom-scrollbar">
                   <PdfBulkImport
                     onImportComplete={() => {
                       setIsPdfDialogOpen(false);
@@ -292,14 +292,14 @@ const AdminProducts = () => {
 
           <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
             <DialogTrigger asChild>
-              <Button onClick={resetForm} className="bg-[#d4af37] text-black font-black text-[10px] uppercase tracking-widest px-8 h-12 rounded-full transition-all hover:bg-[#f2ca50] shadow-xl shadow-[#d4af37]/10">
+              <Button onClick={resetForm} className="bg-[#d4af37] text-black font-black text-[10px] uppercase tracking-widest px-5 sm:px-8 h-11 sm:h-12 rounded-full transition-all hover:bg-[#f2ca50] shadow-xl shadow-[#d4af37]/10">
                 <Plus className="h-4 w-4 mr-2" /> Adicionar Peça
               </Button>
             </DialogTrigger>
-            <DialogContent className="max-w-3xl bg-[#0a0a0a] border-white/10 text-white rounded-[32px] overflow-hidden p-0">
-              <div className="p-8 border-b border-white/5 bg-black/50">
+            <DialogContent className="max-w-3xl bg-[#0a0a0a] border-white/10 text-white rounded-[24px] sm:rounded-[32px] overflow-hidden p-0">
+              <div className="p-5 md:p-8 border-b border-white/5 bg-black/50">
                 <DialogHeader>
-                  <DialogTitle className="text-2xl font-serif font-bold text-white">
+                  <DialogTitle className="text-xl sm:text-2xl font-serif font-bold text-white pr-8">
                     {editingProduct ? 'Refinar Peça' : 'Nova Obra Prima'}
                   </DialogTitle>
                   <DialogDescription className="text-white/40 text-xs uppercase tracking-widest font-bold mt-1">
@@ -307,8 +307,8 @@ const AdminProducts = () => {
                   </DialogDescription>
                 </DialogHeader>
               </div>
-              <form onSubmit={handleSubmit} className="p-8 space-y-8 max-h-[70vh] overflow-y-auto custom-scrollbar">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+              <form onSubmit={handleSubmit} className="p-5 md:p-8 space-y-6 md:space-y-8 max-h-[70vh] overflow-y-auto custom-scrollbar">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-5 md:gap-8">
                   <div className="space-y-4">
                     <Label className="text-[10px] font-bold uppercase tracking-widest text-white/30">Nome do Produto</Label>
                     <Input value={formData.name} onChange={(e) => setFormData({...formData, name: e.target.value})} className="bg-white/5 border-white/10 focus:border-[#d4af37]/40 h-12 rounded-xl" required />
@@ -333,7 +333,7 @@ const AdminProducts = () => {
                             key={c}
                             type="button"
                             onClick={() => setFormData({ ...formData, category: c })}
-                            className={`px-2.5 py-1 rounded-full text-[9px] font-bold uppercase tracking-widest border transition-colors ${
+                            className={`max-w-full truncate px-2.5 py-1 rounded-full text-[9px] font-bold uppercase tracking-widest border transition-colors ${
                               formData.category === c
                                 ? 'border-[#d4af37]/60 bg-[#d4af37]/10 text-[#d4af37]'
                                 : 'border-white/10 text-white/30 hover:text-white/60 hover:border-white/20'
@@ -347,7 +347,7 @@ const AdminProducts = () => {
                   </div>
                 </div>
                 
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-5 md:gap-8">
                   <div className="space-y-4">
                     <Label className="text-[10px] font-bold uppercase tracking-widest text-white/30">Preço Venda (R$)</Label>
                     <Input type="number" step="0.01" value={formData.price} onChange={(e) => setFormData({...formData, price: e.target.value})} className="bg-white/5 border-white/10 focus:border-[#d4af37]/40 h-12 rounded-xl" required />
@@ -364,8 +364,8 @@ const AdminProducts = () => {
 
                 {/* Dimensões para cálculo de frete (Melhor Envio). Opcionais — se vazias, usa um padrão seguro. */}
                 <div className="space-y-4">
-                  <Label className="text-[10px] font-bold uppercase tracking-widest text-white/30">Dimensões para Frete <span className="text-white/20 normal-case tracking-normal">(opcional — usado no cálculo de envio)</span></Label>
-                  <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                  <Label className="block leading-relaxed text-[10px] font-bold uppercase tracking-widest text-white/30">Dimensões para Frete <span className="text-white/20 normal-case tracking-normal">(opcional — usado no cálculo de envio)</span></Label>
+                  <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4">
                     <div className="space-y-2">
                       <Label className="text-[9px] font-bold uppercase tracking-widest text-white/20">Peso (kg)</Label>
                       <Input type="number" step="0.01" placeholder="0.3" value={formData.weight} onChange={(e) => setFormData({...formData, weight: e.target.value})} className="bg-white/5 border-white/10 focus:border-[#d4af37]/40 h-12 rounded-xl" />
@@ -387,7 +387,7 @@ const AdminProducts = () => {
 
                 <div className="space-y-4">
                   <Label className="text-[10px] font-bold uppercase tracking-widest text-white/30">Galeria de Imagens</Label>
-                  <div className="rounded-3xl border border-white/10 bg-black/40 p-6">
+                  <div className="rounded-2xl md:rounded-3xl border border-white/10 bg-black/40 p-4 md:p-6 min-w-0 overflow-hidden">
                     <MultiImageUpload key={editingProduct?.id ?? 'new'} onImagesChange={(urls) => setFormData({...formData, images: urls})} currentImages={formData.images} />
                   </div>
                 </div>
@@ -395,7 +395,7 @@ const AdminProducts = () => {
                 {/* Estúdio de IA — gera imagens comerciais a partir das fotos da galeria */}
                 <div className="space-y-4">
                   <Label className="text-[10px] font-bold uppercase tracking-widest text-white/30">Estúdio de IA — Imagens Comerciais</Label>
-                  <div className="rounded-3xl border border-[#d4af37]/20 bg-[#d4af37]/[0.03] p-6">
+                  <div className="rounded-2xl md:rounded-3xl border border-[#d4af37]/20 bg-[#d4af37]/[0.03] p-4 md:p-6 min-w-0 overflow-hidden">
                     <ProductAdGenerator
                       images={formData.images}
                       productName={formData.name}
@@ -406,7 +406,7 @@ const AdminProducts = () => {
                 </div>
 
                 <div className="space-y-4">
-                  <div className="flex justify-between items-center">
+                  <div className="flex flex-wrap justify-between items-center gap-2">
                     <Label className="text-[10px] font-bold uppercase tracking-widest text-white/30">Breve Descrição</Label>
                     <Button 
                       type="button" 
@@ -423,7 +423,7 @@ const AdminProducts = () => {
                 </div>
 
                 <div className="space-y-4">
-                  <Label className="text-[10px] font-bold uppercase tracking-widest text-white/30">
+                  <Label className="block leading-relaxed text-[10px] font-bold uppercase tracking-widest text-white/30">
                     Descrição Detalhada / Ficha Técnica <span className="text-white/20 normal-case tracking-normal">(aparece na página do produto — aceita markdown)</span>
                   </Label>
                   <Textarea value={formData.detailed_description} onChange={(e) => setFormData({...formData, detailed_description: e.target.value})} className="bg-white/5 border-white/10 focus:border-[#d4af37]/40 rounded-2xl min-h-[160px]" placeholder="Use o botão 'Sugerir com IA' acima para preencher com especificações técnicas reais do produto." />
@@ -432,14 +432,14 @@ const AdminProducts = () => {
                 <div className="space-y-4">
                   <Label className="text-[10px] font-bold uppercase tracking-widest text-white/30">Destaque Exclusivo</Label>
                   <div className="flex items-center gap-3 p-4 rounded-2xl bg-white/5 border border-white/10">
-                    <input type="checkbox" id="is_featured" checked={formData.is_featured} onChange={(e) => setFormData({...formData, is_featured: e.target.checked})} className="w-5 h-5 accent-[#d4af37] bg-transparent" />
-                    <Label htmlFor="is_featured" className="text-xs font-bold text-white/60">Marcar como produto em destaque (Hero/Bento)</Label>
+                    <input type="checkbox" id="is_featured" checked={formData.is_featured} onChange={(e) => setFormData({...formData, is_featured: e.target.checked})} className="w-5 h-5 shrink-0 accent-[#d4af37] bg-transparent" />
+                    <Label htmlFor="is_featured" className="min-w-0 leading-snug text-xs font-bold text-white/60">Marcar como produto em destaque (Hero/Bento)</Label>
                   </div>
                 </div>
 
-                <div className="flex justify-end gap-4 pt-4 border-t border-white/5">
+                <div className="flex flex-wrap justify-end gap-3 md:gap-4 pt-4 border-t border-white/5">
                   <Button type="button" variant="ghost" onClick={() => setIsDialogOpen(false)} disabled={isSaving} className="text-white/40 hover:text-white font-bold uppercase tracking-widest text-[10px]">Cancelar</Button>
-                  <Button type="submit" disabled={isSaving} className="bg-[#d4af37] text-black font-black uppercase tracking-widest text-[10px] px-10 h-12 rounded-full hover:bg-[#f2ca50] transition-all disabled:opacity-60">
+                  <Button type="submit" disabled={isSaving} className="bg-[#d4af37] text-black font-black uppercase tracking-widest text-[10px] px-6 md:px-10 h-12 rounded-full hover:bg-[#f2ca50] transition-all disabled:opacity-60">
                     {isSaving ? (<><Loader2 className="w-3.5 h-3.5 animate-spin mr-2" /> Salvando...</>) : 'Salvar Alterações'}
                   </Button>
                 </div>
@@ -450,48 +450,48 @@ const AdminProducts = () => {
       }
     >
         {/* Intelligence Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12">
-          <div className="bg-[#0f0f0f]/40 backdrop-blur-2xl border border-white/5 rounded-[32px] p-8 relative overflow-hidden group">
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 sm:gap-6 mb-8 md:mb-12">
+          <div className="bg-[#0f0f0f]/40 backdrop-blur-2xl border border-white/5 rounded-[24px] md:rounded-[32px] p-5 md:p-8 relative overflow-hidden group min-w-0">
             <div className="absolute top-0 right-0 w-32 h-32 bg-blue-500/5 rounded-full blur-3xl"></div>
-            <div className="flex justify-between items-start mb-6 relative z-10">
+            <div className="flex justify-between items-start mb-5 md:mb-6 relative z-10">
               <div className="w-10 h-10 rounded-xl bg-blue-500/10 flex items-center justify-center text-blue-400">
                 <PieChart className="w-5 h-5" />
               </div>
             </div>
             <p className="text-[10px] font-bold text-white/20 uppercase tracking-[0.2em] relative z-10">Custo Total de Estoque</p>
-            <h3 className="text-2xl font-serif font-black text-white mt-1 relative z-10">R$ {totalInventoryCost.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</h3>
+            <h3 className="text-xl md:text-2xl font-serif font-black text-white mt-1 relative z-10 break-words">R$ {totalInventoryCost.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</h3>
             <p className="text-xs text-white/40 mt-2 font-medium relative z-10">Capital imobilizado</p>
           </div>
 
-          <div className="bg-[#0f0f0f]/40 backdrop-blur-2xl border border-white/5 rounded-[32px] p-8 relative overflow-hidden group">
+          <div className="bg-[#0f0f0f]/40 backdrop-blur-2xl border border-white/5 rounded-[24px] md:rounded-[32px] p-5 md:p-8 relative overflow-hidden group min-w-0">
             <div className="absolute top-0 right-0 w-32 h-32 bg-green-500/5 rounded-full blur-3xl"></div>
-            <div className="flex justify-between items-start mb-6 relative z-10">
+            <div className="flex justify-between items-start mb-5 md:mb-6 relative z-10">
               <div className="w-10 h-10 rounded-xl bg-green-500/10 flex items-center justify-center text-green-400">
                 <DollarSign className="w-5 h-5" />
               </div>
             </div>
             <p className="text-[10px] font-bold text-white/20 uppercase tracking-[0.2em] relative z-10">Valor de Venda (VGV)</p>
-            <h3 className="text-2xl font-serif font-black text-green-400 mt-1 relative z-10">R$ {totalInventoryRetail.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</h3>
-            <p className="text-xs text-white/40 mt-2 font-medium relative z-10">Lucro projetado: R$ {(totalInventoryRetail - totalInventoryCost).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</p>
+            <h3 className="text-xl md:text-2xl font-serif font-black text-green-400 mt-1 relative z-10 break-words">R$ {totalInventoryRetail.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</h3>
+            <p className="text-xs text-white/40 mt-2 font-medium relative z-10 break-words">Lucro projetado: R$ {(totalInventoryRetail - totalInventoryCost).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</p>
           </div>
 
-          <div className="bg-[#0f0f0f]/40 backdrop-blur-2xl border border-white/5 rounded-[32px] p-8 relative overflow-hidden group">
+          <div className="bg-[#0f0f0f]/40 backdrop-blur-2xl border border-white/5 rounded-[24px] md:rounded-[32px] p-5 md:p-8 relative overflow-hidden group min-w-0 sm:col-span-2 md:col-span-1">
             <div className="absolute top-0 right-0 w-32 h-32 bg-orange-500/5 rounded-full blur-3xl"></div>
-            <div className="flex justify-between items-start mb-6 relative z-10">
+            <div className="flex justify-between items-start mb-5 md:mb-6 relative z-10">
               <div className="w-10 h-10 rounded-xl bg-orange-500/10 flex items-center justify-center text-orange-400">
                 <TrendingDown className="w-5 h-5" />
               </div>
             </div>
             <p className="text-[10px] font-bold text-white/20 uppercase tracking-[0.2em] relative z-10">Estoque Encalhado / Alto</p>
-            <h3 className="text-2xl font-serif font-black text-orange-400 mt-1 relative z-10">{highStockProducts.length} Peças</h3>
+            <h3 className="text-xl md:text-2xl font-serif font-black text-orange-400 mt-1 relative z-10 break-words">{highStockProducts.length} Peças</h3>
             <p className="text-xs text-white/40 mt-2 font-medium relative z-10">Acima de 20 unidades paradas</p>
           </div>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-12 gap-8">
+        <div className="grid grid-cols-1 md:grid-cols-12 gap-6 md:gap-8">
           {/* Filters Sidebar */}
-          <div className="md:col-span-3 space-y-8">
-            <div className="bg-[#0f0f0f]/40 backdrop-blur-2xl border border-white/5 rounded-[32px] p-8 space-y-8">
+          <div className="md:col-span-3 min-w-0 space-y-6 md:space-y-8">
+            <div className="bg-[#0f0f0f]/40 backdrop-blur-2xl border border-white/5 rounded-[24px] md:rounded-[32px] p-5 md:p-8 space-y-6 md:space-y-8">
               <div className="flex items-center gap-2 mb-2">
                 <Filter className="w-4 h-4 text-[#d4af37]" />
                 <h3 className="text-sm font-serif font-bold text-white uppercase tracking-widest">Refinar Busca</h3>
@@ -528,26 +528,26 @@ const AdminProducts = () => {
               </div>
             </div>
             
-            <div className="p-8 bg-[#d4af37]/10 border border-[#d4af37]/20 rounded-[32px] space-y-4">
+            <div className="p-5 md:p-8 bg-[#d4af37]/10 border border-[#d4af37]/20 rounded-[24px] md:rounded-[32px] space-y-4">
               <div className="flex items-center gap-2">
-                <CheckCircle2 className="w-4 h-4 text-[#d4af37]" />
+                <CheckCircle2 className="w-4 h-4 text-[#d4af37] shrink-0" />
                 <span className="text-[10px] font-black uppercase tracking-widest text-white">Status da Coleção</span>
               </div>
-              <p className="text-3xl font-serif font-black text-white">{products.length} <span className="text-sm font-sans font-bold text-white/40">Itens Exibidos</span></p>
+              <p className="text-2xl md:text-3xl font-serif font-black text-white">{products.length} <span className="text-sm font-sans font-bold text-white/40">Itens Exibidos</span></p>
             </div>
           </div>
 
           {/* Products List */}
-          <div className="md:col-span-9">
-            <div className="bg-[#0f0f0f]/40 backdrop-blur-2xl border border-white/5 rounded-[40px] overflow-hidden shadow-2xl">
+          <div className="md:col-span-9 min-w-0">
+            <div className="bg-[#0f0f0f]/40 backdrop-blur-2xl border border-white/5 rounded-[24px] md:rounded-[40px] overflow-hidden shadow-2xl">
               <Table>
                 <TableHeader className="bg-black/50 border-b border-white/5">
                   <TableRow className="hover:bg-transparent border-none">
-                    <TableHead className="py-6 px-8 text-[10px] font-black uppercase tracking-[0.2em] text-white/30">Obra / Descrição</TableHead>
-                    <TableHead className="py-6 text-[10px] font-black uppercase tracking-[0.2em] text-white/30 text-right">Valor</TableHead>
-                    <TableHead className="py-6 text-[10px] font-black uppercase tracking-[0.2em] text-white/30 text-center">Inventário</TableHead>
-                    <TableHead className="py-6 text-[10px] font-black uppercase tracking-[0.2em] text-white/30 text-center">Status</TableHead>
-                    <TableHead className="py-6 px-8 text-[10px] font-black uppercase tracking-[0.2em] text-white/30 text-right">Ações</TableHead>
+                    <TableHead className="py-5 md:py-6 px-4 md:px-8 text-[10px] font-black uppercase tracking-[0.2em] text-white/30 whitespace-nowrap">Obra / Descrição</TableHead>
+                    <TableHead className="py-5 md:py-6 text-[10px] font-black uppercase tracking-[0.2em] text-white/30 text-right whitespace-nowrap">Valor</TableHead>
+                    <TableHead className="py-5 md:py-6 text-[10px] font-black uppercase tracking-[0.2em] text-white/30 text-center whitespace-nowrap">Inventário</TableHead>
+                    <TableHead className="py-5 md:py-6 text-[10px] font-black uppercase tracking-[0.2em] text-white/30 text-center whitespace-nowrap">Status</TableHead>
+                    <TableHead className="py-5 md:py-6 px-4 md:px-8 text-[10px] font-black uppercase tracking-[0.2em] text-white/30 text-right whitespace-nowrap">Ações</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -558,34 +558,34 @@ const AdminProducts = () => {
                   ) : (
                     products.map((product) => (
                       <TableRow key={product.id} className="border-b border-white/5 hover:bg-white/[0.02] transition-colors group">
-                        <TableCell className="py-6 px-8">
-                          <div className="flex items-center gap-6">
-                            <div className="w-16 h-16 rounded-2xl overflow-hidden bg-black border border-white/10 group-hover:scale-105 transition-transform flex-shrink-0">
+                        <TableCell className="py-5 md:py-6 px-4 md:px-8">
+                          <div className="flex items-center gap-4 md:gap-6 min-w-0">
+                            <div className="w-12 h-12 md:w-16 md:h-16 rounded-2xl overflow-hidden bg-black border border-white/10 group-hover:scale-105 transition-transform flex-shrink-0">
                               <img src={product.image} alt={product.name} loading="lazy" decoding="async" className="w-full h-full object-cover" />
                             </div>
-                            <div className="space-y-1">
-                              <div className="flex items-center gap-2">
-                                <span className="text-sm font-bold text-white uppercase tracking-tight">{product.name}</span>
-                                {product.is_featured && <Star className="w-3 h-3 text-[#d4af37] fill-[#d4af37]" />}
+                            <div className="space-y-1 min-w-0 max-w-[190px] md:max-w-none">
+                              <div className="flex items-center gap-2 min-w-0">
+                                <span className="text-sm font-bold text-white uppercase tracking-tight truncate">{product.name}</span>
+                                {product.is_featured && <Star className="w-3 h-3 shrink-0 text-[#d4af37] fill-[#d4af37]" />}
                               </div>
-                              <Badge variant="outline" className="text-[8px] uppercase tracking-widest font-black border-white/10 text-white/30">{product.category}</Badge>
+                              <Badge variant="outline" className="max-w-full truncate text-[8px] uppercase tracking-widest font-black border-white/10 text-white/30">{product.category}</Badge>
                             </div>
                           </div>
                         </TableCell>
-                        <TableCell className="py-6 text-right">
+                        <TableCell className="py-5 md:py-6 text-right">
                           <div className="space-y-1">
-                            <span className="text-sm font-serif font-black text-[#d4af37]">R$ {product.price.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</span>
-                            <p className="text-[9px] text-white/20 font-bold uppercase tracking-widest">Custo: R$ {product.cost?.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</p>
+                            <span className="text-sm font-serif font-black text-[#d4af37] whitespace-nowrap">R$ {product.price.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</span>
+                            <p className="text-[9px] text-white/20 font-bold uppercase tracking-widest whitespace-nowrap">Custo: R$ {product.cost?.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</p>
                           </div>
                         </TableCell>
-                        <TableCell className="py-6 text-center">
+                        <TableCell className="py-5 md:py-6 text-center">
                           <div className={`inline-flex items-center gap-2 px-3 py-1 rounded-full border ${product.stock < 5 ? 'border-orange-500/30 bg-orange-500/5 text-orange-400' : 'border-white/5 bg-black text-white/40'}`}>
                             <span className="text-xs font-black">{product.stock}</span>
                             <span className="text-[9px] font-bold uppercase tracking-widest">un</span>
                           </div>
                         </TableCell>
-                        <TableCell className="py-6 text-center">
-                          <Badge className={`text-[8px] font-black uppercase tracking-widest px-3 py-1 rounded-full ${
+                        <TableCell className="py-5 md:py-6 text-center">
+                          <Badge className={`whitespace-nowrap text-[8px] font-black uppercase tracking-widest px-3 py-1 rounded-full ${
                             product.stock === 0 ? 'bg-red-500/10 text-red-500 border-none' :
                             product.stock < 5 ? 'bg-orange-500/10 text-orange-500 border-none' :
                             'bg-green-500/10 text-green-500 border-none'
@@ -593,8 +593,8 @@ const AdminProducts = () => {
                             {product.stock === 0 ? 'Esgotado' : product.stock < 5 ? 'Crítico' : 'Ativo'}
                           </Badge>
                         </TableCell>
-                        <TableCell className="py-6 px-8 text-right">
-                          <div className="flex items-center justify-end gap-3 opacity-0 group-hover:opacity-100 transition-opacity">
+                        <TableCell className="py-5 md:py-6 px-4 md:px-8 text-right">
+                          <div className="flex items-center justify-end gap-1 md:gap-3 opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-opacity">
                             <Button variant="ghost" size="sm" onClick={() => handleEdit(product)} className="text-white/40 hover:text-white hover:bg-white/5 rounded-full p-2">
                               <Edit className="h-4 w-4" />
                             </Button>

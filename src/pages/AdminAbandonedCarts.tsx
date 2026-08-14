@@ -102,7 +102,7 @@ const AdminAbandonedCarts = () => {
       }
     >
 
-        <div className="grid gap-6">
+        <div className="grid grid-cols-1 gap-4 md:gap-6 min-w-0">
           {isLoading && <AdminCardSkeleton count={3} />}
           {!isLoading && carts?.length === 0 && (
             <AdminEmptyState
@@ -118,10 +118,10 @@ const AdminAbandonedCarts = () => {
               const aiMsg = aiMessages[cart.id];
               
               return (
-                <div key={cart.id} className="bg-[#0f0f0f]/60 overflow-hidden rounded-[32px] border border-white/5 hover:border-orange-500/30 transition-all">
-                  <div className="p-6 md:p-8 flex flex-col md:flex-row gap-8 items-start md:items-center">
+                <div key={cart.id} className="min-w-0 bg-[#0f0f0f]/60 overflow-hidden rounded-[24px] md:rounded-[32px] border border-white/5 hover:border-orange-500/30 transition-all">
+                  <div className="p-5 md:p-8 flex flex-col md:flex-row gap-5 md:gap-8 items-stretch md:items-center">
                     {/* Time */}
-                    <div className="flex flex-col items-center justify-center bg-black/50 p-4 rounded-2xl border border-white/5 min-w-[120px]">
+                    <div className="flex flex-col items-center justify-center bg-black/50 p-4 rounded-2xl border border-white/5 w-full md:w-auto md:min-w-[120px] shrink-0">
                       <Clock className={`w-6 h-6 mb-2 ${isRecent ? 'text-red-400 animate-pulse' : 'text-white/40'}`} />
                       <span className="text-[10px] uppercase tracking-widest font-bold text-center text-white/60">
                         Há {formatDistanceToNow(new Date(cart.last_active_at), { locale: ptBR })}
@@ -129,31 +129,31 @@ const AdminAbandonedCarts = () => {
                     </div>
 
                     {/* Customer Data */}
-                    <div className="flex-1 space-y-2">
-                      <h3 className="text-xl font-bold text-white">{cart.name || 'Cliente (Preenchendo)'}</h3>
-                      <p className="text-sm text-white/40">{cart.email}</p>
+                    <div className="flex-1 min-w-0 space-y-2">
+                      <h3 className="text-lg md:text-xl font-bold text-white break-words">{cart.name || 'Cliente (Preenchendo)'}</h3>
+                      <p className="text-sm text-white/40 break-all">{cart.email}</p>
                       {cart.phone && (
-                        <p className="text-sm font-bold text-green-400 flex items-center gap-2">
-                          <Phone className="w-3 h-3" /> {cart.phone}
+                        <p className="text-sm font-bold text-green-400 flex items-center gap-2 min-w-0">
+                          <Phone className="w-3 h-3 shrink-0" /> <span className="truncate">{cart.phone}</span>
                         </p>
                       )}
                     </div>
 
                     {/* Value and Items */}
-                    <div className="flex-1">
-                      <p className="text-2xl font-serif font-black text-[#d4af37] mb-2">
+                    <div className="flex-1 min-w-0">
+                      <p className="text-xl md:text-2xl font-serif font-black text-[#d4af37] mb-2 break-words">
                         R$ {Number(cart.total_amount).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
                       </p>
-                      <div className="flex items-center gap-2">
-                        <ShoppingCart className="w-3 h-3 text-white/30" />
-                        <span className="text-[10px] uppercase tracking-widest text-white/40 font-bold">
+                      <div className="flex items-center gap-2 min-w-0">
+                        <ShoppingCart className="w-3 h-3 shrink-0 text-white/30" />
+                        <span className="text-[10px] uppercase tracking-widest text-white/40 font-bold truncate">
                           {items.length} item(s) no carrinho
                         </span>
                       </div>
                     </div>
 
                     {/* Actions */}
-                    <div className="flex flex-col gap-3 min-w-[200px]">
+                    <div className="flex flex-col gap-3 w-full md:w-auto md:min-w-[200px] shrink-0">
                       <Button 
                         onClick={() => generateAIRecoveryMessage(cart)}
                         disabled={isGenerating === cart.id}
@@ -180,17 +180,17 @@ const AdminAbandonedCarts = () => {
 
                   {/* AI Message Preview */}
                   {aiMsg && (
-                    <div className="bg-orange-500/5 border-t border-white/5 p-6 animate-in slide-in-from-top-4 duration-500">
-                      <div className="flex items-center justify-between mb-3">
-                        <div className="flex items-center gap-2">
-                          <Bot className="w-4 h-4 text-orange-400" />
-                          <span className="text-[9px] font-black uppercase tracking-widest text-orange-400">Lumina AI Strategy</span>
+                    <div className="bg-orange-500/5 border-t border-white/5 p-5 md:p-6 animate-in slide-in-from-top-4 duration-500">
+                      <div className="flex flex-wrap items-center justify-between gap-2 mb-3">
+                        <div className="flex items-center gap-2 min-w-0">
+                          <Bot className="w-4 h-4 shrink-0 text-orange-400" />
+                          <span className="text-[9px] font-black uppercase tracking-widest text-orange-400 truncate">Lumina AI Strategy</span>
                         </div>
-                        <Button variant="ghost" size="sm" onClick={() => copyToClipboard(aiMsg)} className="h-6 text-white/40">
+                        <Button variant="ghost" size="sm" onClick={() => copyToClipboard(aiMsg)} className="h-6 shrink-0 text-white/40">
                           <Copy className="w-3 h-3 mr-2" /> Copiar
                         </Button>
                       </div>
-                      <p className="text-sm italic font-serif text-white/80 leading-relaxed px-4 border-l-2 border-orange-500/40">
+                      <p className="text-sm italic font-serif text-white/80 leading-relaxed pl-4 border-l-2 border-orange-500/40 break-words">
                         "{aiMsg}"
                       </p>
                       <div className="flex justify-end mt-4">

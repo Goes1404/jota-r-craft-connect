@@ -176,27 +176,27 @@ const AdminCustomers = () => {
 
       {/* Customer Profile Modal */}
       <Dialog open={!!selectedCustomer} onOpenChange={(open) => !open && setSelectedCustomer(null)}>
-        <DialogContent className="max-w-5xl bg-[#0a0a0a] border-white/10 text-white rounded-[32px] overflow-hidden p-0">
-          <div className="p-8 border-b border-white/5 bg-black/50 flex flex-col md:flex-row items-center justify-between gap-6">
-            <div className="flex items-center gap-6">
-              <div className="w-16 h-16 rounded-2xl bg-[#d4af37]/10 flex items-center justify-center text-[#d4af37]">
-                <User className="w-8 h-8" />
+        <DialogContent className="max-w-5xl bg-[#0a0a0a] border-white/10 text-white rounded-[24px] sm:rounded-[32px] overflow-hidden p-0">
+          <div className="p-5 md:p-8 border-b border-white/5 bg-black/50 flex flex-col md:flex-row items-start md:items-center justify-between gap-5 md:gap-6">
+            <div className="flex items-center gap-4 md:gap-6 min-w-0 w-full md:w-auto">
+              <div className="w-14 h-14 md:w-16 md:h-16 shrink-0 rounded-2xl bg-[#d4af37]/10 flex items-center justify-center text-[#d4af37]">
+                <User className="w-7 h-7 md:w-8 md:h-8" />
               </div>
-              <div>
-                <DialogTitle className="text-2xl font-serif font-bold text-white flex items-center gap-3">
-                  {selectedCustomer?.full_name || 'Cliente'}
-                  {selectedCustomer?.tags?.some((t: any) => t.label === 'VIP') && <Star className="w-4 h-4 text-[#d4af37] fill-[#d4af37]" />}
+              <div className="min-w-0">
+                <DialogTitle className="text-xl sm:text-2xl font-serif font-bold text-white flex items-center gap-3 min-w-0">
+                  <span className="truncate">{selectedCustomer?.full_name || 'Cliente'}</span>
+                  {selectedCustomer?.tags?.some((t: any) => t.label === 'VIP') && <Star className="w-4 h-4 shrink-0 text-[#d4af37] fill-[#d4af37]" />}
                 </DialogTitle>
-                <DialogDescription className="text-white/40 text-xs font-bold mt-1 uppercase tracking-widest">
+                <DialogDescription className="text-white/40 text-xs font-bold mt-1 uppercase tracking-widest break-words">
                   {selectedCustomer?.email} {selectedCustomer?.phone && `• ${selectedCustomer.phone}`}
                 </DialogDescription>
               </div>
             </div>
-            
-            <Button 
+
+            <Button
               onClick={() => generateAIApproach(selectedCustomer)}
               disabled={isGeneratingApproach}
-              className="bg-gradient-to-r from-[#d4af37] to-[#f2ca50] text-black font-black text-[10px] uppercase tracking-widest h-12 px-8 rounded-full shadow-lg shadow-[#d4af37]/20 hover:scale-105 transition-all"
+              className="w-full md:w-auto shrink-0 bg-gradient-to-r from-[#d4af37] to-[#f2ca50] text-black font-black text-[10px] uppercase tracking-widest h-12 px-6 md:px-8 rounded-full shadow-lg shadow-[#d4af37]/20 hover:scale-105 transition-all"
             >
               {isGeneratingApproach ? (
                 <>
@@ -210,16 +210,16 @@ const AdminCustomers = () => {
             </Button>
           </div>
           
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-0">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-0 max-h-[70vh] overflow-y-auto custom-scrollbar">
             {/* Notes Section */}
-            <div className="p-8 border-r border-white/5 bg-[#0f0f0f] space-y-6">
+            <div className="p-5 md:p-8 min-w-0 border-b md:border-b-0 md:border-r border-white/5 bg-[#0f0f0f] space-y-6">
               <div>
                 <h4 className="text-[10px] font-black uppercase tracking-[0.2em] text-white/30 mb-4">Anotações Internas</h4>
                 <Textarea 
                   value={notes}
                   onChange={(e) => setNotes(e.target.value)}
                   placeholder="Ex: Cliente prefere embalagem para presente. Filha se chama Maria..."
-                  className="min-h-[200px] bg-black/40 border-white/10 text-white resize-none rounded-2xl focus:border-[#d4af37]/40 text-sm p-4"
+                  className="min-h-[160px] md:min-h-[200px] w-full bg-black/40 border-white/10 text-white resize-none rounded-2xl focus:border-[#d4af37]/40 text-sm p-4"
                 />
                 <Button 
                   onClick={() => updateNotesMutation.mutate({ id: selectedCustomer.id, notes })}
@@ -232,14 +232,14 @@ const AdminCustomers = () => {
             </div>
             
             {/* AI Approach Section */}
-            <div className="p-8 border-r border-white/5 bg-[#0a0a0a] space-y-6">
+            <div className="p-5 md:p-8 min-w-0 border-b md:border-b-0 md:border-r border-white/5 bg-[#0a0a0a] space-y-6">
               <h4 className="text-[10px] font-black uppercase tracking-[0.2em] text-[#d4af37] mb-4 flex items-center gap-2">
-                <Bot className="w-4 h-4" /> Lumina Concierge Suggestion
+                <Bot className="w-4 h-4 shrink-0" /> Lumina Concierge Suggestion
               </h4>
               
               {aiApproach ? (
                 <div className="space-y-4 animate-in fade-in slide-in-from-right-4 duration-500">
-                  <div className="bg-[#d4af37]/5 border border-[#d4af37]/20 p-6 rounded-2xl text-sm italic text-white/90 leading-relaxed font-serif relative group">
+                  <div className="bg-[#d4af37]/5 border border-[#d4af37]/20 p-5 md:p-6 pr-10 rounded-2xl text-sm italic text-white/90 leading-relaxed font-serif relative group break-words">
                     "{aiApproach}"
                     <Button 
                       onClick={() => copyToClipboard(aiApproach)}
@@ -250,13 +250,13 @@ const AdminCustomers = () => {
                       <Copy className="w-4 h-4" />
                     </Button>
                   </div>
-                  <div className="flex gap-2">
-                    <Button 
+                  <div className="flex flex-wrap gap-2">
+                    <Button
                       onClick={() => {
                         const phone = selectedCustomer.phone?.replace(/\D/g, '');
                         window.open(`https://wa.me/${phone}?text=${encodeURIComponent(aiApproach)}`, '_blank');
                       }}
-                      className="flex-1 bg-[#25D366] text-black font-black text-[9px] uppercase tracking-widest h-10 rounded-xl hover:bg-[#25D366]/80"
+                      className="flex-1 min-w-[160px] bg-[#25D366] text-black font-black text-[9px] uppercase tracking-widest h-10 rounded-xl hover:bg-[#25D366]/80"
                     >
                       <MessageCircle className="w-4 h-4 mr-2" /> Enviar WhatsApp
                     </Button>
@@ -282,8 +282,8 @@ const AdminCustomers = () => {
             </div>
 
             {/* History Section */}
-            <div className="p-8 bg-[#0f0f0f] overflow-y-auto max-h-[600px] custom-scrollbar">
-              <h4 className="text-[10px] font-black uppercase tracking-[0.2em] text-white/30 mb-6 flex justify-between">
+            <div className="p-5 md:p-8 min-w-0 bg-[#0f0f0f] overflow-y-auto max-h-[340px] md:max-h-[600px] custom-scrollbar">
+              <h4 className="text-[10px] font-black uppercase tracking-[0.2em] text-white/30 mb-6 flex flex-wrap gap-2 justify-between">
                 <span>Histórico de Pedidos</span>
                 <span className="text-[#d4af37]">LTV: R$ {selectedCustomer?.ltv?.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</span>
               </h4>
@@ -292,12 +292,12 @@ const AdminCustomers = () => {
                 {selectedCustomer?.ordersList?.length > 0 ? (
                   selectedCustomer.ordersList.map((order: any) => (
                     <div key={order.id} className="bg-black/40 border border-white/5 p-4 rounded-2xl hover:border-white/10 transition-colors">
-                      <div className="flex justify-between items-start mb-2">
-                        <div>
-                          <p className="text-xs font-bold text-white uppercase">Pedido #{order.id.slice(0,6)}</p>
+                      <div className="flex flex-wrap gap-2 justify-between items-start mb-2">
+                        <div className="min-w-0">
+                          <p className="text-xs font-bold text-white uppercase truncate">Pedido #{order.id.slice(0,6)}</p>
                           <p className="text-[9px] text-white/40">{format(new Date(order.created_at), 'dd/MM/yyyy HH:mm')}</p>
                         </div>
-                        <Badge className="bg-black text-[#d4af37] text-[8px] font-black uppercase tracking-widest border border-white/10">
+                        <Badge className="shrink-0 whitespace-nowrap bg-black text-[#d4af37] text-[8px] font-black uppercase tracking-widest border border-white/10">
                           R$ {Number(order.total_amount).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
                         </Badge>
                       </div>
@@ -314,27 +314,27 @@ const AdminCustomers = () => {
       </Dialog>
 
       <div>
-        <div className="flex flex-col lg:flex-row gap-8">
-          
+        <div className="flex flex-col lg:flex-row gap-6 lg:gap-8">
+
           {/* CRM 360 Table */}
-          <div className="flex-1 bg-[#0f0f0f]/40 backdrop-blur-2xl border border-white/5 rounded-[40px] overflow-hidden shadow-2xl">
-            <div className="p-8 border-b border-white/5 bg-black/30 flex items-center justify-between">
-              <div className="flex items-center gap-4">
-                <div className="w-10 h-10 rounded-xl bg-[#d4af37]/10 flex items-center justify-center text-[#d4af37]"><Users className="w-5 h-5" /></div>
-                <h3 className="text-xl font-serif font-bold text-white">Gestão de Clientes e LTV</h3>
+          <div className="flex-1 min-w-0 bg-[#0f0f0f]/40 backdrop-blur-2xl border border-white/5 rounded-[24px] md:rounded-[40px] overflow-hidden shadow-2xl">
+            <div className="p-5 md:p-8 border-b border-white/5 bg-black/30 flex flex-wrap items-center justify-between gap-3">
+              <div className="flex items-center gap-3 md:gap-4 min-w-0">
+                <div className="w-10 h-10 shrink-0 rounded-xl bg-[#d4af37]/10 flex items-center justify-center text-[#d4af37]"><Users className="w-5 h-5" /></div>
+                <h3 className="text-lg md:text-xl font-serif font-bold text-white truncate">Gestão de Clientes e LTV</h3>
               </div>
-              <span className="text-[10px] font-black uppercase tracking-[0.2em] text-white/20">{filteredCustomers?.length || 0} Clientes</span>
+              <span className="text-[10px] font-black uppercase tracking-[0.2em] text-white/20 whitespace-nowrap">{filteredCustomers?.length || 0} Clientes</span>
             </div>
 
             <div className="overflow-x-auto">
               <table className="w-full">
                 <thead className="bg-black/20">
                   <tr>
-                    <th className="py-6 px-8 text-left text-[10px] font-black uppercase tracking-[0.2em] text-white/30">Cliente</th>
-                    <th className="py-6 text-left text-[10px] font-black uppercase tracking-[0.2em] text-white/30">LTV (Lifetime Value)</th>
-                    <th className="py-6 text-center text-[10px] font-black uppercase tracking-[0.2em] text-white/30">Pedidos</th>
-                    <th className="py-6 text-left text-[10px] font-black uppercase tracking-[0.2em] text-white/30">Tags Segmentação</th>
-                    <th className="py-6 px-8 text-right text-[10px] font-black uppercase tracking-[0.2em] text-white/30">Ações</th>
+                    <th className="py-5 md:py-6 px-4 md:px-8 text-left text-[10px] font-black uppercase tracking-[0.2em] text-white/30 whitespace-nowrap">Cliente</th>
+                    <th className="py-5 md:py-6 pr-4 text-left text-[10px] font-black uppercase tracking-[0.2em] text-white/30 whitespace-nowrap">LTV (Lifetime Value)</th>
+                    <th className="py-5 md:py-6 pr-4 text-center text-[10px] font-black uppercase tracking-[0.2em] text-white/30 whitespace-nowrap">Pedidos</th>
+                    <th className="py-5 md:py-6 pr-4 text-left text-[10px] font-black uppercase tracking-[0.2em] text-white/30 whitespace-nowrap">Tags Segmentação</th>
+                    <th className="py-5 md:py-6 px-4 md:px-8 text-right text-[10px] font-black uppercase tracking-[0.2em] text-white/30 whitespace-nowrap">Ações</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -348,31 +348,31 @@ const AdminCustomers = () => {
                     </tr>
                   ) : filteredCustomers?.map(customer => (
                     <tr key={customer.id} className="border-b border-white/5 hover:bg-white/[0.01] transition-colors group">
-                      <td className="py-6 px-8">
-                        <div className="flex flex-col">
-                          <span className="text-sm font-bold text-white flex items-center gap-2">
-                            {customer.full_name || 'Usuário Sem Nome'}
-                            {customer.tags.some((t: any) => t.label === 'VIP') && <Star className="w-3 h-3 text-[#d4af37] fill-[#d4af37]" />}
+                      <td className="py-5 md:py-6 px-4 md:px-8">
+                        <div className="flex flex-col min-w-0 max-w-[200px] md:max-w-none">
+                          <span className="text-sm font-bold text-white flex items-center gap-2 min-w-0">
+                            <span className="truncate">{customer.full_name || 'Usuário Sem Nome'}</span>
+                            {customer.tags.some((t: any) => t.label === 'VIP') && <Star className="w-3 h-3 shrink-0 text-[#d4af37] fill-[#d4af37]" />}
                           </span>
-                          <span className="text-[9px] font-black text-white/40 uppercase tracking-widest">{customer.email}</span>
+                          <span className="text-[9px] font-black text-white/40 uppercase tracking-widest truncate">{customer.email}</span>
                           {customer.phone && (
-                            <span className="text-[9px] font-bold text-green-400/70 mt-1 flex items-center gap-1">
-                              <Phone className="w-3 h-3" /> {customer.phone}
+                            <span className="text-[9px] font-bold text-green-400/70 mt-1 flex items-center gap-1 min-w-0">
+                              <Phone className="w-3 h-3 shrink-0" /> <span className="truncate">{customer.phone}</span>
                             </span>
                           )}
                         </div>
                       </td>
-                      <td className="py-6">
+                      <td className="py-5 md:py-6 pr-4">
                         <div className="flex flex-col">
-                          <span className="text-sm font-serif font-black text-[#d4af37]">R$ {customer.ltv.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</span>
-                          <span className="text-[9px] font-bold text-white/30 uppercase tracking-widest">Tkt Médio: R$ {customer.averageTicket.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</span>
+                          <span className="text-sm font-serif font-black text-[#d4af37] whitespace-nowrap">R$ {customer.ltv.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</span>
+                          <span className="text-[9px] font-bold text-white/30 uppercase tracking-widest whitespace-nowrap">Tkt Médio: R$ {customer.averageTicket.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</span>
                         </div>
                       </td>
-                      <td className="py-6 text-center text-white/60 font-bold">
+                      <td className="py-5 md:py-6 pr-4 text-center text-white/60 font-bold">
                         {customer.totalOrders}
                       </td>
-                      <td className="py-6">
-                        <div className="flex flex-wrap gap-2">
+                      <td className="py-5 md:py-6 pr-4">
+                        <div className="flex flex-wrap gap-2 max-w-[180px] md:max-w-none">
                           {customer.tags.map((tag: any, idx: number) => (
                             <Badge key={idx} className={`${tag.color} uppercase text-[9px] font-black tracking-widest px-2 py-0.5`}>
                               {tag.label}
@@ -380,7 +380,7 @@ const AdminCustomers = () => {
                           ))}
                         </div>
                       </td>
-                      <td className="py-6 px-8 text-right">
+                      <td className="py-5 md:py-6 px-4 md:px-8 text-right">
                         <div className="flex items-center justify-end gap-2">
                           <Button 
                             onClick={() => openCustomerProfile(customer)}
@@ -411,12 +411,12 @@ const AdminCustomers = () => {
           </div>
 
           {/* Newsletter Section */}
-          <div className="w-full lg:w-80 space-y-8">
-            <div className="bg-[#0f0f0f]/40 backdrop-blur-2xl border border-white/5 rounded-[40px] p-8 shadow-2xl">
-              <h3 className="text-lg font-serif font-bold text-white mb-6 flex items-center gap-2">
-                <Mail className="w-5 h-5 text-[#d4af37]" /> Inscritos (Newsletter)
+          <div className="w-full lg:w-80 lg:shrink-0 space-y-6 lg:space-y-8">
+            <div className="bg-[#0f0f0f]/40 backdrop-blur-2xl border border-white/5 rounded-[24px] md:rounded-[40px] p-5 md:p-8 shadow-2xl">
+              <h3 className="text-base md:text-lg font-serif font-bold text-white mb-6 flex items-center gap-2">
+                <Mail className="w-5 h-5 shrink-0 text-[#d4af37]" /> Inscritos (Newsletter)
               </h3>
-              <div className="space-y-4 max-h-[600px] overflow-y-auto pr-2 custom-scrollbar">
+              <div className="space-y-4 max-h-[360px] md:max-h-[600px] overflow-y-auto pr-2 custom-scrollbar">
                 {newsLoading ? <p className="text-white/40 text-xs">Carregando...</p> : newsletters?.length === 0 ? <p className="text-white/40 text-xs">Nenhum inscrito ainda.</p> : newsletters?.map(n => (
                   <div key={n.id} className="bg-black/40 border border-white/5 p-4 rounded-2xl">
                     <span className="block text-xs font-bold text-white mb-1 truncate">{n.email}</span>

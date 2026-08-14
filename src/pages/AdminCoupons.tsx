@@ -90,24 +90,24 @@ const AdminCoupons = () => {
 
   return (
     <AdminShell eyebrow="Marketing" title="Cupons de Desconto" subtitle="Gerencie os códigos promocionais da loja">
-      <div className="max-w-3xl space-y-8">
+      <div className="w-full min-w-0 max-w-3xl space-y-6 sm:space-y-8">
 
         {/* ── Criar cupom ─────────────────────────────────────────────── */}
         <AdminFormCard title="Novo Cupom" description="Crie um código de desconto para seus clientes" icon={Plus}>
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-            <div className="sm:col-span-1 space-y-1.5">
-              <label className="text-[9px] font-black uppercase tracking-widest text-white/30 flex items-center gap-1.5">
+            <div className="sm:col-span-1 min-w-0 space-y-1.5">
+              <label className="text-[9px] font-black uppercase tracking-widest text-white/30 flex flex-wrap items-center gap-1.5">
                 <Hash className="h-3 w-3" /> Código
               </label>
               <Input
                 placeholder="EX: NATAL20"
                 value={code}
                 onChange={(e) => setCode(e.target.value.toUpperCase())}
-                className="bg-black/40 border-white/10 h-11 font-black tracking-widest text-sm uppercase focus:border-[#d4af37]/40"
+                className="w-full bg-black/40 border-white/10 h-11 font-black tracking-widest text-sm uppercase focus:border-[#d4af37]/40"
               />
             </div>
-            <div className="space-y-1.5">
-              <label className="text-[9px] font-black uppercase tracking-widest text-white/30 flex items-center gap-1.5">
+            <div className="min-w-0 space-y-1.5">
+              <label className="text-[9px] font-black uppercase tracking-widest text-white/30 flex flex-wrap items-center gap-1.5">
                 <Percent className="h-3 w-3" /> Desconto
               </label>
               <div className="relative">
@@ -118,28 +118,28 @@ const AdminCoupons = () => {
                   placeholder="10"
                   value={discount}
                   onChange={(e) => setDiscount(e.target.value)}
-                  className="bg-black/40 border-white/10 h-11 pr-8 focus:border-[#d4af37]/40"
+                  className="w-full bg-black/40 border-white/10 h-11 pr-8 focus:border-[#d4af37]/40"
                 />
                 <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs font-bold text-white/30">%</span>
               </div>
             </div>
-            <div className="space-y-1.5">
-              <label className="text-[9px] font-black uppercase tracking-widest text-white/30 flex items-center gap-1.5">
-                <Calendar className="h-3 w-3" /> Expira em <span className="text-white/20 font-normal normal-case tracking-normal ml-1">(opcional)</span>
+            <div className="min-w-0 space-y-1.5">
+              <label className="text-[9px] font-black uppercase tracking-widest text-white/30 flex flex-wrap items-center gap-x-1.5 gap-y-1">
+                <Calendar className="h-3 w-3 shrink-0" /> Expira em <span className="text-white/20 font-normal normal-case tracking-normal">(opcional)</span>
               </label>
               <Input
                 type="date"
                 value={expiresAt}
                 onChange={(e) => setExpiresAt(e.target.value)}
-                className="bg-black/40 border-white/10 h-11 focus:border-[#d4af37]/40"
+                className="w-full bg-black/40 border-white/10 h-11 focus:border-[#d4af37]/40"
               />
             </div>
           </div>
-          <div className="mt-4 flex justify-end">
+          <div className="mt-4 flex justify-stretch sm:justify-end">
             <Button
               onClick={() => createMutation.mutate()}
               disabled={createMutation.isPending || !code || !discount}
-              className="h-11 px-8 bg-[#d4af37] text-black font-black text-[10px] uppercase tracking-widest hover:bg-[#f2ca50] rounded-xl disabled:opacity-40"
+              className="h-11 w-full sm:w-auto px-6 sm:px-8 bg-[#d4af37] text-black font-black text-[10px] uppercase tracking-widest hover:bg-[#f2ca50] rounded-xl disabled:opacity-40"
             >
               {createMutation.isPending ? 'Criando…' : <><Plus className="w-3.5 h-3.5 mr-2" />Criar Cupom</>}
             </Button>
@@ -168,34 +168,36 @@ const AdminCoupons = () => {
                 return (
                   <div
                     key={c.id}
-                    className={`flex items-center gap-4 rounded-[20px] border p-4 transition-all ${
+                    className={`flex items-center gap-3 sm:gap-4 rounded-[18px] sm:rounded-[20px] border p-3.5 sm:p-4 transition-all ${
                       c.active && !expired
                         ? 'border-white/[0.07] bg-[#0f0f0f]/60'
                         : 'border-white/[0.03] bg-white/[0.01] opacity-60'
                     }`}
                   >
-                    <div className={`flex h-11 w-11 items-center justify-center rounded-xl border shrink-0 ${
+                    <div className={`flex h-10 w-10 sm:h-11 sm:w-11 items-center justify-center rounded-xl border shrink-0 ${
                       c.active && !expired ? 'bg-[#d4af37]/10 border-[#d4af37]/20' : 'bg-white/[0.03] border-white/5'
                     }`}>
-                      <Ticket className={`h-5 w-5 ${c.active && !expired ? 'text-[#d4af37]' : 'text-white/20'}`} />
+                      <Ticket className={`h-[18px] w-[18px] sm:h-5 sm:w-5 ${c.active && !expired ? 'text-[#d4af37]' : 'text-white/20'}`} />
                     </div>
 
                     <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-2 flex-wrap">
-                        <span className="text-sm font-black tracking-widest text-white uppercase">{c.code}</span>
+                      <div className="flex items-center gap-x-2 gap-y-1 flex-wrap">
+                        <span className="min-w-0 break-all text-[13px] sm:text-sm font-black tracking-widest text-white uppercase">
+                          {c.code}
+                        </span>
                         <AdminBadge label={expired ? 'Expirado' : c.active ? 'Ativo' : 'Inativo'} />
                       </div>
-                      <div className="flex items-center gap-3 mt-0.5 flex-wrap">
-                        <span className="text-xs font-bold text-[#d4af37]">{c.discount_percentage}% de desconto</span>
+                      <div className="flex items-center gap-x-3 gap-y-0.5 mt-0.5 flex-wrap">
+                        <span className="text-xs font-bold tabular-nums text-[#d4af37]">{c.discount_percentage}% de desconto</span>
                         {c.expires_at && (
-                          <span className="text-[10px] text-white/30">
+                          <span className="text-[10px] tabular-nums text-white/30 whitespace-nowrap">
                             Expira: {format(new Date(c.expires_at), "dd/MM/yyyy", { locale: ptBR })}
                           </span>
                         )}
                       </div>
                     </div>
 
-                    <div className="flex items-center gap-1 shrink-0">
+                    <div className="flex items-center gap-0.5 sm:gap-1 shrink-0">
                       <button
                         onClick={() => toggleMutation.mutate({ id: c.id, active: !c.active })}
                         className="flex h-9 w-9 items-center justify-center rounded-xl text-white/30 hover:text-white hover:bg-white/5 transition-all"

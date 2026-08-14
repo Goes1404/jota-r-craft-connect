@@ -62,7 +62,7 @@ const StatCard: React.FC<{
         : 'bg-[#0f0f0f]/50 border-white/5 hover:border-white/15'
     }`}
   >
-    <div className="relative z-10">
+    <div className="relative z-10 min-w-0">
       <div
         className={`mb-4 flex h-10 w-10 items-center justify-center rounded-2xl ${
           gold ? 'bg-[#d4af37] text-black' : 'bg-black border border-white/5'
@@ -71,9 +71,9 @@ const StatCard: React.FC<{
       >
         <Icon className="h-5 w-5" />
       </div>
-      <p className="text-[9px] sm:text-[10px] font-bold text-white/30 uppercase tracking-[0.2em]">{label}</p>
+      <p className="text-[9px] sm:text-[10px] font-bold text-white/30 uppercase tracking-[0.2em] break-words">{label}</p>
       <h3
-        className={`mt-1 font-serif font-bold tracking-tight text-xl sm:text-2xl ${
+        className={`mt-1 font-serif font-bold tracking-tight tabular-nums break-words text-lg sm:text-2xl ${
           gold ? 'text-[#d4af37]' : 'text-white'
         }`}
       >
@@ -326,17 +326,17 @@ const AdminDashboard = () => {
         initial={{ opacity: 0, y: 18 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
-        className="relative mb-8 overflow-hidden rounded-[28px] sm:rounded-[36px] border border-[#d4af37]/20 bg-gradient-to-br from-[#0f0f0f] to-[#171717] p-6 sm:p-9 shadow-2xl"
+        className="relative mb-8 overflow-hidden rounded-[24px] sm:rounded-[36px] border border-[#d4af37]/20 bg-gradient-to-br from-[#0f0f0f] to-[#171717] p-5 sm:p-9 shadow-2xl"
       >
         <div className="pointer-events-none absolute -top-24 -right-24 h-80 w-80 rounded-full bg-[#d4af37]/5 blur-[100px]" />
         <div className="relative z-10 flex flex-col gap-6 lg:flex-row lg:items-center lg:justify-between">
-          <div className="flex-1 space-y-4">
+          <div className="min-w-0 flex-1 space-y-4">
             <div className="flex items-center gap-3">
-              <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-[#d4af37]/10 text-[#d4af37]">
+              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-[#d4af37]/10 text-[#d4af37]">
                 <Bot className="h-6 w-6" />
               </div>
-              <div>
-                <h2 className="text-xl sm:text-2xl font-serif font-black text-white">
+              <div className="min-w-0">
+                <h2 className="text-lg sm:text-2xl font-serif font-black text-white break-words">
                   Lumina <span className="text-[#d4af37]">Executive Insights</span>
                 </h2>
                 <p className="text-[9px] sm:text-[10px] font-bold uppercase tracking-widest text-white/40">
@@ -345,7 +345,7 @@ const AdminDashboard = () => {
               </div>
             </div>
             {aiInsight ? (
-              <div className="rounded-2xl border border-white/5 bg-black/40 p-5 text-sm leading-relaxed text-white/80 whitespace-pre-line font-serif italic">
+              <div className="rounded-2xl border border-white/5 bg-black/40 p-4 sm:p-5 text-sm leading-relaxed text-white/80 whitespace-pre-line break-words font-serif italic">
                 {aiInsight}
               </div>
             ) : (
@@ -358,7 +358,7 @@ const AdminDashboard = () => {
           <Button
             onClick={generateAIInsights}
             disabled={isGeneratingInsights}
-            className="group h-14 w-full shrink-0 rounded-full bg-[#d4af37] px-8 text-[11px] font-black uppercase tracking-widest text-black shadow-xl shadow-[#d4af37]/10 transition-all hover:bg-[#f2ca50] lg:w-auto"
+            className="group h-14 w-full shrink-0 rounded-full bg-[#d4af37] px-6 sm:px-8 text-[10px] sm:text-[11px] font-black uppercase tracking-widest text-black shadow-xl shadow-[#d4af37]/10 transition-all hover:bg-[#f2ca50] lg:w-auto"
           >
             {isGeneratingInsights ? (
               <>
@@ -374,35 +374,35 @@ const AdminDashboard = () => {
       </motion.div>
 
       {/* ── Meta mensal ─────────────────────────────────────────────────── */}
-      <Panel className="mb-8 overflow-hidden p-6 sm:p-8 relative">
+      <Panel className="mb-8 overflow-hidden p-5 sm:p-8 relative">
         <div className="pointer-events-none absolute top-0 left-0 h-56 w-56 rounded-full bg-[#d4af37]/5 blur-3xl" />
         <div className="relative z-10 flex flex-col gap-6 md:flex-row md:items-end md:justify-between">
-          <div className="flex items-center gap-4 sm:gap-6">
-            <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl border border-[#d4af37]/20 bg-[#d4af37]/10 text-[#d4af37]">
-              <Target className="h-7 w-7" />
+          <div className="flex min-w-0 items-center gap-4 sm:gap-6">
+            <div className="flex h-12 w-12 sm:h-14 sm:w-14 shrink-0 items-center justify-center rounded-2xl border border-[#d4af37]/20 bg-[#d4af37]/10 text-[#d4af37]">
+              <Target className="h-6 w-6 sm:h-7 sm:w-7" />
             </div>
-            <div>
+            <div className="min-w-0">
               <h2 className="text-xl sm:text-2xl font-serif font-black text-white">Meta Mensal</h2>
-              <div className="mt-1 flex items-center gap-2">
+              <div className="mt-1 flex flex-wrap items-center gap-2">
                 <span className="text-xs font-bold uppercase tracking-widest text-white/40">Alvo: R$</span>
                 <Input
                   type="number"
                   defaultValue={settingsSettings?.monthly_goal || '10000'}
                   onBlur={(e) => updateSetting('monthly_goal', e.target.value)}
-                  className="h-auto w-24 rounded-none border-0 border-b border-white/20 bg-transparent p-0 text-sm font-black text-white shadow-none focus:border-[#d4af37] focus-visible:ring-0"
+                  className="h-auto w-24 rounded-none border-0 border-b border-white/20 bg-transparent p-0 text-sm font-black text-white tabular-nums shadow-none focus:border-[#d4af37] focus-visible:ring-0"
                 />
               </div>
             </div>
           </div>
-          <div className="w-full space-y-3 md:w-[58%]">
-            <div className="flex items-end justify-between">
-              <div>
+          <div className="w-full min-w-0 space-y-3 md:w-[58%]">
+            <div className="flex flex-wrap items-end justify-between gap-x-3 gap-y-2">
+              <div className="min-w-0">
                 <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-[#d4af37]">Atingido</span>
-                <div className="text-2xl sm:text-3xl font-serif font-black text-white">{fmtBRL(achieved)}</div>
+                <div className="text-xl sm:text-3xl font-serif font-black text-white tabular-nums break-words">{fmtBRL(achieved)}</div>
               </div>
-              <div className="text-right">
+              <div className="min-w-0 text-right">
                 <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-white/40">Faltam</span>
-                <div className="text-base sm:text-lg font-bold text-white/60">{fmtBRL(Math.max(0, goal - achieved))}</div>
+                <div className="text-sm sm:text-lg font-bold text-white/60 tabular-nums break-words">{fmtBRL(Math.max(0, goal - achieved))}</div>
               </div>
             </div>
             <div className="relative h-3 w-full overflow-hidden rounded-full border border-white/5 bg-black/50">
@@ -425,8 +425,8 @@ const AdminDashboard = () => {
       {/* ── Filtros + Stats ─────────────────────────────────────────────── */}
       <div className="mb-5 flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
         <h2 className="text-lg font-serif font-bold text-white">Métricas Financeiras</h2>
-        <div className="flex flex-wrap items-center gap-2.5">
-          <div className="flex rounded-xl border border-white/5 bg-[#0f0f0f]/50 p-1">
+        <div className="flex w-full flex-wrap items-center gap-2.5 lg:w-auto">
+          <div className="flex flex-wrap rounded-xl border border-white/5 bg-[#0f0f0f]/50 p-1">
             {([
               { k: 'all', label: 'União', cls: 'bg-[#d4af37] text-black' },
               { k: 'automatic', label: 'Online', cls: 'bg-blue-500 text-white' },
@@ -443,19 +443,19 @@ const AdminDashboard = () => {
               </button>
             ))}
           </div>
-          <div className="flex items-center gap-2">
+          <div className="flex min-w-0 flex-1 flex-wrap items-center gap-2 lg:flex-none">
             <input
               type="date"
               value={profitStartDate}
               onChange={(e) => setProfitStartDate(e.target.value)}
-              className="h-11 rounded-xl border border-white/5 bg-[#0f0f0f]/50 px-3 text-xs text-white outline-none"
+              className="h-11 min-w-0 flex-1 rounded-xl border border-white/5 bg-[#0f0f0f]/50 px-3 text-xs text-white outline-none sm:flex-none"
               style={{ colorScheme: 'dark' }}
             />
             <input
               type="date"
               value={profitEndDate}
               onChange={(e) => setProfitEndDate(e.target.value)}
-              className="h-11 rounded-xl border border-white/5 bg-[#0f0f0f]/50 px-3 text-xs text-white outline-none"
+              className="h-11 min-w-0 flex-1 rounded-xl border border-white/5 bg-[#0f0f0f]/50 px-3 text-xs text-white outline-none sm:flex-none"
               style={{ colorScheme: 'dark' }}
             />
             {(profitStartDate || profitEndDate) && (
@@ -464,7 +464,7 @@ const AdminDashboard = () => {
                   setProfitStartDate('');
                   setProfitEndDate('');
                 }}
-                className="text-[10px] font-bold uppercase tracking-widest text-white/40 hover:text-red-400"
+                className="shrink-0 whitespace-nowrap text-[10px] font-bold uppercase tracking-widest text-white/40 hover:text-red-400"
               >
                 Limpar
               </button>
@@ -490,21 +490,21 @@ const AdminDashboard = () => {
         <motion.div
           initial={{ opacity: 0, y: 12 }}
           animate={{ opacity: 1, y: 0 }}
-          className="mt-6 rounded-[28px] border border-orange-500/20 bg-orange-500/10 p-5 sm:p-7"
+          className="mt-6 rounded-[24px] sm:rounded-[28px] border border-orange-500/20 bg-orange-500/10 p-5 sm:p-7"
         >
           <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
-            <div className="flex items-center gap-4">
+            <div className="flex min-w-0 items-center gap-4">
               <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-orange-500 text-black shadow-lg shadow-orange-500/20">
                 <AlertTriangle className="h-6 w-6" />
               </div>
-              <div>
-                <h3 className="text-lg font-serif font-bold text-white">Inventário requer atenção</h3>
-                <p className="text-sm text-white/40">
+              <div className="min-w-0">
+                <h3 className="text-base sm:text-lg font-serif font-bold text-white break-words">Inventário requer atenção</h3>
+                <p className="text-xs sm:text-sm text-white/40">
                   {analytics.lowStockProducts.length} produto(s) com estoque abaixo do limite de segurança.
                 </p>
               </div>
             </div>
-            <div className="flex gap-2 overflow-x-auto pb-1 scrollbar-hide">
+            <div className="flex min-w-0 max-w-full gap-2 overflow-x-auto pb-1 scrollbar-hide">
               {analytics.lowStockProducts.slice(0, 3).map((p) => (
                 <span
                   key={p.id}
@@ -525,24 +525,24 @@ const AdminDashboard = () => {
 
       {/* ── Charts + Performance ────────────────────────────────────────── */}
       <div className="mt-8 grid grid-cols-1 gap-6 xl:grid-cols-12">
-        <Panel className="p-5 sm:p-8 xl:col-span-8">
-          <div className="mb-8 flex items-center justify-between">
-            <div>
-              <h3 className="text-xl sm:text-2xl font-serif font-bold text-white">Trajetória de Crescimento</h3>
+        <Panel className="min-w-0 overflow-hidden p-5 sm:p-8 xl:col-span-8">
+          <div className="mb-6 sm:mb-8 flex items-center justify-between gap-3">
+            <div className="min-w-0">
+              <h3 className="text-lg sm:text-2xl font-serif font-bold text-white break-words">Trajetória de Crescimento</h3>
               <p className="mt-1 text-[9px] sm:text-[10px] font-bold uppercase tracking-[0.2em] text-white/20">
                 Análise temporal de vendas
               </p>
             </div>
-            <TrendingUp className="h-6 w-6 text-[#d4af37]/40" />
+            <TrendingUp className="h-6 w-6 shrink-0 text-[#d4af37]/40" />
           </div>
           <DashboardCharts sales={allSales} />
         </Panel>
 
-        <div className="space-y-6 xl:col-span-4">
-          <Panel className="relative overflow-hidden p-6 sm:p-8">
+        <div className="min-w-0 space-y-6 xl:col-span-4">
+          <Panel className="relative overflow-hidden p-5 sm:p-8">
             <div className="pointer-events-none absolute top-0 right-0 h-32 w-32 rounded-full bg-[#d4af37]/5 blur-3xl" />
-            <Trophy className="mb-6 h-8 w-8 text-[#d4af37]" />
-            <h3 className="mb-7 text-lg font-serif font-bold text-white">Performance d'Elite</h3>
+            <Trophy className="mb-5 sm:mb-6 h-8 w-8 text-[#d4af37]" />
+            <h3 className="mb-6 sm:mb-7 text-lg font-serif font-bold text-white">Performance d'Elite</h3>
             <div className="space-y-7">
               {[
                 analytics?.topSellingProduct && {
@@ -569,11 +569,11 @@ const AdminDashboard = () => {
               ]
                 .filter(Boolean)
                 .map((row: any, i) => (
-                  <div key={i} className="space-y-3">
+                  <div key={i} className="min-w-0 space-y-3">
                     <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-white/20">{row.label}</p>
                     <div className="flex items-center justify-between gap-3">
-                      <span className="line-clamp-1 flex-1 text-base font-bold text-white">{row.name}</span>
-                      <span className="font-serif text-lg font-black" style={{ color: row.color }}>
+                      <span className="line-clamp-1 min-w-0 flex-1 break-all text-sm sm:text-base font-bold text-white">{row.name}</span>
+                      <span className="shrink-0 whitespace-nowrap font-serif text-base sm:text-lg font-black tabular-nums" style={{ color: row.color }}>
                         {row.value}
                       </span>
                     </div>
@@ -591,18 +591,18 @@ const AdminDashboard = () => {
             </div>
           </Panel>
 
-          <div className="rounded-[28px] sm:rounded-[36px] bg-[#d4af37] p-6 sm:p-8 shadow-2xl">
-            <PiggyBank className="mb-6 h-8 w-8 text-black" />
+          <div className="min-w-0 rounded-[24px] sm:rounded-[36px] bg-[#d4af37] p-5 sm:p-8 shadow-2xl">
+            <PiggyBank className="mb-5 sm:mb-6 h-8 w-8 text-black" />
             <h3 className="text-lg font-serif font-bold text-black">Ticket Médio</h3>
-            <p className="mb-6 text-sm font-medium text-black/60">Eficiência por pedido</p>
-            <div className="font-serif text-3xl sm:text-4xl font-black text-black">{fmtBRL(avgTicket)}</div>
+            <p className="mb-5 sm:mb-6 text-sm font-medium text-black/60">Eficiência por pedido</p>
+            <div className="font-serif text-2xl sm:text-4xl font-black text-black tabular-nums break-words">{fmtBRL(avgTicket)}</div>
           </div>
 
-          <Panel className="p-6 sm:p-8 transition-all hover:border-green-400/30">
-            <TrendingUp className="mb-6 h-8 w-8 text-green-400" />
+          <Panel className="min-w-0 p-5 sm:p-8 transition-all hover:border-green-400/30">
+            <TrendingUp className="mb-5 sm:mb-6 h-8 w-8 text-green-400" />
             <h3 className="text-lg font-serif font-bold text-white">Margem Real</h3>
-            <p className="mb-6 text-sm font-medium text-white/40">Rentabilidade líquida</p>
-            <div className="font-serif text-3xl sm:text-4xl font-black text-green-400">
+            <p className="mb-5 sm:mb-6 text-sm font-medium text-white/40">Rentabilidade líquida</p>
+            <div className="font-serif text-2xl sm:text-4xl font-black text-green-400 tabular-nums break-words">
               {margin.toLocaleString('pt-BR', { maximumFractionDigits: 1 })}%
             </div>
           </Panel>
@@ -610,23 +610,23 @@ const AdminDashboard = () => {
       </div>
 
       {/* ── Configurações de identidade ─────────────────────────────────── */}
-      <Panel className="mt-8 p-6 sm:p-10">
-        <div className="mb-10 flex items-center justify-between gap-6">
-          <div>
-            <h3 className="text-xl sm:text-2xl font-serif font-bold text-white">Configurações de Identidade</h3>
+      <Panel className="mt-8 min-w-0 p-5 sm:p-10">
+        <div className="mb-8 sm:mb-10 flex items-center justify-between gap-4 sm:gap-6">
+          <div className="min-w-0">
+            <h3 className="text-lg sm:text-2xl font-serif font-bold text-white break-words">Configurações de Identidade</h3>
             <p className="mt-1 text-[9px] sm:text-[10px] font-bold uppercase tracking-[0.2em] text-white/20">
               Personalização da experiência
             </p>
           </div>
           <Diamond className="h-7 w-7 shrink-0 text-[#d4af37]/40" />
         </div>
-        <div className="grid grid-cols-1 gap-8 md:grid-cols-2 lg:grid-cols-3">
-          <div className="space-y-4">
+        <div className="grid grid-cols-1 gap-6 sm:gap-8 md:grid-cols-2 lg:grid-cols-3">
+          <div className="min-w-0 space-y-4">
             <div className="flex items-center gap-3">
-              <div className="flex h-10 w-10 items-center justify-center rounded-xl border border-white/5 bg-black text-[#d4af37]">
+              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-white/5 bg-black text-[#d4af37]">
                 <MessageCircle className="h-5 w-5" />
               </div>
-              <Label className="text-sm font-bold uppercase tracking-widest text-white/60">WhatsApp Business</Label>
+              <Label className="min-w-0 break-words text-xs sm:text-sm font-bold uppercase tracking-widest text-white/60">WhatsApp Business</Label>
             </div>
             <Input
               placeholder="Ex: 5511999999999"
@@ -636,12 +636,12 @@ const AdminDashboard = () => {
             />
             <p className="text-[9px] font-bold uppercase tracking-[0.2em] text-white/20">Com código do país (55)</p>
           </div>
-          <div className="space-y-4">
+          <div className="min-w-0 space-y-4">
             <div className="flex items-center gap-3">
-              <div className="flex h-10 w-10 items-center justify-center rounded-xl border border-white/5 bg-black text-[#d4af37]">
+              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-white/5 bg-black text-[#d4af37]">
                 <LayoutGrid className="h-5 w-5" />
               </div>
-              <Label className="text-sm font-bold uppercase tracking-widest text-white/60">Cenário Hero</Label>
+              <Label className="min-w-0 break-words text-xs sm:text-sm font-bold uppercase tracking-widest text-white/60">Cenário Hero</Label>
             </div>
             <div className="relative aspect-video overflow-hidden rounded-[24px] border border-white/5 bg-black/40">
               <ImageUpload
@@ -650,12 +650,12 @@ const AdminDashboard = () => {
               />
             </div>
           </div>
-          <div className="space-y-4">
+          <div className="min-w-0 space-y-4">
             <div className="flex items-center gap-3">
-              <div className="flex h-10 w-10 items-center justify-center rounded-xl border border-white/5 bg-black text-[#d4af37]">
+              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-white/5 bg-black text-[#d4af37]">
                 <Diamond className="h-5 w-5" />
               </div>
-              <Label className="text-sm font-bold uppercase tracking-widest text-white/60">Narrativa História</Label>
+              <Label className="min-w-0 break-words text-xs sm:text-sm font-bold uppercase tracking-widest text-white/60">Narrativa História</Label>
             </div>
             <div className="relative aspect-video overflow-hidden rounded-[24px] border border-white/5 bg-black/40">
               <ImageUpload

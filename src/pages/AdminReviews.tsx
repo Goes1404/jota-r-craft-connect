@@ -17,11 +17,11 @@ import {
 } from '@/components/admin/ui';
 
 const StarRating: React.FC<{ rating: number }> = ({ rating }) => (
-  <div className="flex items-center gap-0.5">
+  <div className="flex shrink-0 items-center gap-0.5">
     {[1, 2, 3, 4, 5].map((i) => (
-      <Star key={i} className={`h-3.5 w-3.5 ${i <= rating ? 'text-[#d4af37] fill-[#d4af37]' : 'text-white/10'}`} />
+      <Star key={i} className={`h-3.5 w-3.5 shrink-0 ${i <= rating ? 'text-[#d4af37] fill-[#d4af37]' : 'text-white/10'}`} />
     ))}
-    <span className="ml-1.5 text-[10px] font-bold text-white/30">{rating}/5</span>
+    <span className="ml-1.5 text-[10px] font-bold tabular-nums text-white/30">{rating}/5</span>
   </div>
 );
 
@@ -72,7 +72,7 @@ const AdminReviews = () => {
     <button
       key={value}
       onClick={() => setFilter(value)}
-      className={`h-8 px-4 rounded-full text-[9px] font-black uppercase tracking-widest transition-all ${
+      className={`h-8 shrink-0 whitespace-nowrap px-3.5 sm:px-4 rounded-full text-[9px] font-black uppercase tracking-widest transition-all ${
         filter === value
           ? 'bg-[#d4af37]/15 border border-[#d4af37]/30 text-[#d4af37]'
           : 'border border-white/[0.06] text-white/30 hover:text-white/60 hover:border-white/10'
@@ -87,9 +87,15 @@ const AdminReviews = () => {
       eyebrow="Comunidade"
       title="Avaliações"
       subtitle={reviews?.length ? `Média: ${avgRating.toFixed(1)} ★ · ${reviews.length} avaliações` : undefined}
-      actions={<div className="flex items-center gap-2">{filterBtn('all', 'Todas')}{filterBtn('positive', '★ 4-5')}{filterBtn('negative', '★ 1-2')}</div>}
+      actions={
+        <div className="flex w-full flex-wrap items-center gap-2 sm:w-auto">
+          {filterBtn('all', 'Todas')}
+          {filterBtn('positive', '★ 4-5')}
+          {filterBtn('negative', '★ 1-2')}
+        </div>
+      }
     >
-      <div className="max-w-3xl">
+      <div className="w-full min-w-0 max-w-3xl">
         <AdminSectionHeader icon={MessageSquare} title="Avaliações dos clientes" count={filtered?.length} />
 
         {isLoading && <AdminCardSkeleton count={4} />}
@@ -106,21 +112,22 @@ const AdminReviews = () => {
         {!isLoading && !error && (filtered?.length ?? 0) > 0 && (
           <div className="space-y-3">
             {filtered!.map((r: any) => (
-              <div key={r.id} className="rounded-[20px] border border-white/[0.06] bg-[#0f0f0f]/60 p-5 transition-all hover:border-white/10">
-                <div className="flex items-start justify-between gap-4">
+              <div key={r.id} className="rounded-[18px] sm:rounded-[20px] border border-white/[0.06] bg-[#0f0f0f]/60 p-4 sm:p-5 transition-all hover:border-white/10">
+                <div className="flex items-start justify-between gap-3 sm:gap-4">
                   <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-3 flex-wrap mb-3">
+                    <div className="flex items-center gap-x-3 gap-y-2 flex-wrap mb-3">
                       <StarRating rating={r.rating} />
-                      <span className="flex items-center gap-1.5 text-[10px] text-white/30 border border-white/[0.06] rounded-full px-2.5 py-0.5">
-                        <Package className="h-3 w-3" />{r.products?.name || 'Produto'}
+                      <span className="flex min-w-0 max-w-full items-center gap-1.5 text-[10px] text-white/30 border border-white/[0.06] rounded-full px-2.5 py-0.5">
+                        <Package className="h-3 w-3 shrink-0" />
+                        <span className="truncate">{r.products?.name || 'Produto'}</span>
                       </span>
                     </div>
                     {r.comment && (
-                      <p className="text-sm text-white/70 leading-relaxed mb-3">&ldquo;{r.comment}&rdquo;</p>
+                      <p className="text-[13px] sm:text-sm text-white/70 leading-relaxed mb-3 break-words">&ldquo;{r.comment}&rdquo;</p>
                     )}
-                    <p className="text-[10px] text-white/25">
-                      Por <span className="text-white/40 font-bold">{r.profiles?.full_name || 'Anônimo'}</span>
-                      {' · '}{format(new Date(r.created_at), "dd 'de' MMM 'de' yyyy", { locale: ptBR })}
+                    <p className="text-[10px] text-white/25 break-words">
+                      Por <span className="text-white/40 font-bold break-all">{r.profiles?.full_name || 'Anônimo'}</span>
+                      {' · '}<span className="whitespace-nowrap">{format(new Date(r.created_at), "dd 'de' MMM 'de' yyyy", { locale: ptBR })}</span>
                     </p>
                   </div>
                   <button

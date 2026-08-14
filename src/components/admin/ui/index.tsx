@@ -22,14 +22,17 @@ export const SkeletonLine: React.FC<{ className?: string }> = ({ className = '' 
 export const AdminCardSkeleton: React.FC<{ count?: number }> = ({ count = 3 }) => (
   <div className="space-y-3">
     {Array.from({ length: count }).map((_, i) => (
-      <div key={i} className="rounded-[24px] border border-white/5 bg-white/[0.02] p-5 space-y-3 animate-pulse">
-        <div className="flex items-center gap-4">
-          <div className="h-12 w-12 rounded-xl bg-white/[0.04]" />
-          <div className="flex-1 space-y-2">
+      <div
+        key={i}
+        className="rounded-[20px] sm:rounded-[24px] border border-white/5 bg-white/[0.02] p-4 sm:p-5 space-y-3 animate-pulse"
+      >
+        <div className="flex items-center gap-3 sm:gap-4">
+          <div className="h-12 w-12 shrink-0 rounded-xl bg-white/[0.04]" />
+          <div className="min-w-0 flex-1 space-y-2">
             <div className="h-3 w-1/3 rounded bg-white/[0.04]" />
             <div className="h-2.5 w-1/2 rounded bg-white/[0.03]" />
           </div>
-          <div className="h-3 w-16 rounded bg-white/[0.04]" />
+          <div className="hidden h-3 w-16 shrink-0 rounded bg-white/[0.04] sm:block" />
         </div>
       </div>
     ))}
@@ -37,14 +40,14 @@ export const AdminCardSkeleton: React.FC<{ count?: number }> = ({ count = 3 }) =
 );
 
 export const AdminTableSkeleton: React.FC<{ rows?: number; cols?: number }> = ({ rows = 5, cols = 4 }) => (
-  <div className="rounded-[24px] border border-white/5 overflow-hidden">
-    <div className="border-b border-white/5 p-4 grid gap-4 animate-pulse" style={{ gridTemplateColumns: `repeat(${cols}, 1fr)` }}>
+  <div className="rounded-[20px] sm:rounded-[24px] border border-white/5 overflow-hidden">
+    <div className="border-b border-white/5 p-3 sm:p-4 grid gap-3 sm:gap-4 animate-pulse" style={{ gridTemplateColumns: `repeat(${cols}, minmax(0, 1fr))` }}>
       {Array.from({ length: cols }).map((_, i) => (
         <div key={i} className="h-2.5 rounded bg-white/[0.06]" />
       ))}
     </div>
     {Array.from({ length: rows }).map((_, r) => (
-      <div key={r} className="border-b border-white/[0.03] p-4 grid gap-4 animate-pulse" style={{ gridTemplateColumns: `repeat(${cols}, 1fr)` }}>
+      <div key={r} className="border-b border-white/[0.03] p-3 sm:p-4 grid gap-3 sm:gap-4 animate-pulse" style={{ gridTemplateColumns: `repeat(${cols}, minmax(0, 1fr))` }}>
         {Array.from({ length: cols }).map((_, c) => (
           <div key={c} className="h-3 rounded bg-white/[0.03]" style={{ width: `${60 + Math.random() * 30}%` }} />
         ))}
@@ -53,10 +56,23 @@ export const AdminTableSkeleton: React.FC<{ rows?: number; cols?: number }> = ({
   </div>
 );
 
+// Classes estáticas — o Tailwind não gera classes montadas dinamicamente.
+const STAT_SKELETON_COLS: Record<number, string> = {
+  1: 'lg:grid-cols-1',
+  2: 'lg:grid-cols-2',
+  3: 'lg:grid-cols-3',
+  4: 'lg:grid-cols-4',
+  5: 'lg:grid-cols-5',
+  6: 'lg:grid-cols-6',
+};
+
 export const AdminStatSkeleton: React.FC<{ count?: number }> = ({ count = 4 }) => (
-  <div className={`grid gap-4 grid-cols-2 lg:grid-cols-${count}`}>
+  <div className={`grid gap-3 sm:gap-4 grid-cols-2 ${STAT_SKELETON_COLS[count] ?? 'lg:grid-cols-4'}`}>
     {Array.from({ length: count }).map((_, i) => (
-      <div key={i} className="h-32 rounded-[24px] border border-white/5 bg-white/[0.02] animate-pulse" />
+      <div
+        key={i}
+        className="h-28 sm:h-32 rounded-[20px] sm:rounded-[24px] border border-white/5 bg-white/[0.02] animate-pulse"
+      />
     ))}
   </div>
 );
@@ -74,17 +90,19 @@ export const AdminEmptyState: React.FC<AdminEmptyStateProps> = ({ icon: Icon, ti
   <motion.div
     initial={{ opacity: 0, y: 12 }}
     animate={{ opacity: 1, y: 0 }}
-    className="flex flex-col items-center justify-center py-20 px-8 text-center"
+    className="flex flex-col items-center justify-center py-14 px-4 sm:py-20 sm:px-8 text-center"
   >
-    <div className="mb-5 flex h-20 w-20 items-center justify-center rounded-[28px] border border-white/5 bg-white/[0.02]">
-      <Icon className="h-8 w-8 text-white/15" />
+    <div className="mb-5 flex h-16 w-16 sm:h-20 sm:w-20 shrink-0 items-center justify-center rounded-[22px] sm:rounded-[28px] border border-white/5 bg-white/[0.02]">
+      <Icon className="h-7 w-7 sm:h-8 sm:w-8 text-white/15" />
     </div>
-    <h3 className="text-base font-serif font-bold text-white/50">{title}</h3>
-    {description && <p className="mt-2 text-xs text-white/25 max-w-xs leading-relaxed">{description}</p>}
+    <h3 className="max-w-full text-sm sm:text-base font-serif font-bold text-white/50 break-words">{title}</h3>
+    {description && (
+      <p className="mt-2 max-w-xs text-xs text-white/25 leading-relaxed break-words">{description}</p>
+    )}
     {action && (
       <button
         onClick={action.onClick}
-        className="mt-6 h-10 px-6 rounded-full bg-[#d4af37]/10 border border-[#d4af37]/20 text-[10px] font-black uppercase tracking-widest text-[#d4af37] hover:bg-[#d4af37]/20 transition-all"
+        className="mt-6 h-10 max-w-full px-5 sm:px-6 rounded-full bg-[#d4af37]/10 border border-[#d4af37]/20 text-[10px] font-black uppercase tracking-widest text-[#d4af37] hover:bg-[#d4af37]/20 transition-all"
       >
         {action.label}
       </button>
@@ -103,17 +121,17 @@ export const AdminErrorState: React.FC<AdminErrorStateProps> = ({
   message = 'Não foi possível carregar os dados.',
   onRetry,
 }) => (
-  <div className="flex flex-col items-center justify-center py-16 px-8 text-center">
-    <div className="mb-4 flex h-16 w-16 items-center justify-center rounded-[20px] border border-red-500/20 bg-red-500/5">
-      <AlertCircle className="h-7 w-7 text-red-400" />
+  <div className="flex flex-col items-center justify-center py-12 px-4 sm:py-16 sm:px-8 text-center">
+    <div className="mb-4 flex h-14 w-14 sm:h-16 sm:w-16 shrink-0 items-center justify-center rounded-[18px] sm:rounded-[20px] border border-red-500/20 bg-red-500/5">
+      <AlertCircle className="h-6 w-6 sm:h-7 sm:w-7 text-red-400" />
     </div>
-    <p className="text-sm font-bold text-white/40">{message}</p>
+    <p className="max-w-full text-sm font-bold text-white/40 break-words">{message}</p>
     {onRetry && (
       <button
         onClick={onRetry}
-        className="mt-5 flex items-center gap-2 h-9 px-5 rounded-full border border-white/10 bg-white/5 text-[10px] font-black uppercase tracking-widest text-white/50 hover:text-white hover:border-white/20 transition-all"
+        className="mt-5 flex max-w-full items-center gap-2 h-9 px-4 sm:px-5 rounded-full border border-white/10 bg-white/5 text-[10px] font-black uppercase tracking-widest text-white/50 hover:text-white hover:border-white/20 transition-all"
       >
-        <RefreshCcw className="h-3 w-3" /> Tentar novamente
+        <RefreshCcw className="h-3 w-3 shrink-0" /> Tentar novamente
       </button>
     )}
   </div>
@@ -128,7 +146,11 @@ interface AdminPageCardProps {
 }
 
 export const AdminPageCard: React.FC<AdminPageCardProps> = ({ className = '', children, noPadding }) => (
-  <div className={`bg-[#0f0f0f]/60 backdrop-blur-xl border border-white/[0.06] rounded-[28px] shadow-xl ${noPadding ? '' : 'p-6'} ${className}`}>
+  <div
+    className={`bg-[#0f0f0f]/60 backdrop-blur-xl border border-white/[0.06] rounded-[20px] sm:rounded-[28px] shadow-xl ${
+      noPadding ? '' : 'p-4 sm:p-6'
+    } ${className}`}
+  >
     {children}
   </div>
 );
@@ -158,32 +180,38 @@ export const AdminStatCard: React.FC<AdminStatCardProps> = ({
     initial={{ opacity: 0, y: 16 }}
     animate={{ opacity: 1, y: 0 }}
     transition={{ delay: index * 0.06, ease: [0.22, 1, 0.36, 1] }}
-    className={`relative overflow-hidden p-5 rounded-[24px] border transition-all duration-500 group hover:-translate-y-0.5 ${
+    className={`relative min-w-0 overflow-hidden p-4 sm:p-5 rounded-[20px] sm:rounded-[24px] border transition-all duration-500 group hover:-translate-y-0.5 ${
       gold
         ? 'bg-gradient-to-br from-[#d4af37]/15 to-[#d4af37]/[0.03] border-[#d4af37]/30'
         : 'bg-[#0f0f0f]/50 border-white/5 hover:border-white/10'
     }`}
   >
-    <div className="relative z-10">
+    <div className="relative z-10 min-w-0">
       <div
-        className={`mb-3.5 flex h-10 w-10 items-center justify-center rounded-xl ${
+        className={`mb-3 sm:mb-3.5 flex h-9 w-9 sm:h-10 sm:w-10 shrink-0 items-center justify-center rounded-xl ${
           gold ? 'bg-[#d4af37] text-black' : 'bg-black/60 border border-white/[0.06]'
         }`}
         style={!gold ? { color } : undefined}
       >
-        <Icon className="h-5 w-5" />
+        <Icon className="h-[18px] w-[18px] sm:h-5 sm:w-5" />
       </div>
-      <p className="text-[9px] font-bold text-white/30 uppercase tracking-[0.2em]">{label}</p>
-      <h3 className={`mt-1 font-serif font-bold tracking-tight text-xl ${gold ? 'text-[#d4af37]' : 'text-white'}`}>
+      <p className="text-[9px] font-bold text-white/30 uppercase tracking-[0.16em] sm:tracking-[0.2em] leading-tight break-words">
+        {label}
+      </p>
+      <h3
+        className={`mt-1 font-serif font-bold tracking-tight tabular-nums break-words text-lg sm:text-xl ${
+          gold ? 'text-[#d4af37]' : 'text-white'
+        }`}
+      >
         {value}
       </h3>
       {trend && (
-        <p className={`mt-1.5 text-[10px] font-bold ${trend.value >= 0 ? 'text-green-400' : 'text-red-400'}`}>
+        <p className={`mt-1.5 text-[10px] font-bold tabular-nums ${trend.value >= 0 ? 'text-green-400' : 'text-red-400'}`}>
           {trend.value >= 0 ? '↑' : '↓'} {Math.abs(trend.value)}%{trend.label ? ` ${trend.label}` : ''}
         </p>
       )}
     </div>
-    <Icon className="pointer-events-none absolute -bottom-3 -right-3 h-20 w-20 rotate-12 opacity-[0.025] transition-opacity duration-500 group-hover:opacity-[0.07]" />
+    <Icon className="pointer-events-none absolute -bottom-3 -right-3 h-16 w-16 sm:h-20 sm:w-20 rotate-12 opacity-[0.025] transition-opacity duration-500 group-hover:opacity-[0.07]" />
   </motion.div>
 );
 
@@ -199,18 +227,18 @@ interface AdminFormCardProps {
 
 export const AdminFormCard: React.FC<AdminFormCardProps> = ({ title, description, icon: Icon, children, className = '' }) => (
   <AdminPageCard className={className}>
-    <div className="mb-5 flex items-center gap-3">
+    <div className="mb-4 sm:mb-5 flex items-center gap-3">
       {Icon && (
-        <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-[#d4af37]/10 border border-[#d4af37]/20">
+        <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-[#d4af37]/10 border border-[#d4af37]/20">
           <Icon className="h-4 w-4 text-[#d4af37]" />
         </div>
       )}
-      <div>
-        <h3 className="text-sm font-bold text-white">{title}</h3>
-        {description && <p className="text-[10px] text-white/30 mt-0.5">{description}</p>}
+      <div className="min-w-0">
+        <h3 className="text-sm font-bold text-white break-words">{title}</h3>
+        {description && <p className="text-[10px] text-white/30 mt-0.5 break-words">{description}</p>}
       </div>
     </div>
-    <div className="border-t border-white/[0.05] pt-5">{children}</div>
+    <div className="border-t border-white/[0.05] pt-4 sm:pt-5">{children}</div>
   </AdminPageCard>
 );
 
@@ -257,7 +285,7 @@ interface AdminBadgeProps {
 export const AdminBadge: React.FC<AdminBadgeProps> = ({ label, variant, className = '' }) => {
   const v = variant ?? STATUS_LABEL[label] ?? 'inativo';
   return (
-    <span className={`inline-flex items-center border px-2.5 py-0.5 rounded-full text-[9px] font-black uppercase tracking-widest ${BADGE_STYLES[v]} ${className}`}>
+    <span className={`inline-flex max-w-full shrink-0 items-center whitespace-nowrap border px-2.5 py-0.5 rounded-full text-[9px] font-black uppercase tracking-widest ${BADGE_STYLES[v]} ${className}`}>
       {label}
     </span>
   );
@@ -289,23 +317,27 @@ export const AdminConfirmDialog: React.FC<AdminConfirmDialogProps> = ({
   loading,
 }) => (
   <AlertDialog open={open} onOpenChange={onOpenChange}>
-    <AlertDialogContent className="bg-[#0d0d0d] border border-white/10 rounded-[24px] text-white max-w-sm">
+    <AlertDialogContent className="w-[calc(100%_-_2rem)] sm:w-full max-w-sm bg-[#0d0d0d] border border-white/10 rounded-[24px] p-5 sm:p-6 text-white">
       <AlertDialogHeader>
-        <AlertDialogTitle className="font-serif text-lg font-bold text-white">{title}</AlertDialogTitle>
+        <AlertDialogTitle className="font-serif text-base sm:text-lg font-bold text-white break-words">
+          {title}
+        </AlertDialogTitle>
         {description && (
-          <AlertDialogDescription className="text-sm text-white/40">{description}</AlertDialogDescription>
+          <AlertDialogDescription className="text-xs sm:text-sm text-white/40 break-words">
+            {description}
+          </AlertDialogDescription>
         )}
       </AlertDialogHeader>
-      <AlertDialogFooter className="gap-2 mt-2">
+      <AlertDialogFooter className="flex-col-reverse gap-2 mt-2 sm:flex-row sm:space-x-0">
         <AlertDialogCancel
-          className="flex-1 bg-white/5 border-white/10 text-white/60 hover:text-white hover:bg-white/10 rounded-xl h-11 text-[10px] font-black uppercase tracking-widest"
+          className="mt-0 w-full sm:flex-1 bg-white/5 border-white/10 text-white/60 hover:text-white hover:bg-white/10 rounded-xl h-11 text-[10px] font-black uppercase tracking-widest"
         >
           {cancelLabel}
         </AlertDialogCancel>
         <AlertDialogAction
           onClick={onConfirm}
           disabled={loading}
-          className={`flex-1 rounded-xl h-11 text-[10px] font-black uppercase tracking-widest ${
+          className={`w-full sm:flex-1 rounded-xl h-11 text-[10px] font-black uppercase tracking-widest ${
             destructive
               ? 'bg-red-500/20 border border-red-500/30 text-red-400 hover:bg-red-500/30'
               : 'bg-[#d4af37] text-black hover:bg-[#f2ca50]'
@@ -328,16 +360,18 @@ interface AdminSectionHeaderProps {
 }
 
 export const AdminSectionHeader: React.FC<AdminSectionHeaderProps> = ({ icon: Icon, title, count, action }) => (
-  <div className="flex items-center justify-between mb-5">
-    <div className="flex items-center gap-2.5">
-      {Icon && <Icon className="h-4 w-4 text-[#d4af37]" />}
-      <h2 className="text-sm font-black uppercase tracking-widest text-white/70">{title}</h2>
+  <div className="flex flex-wrap items-center justify-between gap-x-3 gap-y-2.5 mb-4 sm:mb-5">
+    <div className="flex min-w-0 items-center gap-2 sm:gap-2.5">
+      {Icon && <Icon className="h-4 w-4 shrink-0 text-[#d4af37]" />}
+      <h2 className="min-w-0 text-xs sm:text-sm font-black uppercase tracking-widest text-white/70 break-words">
+        {title}
+      </h2>
       {count !== undefined && (
-        <span className="text-[9px] font-black text-white/20 bg-white/5 border border-white/5 px-2 py-0.5 rounded-full uppercase">
+        <span className="shrink-0 text-[9px] font-black tabular-nums text-white/20 bg-white/5 border border-white/5 px-2 py-0.5 rounded-full uppercase">
           {count}
         </span>
       )}
     </div>
-    {action && <div>{action}</div>}
+    {action && <div className="flex min-w-0 max-w-full flex-wrap items-center gap-2">{action}</div>}
   </div>
 );

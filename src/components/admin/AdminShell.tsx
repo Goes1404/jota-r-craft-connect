@@ -178,9 +178,11 @@ export const AdminShell: React.FC<AdminShellProps> = ({ title, subtitle, eyebrow
       </aside>
 
       {/* ── Top bar (mobile) ──────────────────────────────────────────────── */}
-      <header className="lg:hidden sticky top-0 z-40 h-16 flex items-center justify-between px-4 border-b border-white/5 bg-black/60 backdrop-blur-2xl">
-        <Brand onClick={() => navigate('/')} />
-        <div className="flex items-center gap-1.5">
+      <header className="lg:hidden sticky top-0 z-40 h-16 flex items-center justify-between gap-2 px-4 border-b border-white/5 bg-black/60 backdrop-blur-2xl">
+        <div className="min-w-0 overflow-hidden">
+          <Brand onClick={() => navigate('/')} />
+        </div>
+        <div className="flex shrink-0 items-center gap-1.5">
           <ThemeToggle />
           <span className="relative flex h-2 w-2 mr-1">
             <span className="absolute inline-flex h-full w-full rounded-full bg-green-500 opacity-60 animate-ping" />
@@ -197,10 +199,10 @@ export const AdminShell: React.FC<AdminShellProps> = ({ title, subtitle, eyebrow
       </header>
 
       {/* ── Conteúdo ──────────────────────────────────────────────────────── */}
-      <div className="lg:pl-72 relative z-10">
-        <main className="mx-auto max-w-screen-2xl px-4 sm:px-6 lg:px-10 pt-6 lg:pt-10 pb-28 lg:pb-16">
+      <div className="lg:pl-72 relative z-10 overflow-x-hidden">
+        <main className="mx-auto w-full max-w-screen-2xl px-4 sm:px-6 lg:px-10 pt-6 lg:pt-10 pb-[calc(7rem_+_env(safe-area-inset-bottom))] lg:pb-16">
           {/* Cabeçalho da página */}
-          <div className="flex flex-col gap-5 sm:flex-row sm:items-end sm:justify-between mb-7 lg:mb-10">
+          <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between sm:gap-5 mb-7 lg:mb-10">
             <motion.div
               initial={{ opacity: 0, y: 12 }}
               animate={{ opacity: 1, y: 0 }}
@@ -208,12 +210,18 @@ export const AdminShell: React.FC<AdminShellProps> = ({ title, subtitle, eyebrow
               className="min-w-0"
             >
               {eyebrow && (
-                <span className="text-[10px] font-black text-[#d4af37] uppercase tracking-[0.35em]">{eyebrow}</span>
+                <span className="block text-[10px] font-black text-[#d4af37] uppercase tracking-[0.25em] sm:tracking-[0.35em] break-words">
+                  {eyebrow}
+                </span>
               )}
-              <h1 className="mt-1.5 text-3xl sm:text-4xl font-serif font-bold text-white tracking-tight">{title}</h1>
-              {subtitle && <p className="mt-1.5 text-sm text-white/40">{subtitle}</p>}
+              <h1 className="mt-1.5 text-2xl sm:text-3xl lg:text-4xl font-serif font-bold text-white tracking-tight break-words">
+                {title}
+              </h1>
+              {subtitle && <p className="mt-1.5 text-xs sm:text-sm text-white/40 break-words">{subtitle}</p>}
             </motion.div>
-            {actions && <div className="flex flex-wrap items-center gap-2.5 shrink-0">{actions}</div>}
+            {actions && (
+              <div className="flex min-w-0 max-w-full flex-wrap items-center gap-2 sm:gap-2.5 sm:justify-end">{actions}</div>
+            )}
           </div>
 
           {children}
@@ -230,7 +238,7 @@ export const AdminShell: React.FC<AdminShellProps> = ({ title, subtitle, eyebrow
               <NavLink
                 key={item.to}
                 to={item.to}
-                className="relative flex flex-col items-center justify-center gap-1 py-2.5"
+                className="relative flex min-w-0 flex-col items-center justify-center gap-1 px-1 py-2.5"
               >
                 {active && (
                   <motion.span
@@ -239,11 +247,11 @@ export const AdminShell: React.FC<AdminShellProps> = ({ title, subtitle, eyebrow
                   />
                 )}
                 <Icon
-                  className="h-[22px] w-[22px] transition-colors"
+                  className="h-[22px] w-[22px] shrink-0 transition-colors"
                   style={{ color: active ? item.accent : 'rgba(255,255,255,0.4)' }}
                 />
                 <span
-                  className={`text-[9px] font-bold uppercase tracking-wider transition-colors ${
+                  className={`max-w-full truncate text-[9px] font-bold uppercase tracking-wider transition-colors ${
                     active ? 'text-white' : 'text-white/40'
                   }`}
                 >
@@ -252,9 +260,12 @@ export const AdminShell: React.FC<AdminShellProps> = ({ title, subtitle, eyebrow
               </NavLink>
             );
           })}
-          <button onClick={() => setMoreOpen(true)} className="flex flex-col items-center justify-center gap-1 py-2.5">
-            <Menu className="h-[22px] w-[22px] text-white/40" />
-            <span className="text-[9px] font-bold uppercase tracking-wider text-white/40">Mais</span>
+          <button
+            onClick={() => setMoreOpen(true)}
+            className="flex min-w-0 flex-col items-center justify-center gap-1 px-1 py-2.5"
+          >
+            <Menu className="h-[22px] w-[22px] shrink-0 text-white/40" />
+            <span className="max-w-full truncate text-[9px] font-bold uppercase tracking-wider text-white/40">Mais</span>
           </button>
         </div>
       </nav>
@@ -275,20 +286,22 @@ export const AdminShell: React.FC<AdminShellProps> = ({ title, subtitle, eyebrow
               animate={{ y: 0 }}
               exit={{ y: '100%' }}
               transition={{ type: 'spring', damping: 30, stiffness: 320 }}
-              className="lg:hidden fixed bottom-0 inset-x-0 z-50 rounded-t-[32px] border-t border-white/10 bg-[#0a0a0a] p-6 pb-10 max-h-[85vh] overflow-y-auto"
+              className="lg:hidden fixed bottom-0 inset-x-0 z-50 rounded-t-[24px] sm:rounded-t-[32px] border-t border-white/10 bg-[#0a0a0a] overflow-x-hidden p-5 sm:p-6 pb-[calc(2.5rem_+_env(safe-area-inset-bottom))] max-h-[85vh] overflow-y-auto"
             >
               <div className="mx-auto mb-6 h-1.5 w-12 rounded-full bg-white/15" />
-              <div className="flex items-center justify-between mb-6">
-                <span className="text-[10px] font-black uppercase tracking-[0.3em] text-[#d4af37]">Todas as seções</span>
+              <div className="flex items-center justify-between gap-3 mb-6">
+                <span className="min-w-0 text-[10px] font-black uppercase tracking-[0.2em] sm:tracking-[0.3em] text-[#d4af37]">
+                  Todas as seções
+                </span>
                 <button
                   onClick={() => setMoreOpen(false)}
-                  className="flex h-9 w-9 items-center justify-center rounded-xl bg-white/5 text-white/50"
+                  className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-white/5 text-white/50"
                 >
                   <X className="h-4 w-4" />
                 </button>
               </div>
 
-              <div className="grid grid-cols-3 gap-3">
+              <div className="grid grid-cols-3 gap-2.5 sm:grid-cols-4 sm:gap-3">
                 {ADMIN_NAV.map((item, i) => {
                   const active = isActive(item.to);
                   const Icon = item.icon;
@@ -302,12 +315,12 @@ export const AdminShell: React.FC<AdminShellProps> = ({ title, subtitle, eyebrow
                       <NavLink
                         to={item.to}
                         onClick={() => setMoreOpen(false)}
-                        className={`flex flex-col items-center justify-center gap-2.5 aspect-square rounded-3xl border p-2 text-center transition-all ${
+                        className={`flex h-full flex-col items-center justify-center gap-2 sm:gap-2.5 aspect-square rounded-2xl sm:rounded-3xl border p-2 text-center transition-all ${
                           active ? 'border-[#d4af37]/40 bg-[#d4af37]/10' : 'border-white/5 bg-white/[0.02] active:scale-95'
                         }`}
                       >
                         <span
-                          className="flex h-11 w-11 items-center justify-center rounded-2xl border"
+                          className="flex h-10 w-10 sm:h-11 sm:w-11 shrink-0 items-center justify-center rounded-2xl border"
                           style={{
                             borderColor: `${item.accent}40`,
                             backgroundColor: `${item.accent}14`,
@@ -316,7 +329,9 @@ export const AdminShell: React.FC<AdminShellProps> = ({ title, subtitle, eyebrow
                         >
                           <Icon className="h-5 w-5" />
                         </span>
-                        <span className="text-[10px] font-bold leading-tight text-white/70">{item.short}</span>
+                        <span className="max-w-full break-words text-[10px] font-bold leading-tight text-white/70">
+                          {item.short}
+                        </span>
                       </NavLink>
                     </motion.div>
                   );
