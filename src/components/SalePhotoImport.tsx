@@ -2,9 +2,10 @@ import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import {
-  Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
-} from '@/components/ui/select';
+  Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList,
+} from '@/components/ui/command';
 import { useToast } from '@/hooks/use-toast';
 import { useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
@@ -12,13 +13,15 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useProducts } from '@/hooks/useProducts';
 import { useSalesMutations } from '@/hooks/useSales';
 import { compressImage, fileToBase64 } from '@/lib/imageCompression';
-import { matchProduct, normalizeText, AUTO_ACCEPT_SCORE } from '@/lib/fuzzyMatch';
+import {
+  matchProduct, normalizeText, familyOf, resolveByPrice, AUTO_ACCEPT_SCORE,
+} from '@/lib/fuzzyMatch';
 import { normalizeCategory } from '@/lib/categories';
 import { AdminConfirmDialog } from '@/components/admin/ui';
 import { Product } from '@/types/database';
 import {
   Camera, ImageIcon, Loader2, Trash2, AlertTriangle, Check, Plus,
-  RefreshCcw, NotebookPen, X, Sparkles,
+  RefreshCcw, NotebookPen, X, ChevronsUpDown,
 } from 'lucide-react';
 
 // ─── Contrato da edge function parse-sale-photo ──────────────────────────────
@@ -39,6 +42,13 @@ interface ExtractedLine extends ApiLine {
   suggested: boolean;
   /** Casou por apelido aprendido — já foi confirmado por você antes. */
   fromAlias: boolean;
+  /** Havia mais de uma variante com o mesmo nome; o preço lido decidiu qual. */
+  resolvedByPrice: boolean;
+  /**
+   * Quando o nome achado tem variantes (mesmo nome, preços diferentes) e o
+   * preço lido não decide sozinho, guarda só essa família — a lista de
+   * escolha fica pequena e certeira, em vez do catálogo inteiro.
+   */
   candidates: { id: string; name: string }[];
 }
 
@@ -87,6 +97,10 @@ const SalePhotoImport: React.FC<Props> = ({ onImportComplete }) => {
   const [justCreated, setJustCreated] = useState<Product[]>([]);
   /** apelido normalizado → product_id, aprendido nos lançamentos anteriores. */
   const [aliases, setAliases] = useState<Map<string, string>>(new Map());
+  /** Formulário de "novo produto" aberto para uma linha — editável antes de confirmar. */
+  const [createDraft, setCreateDraft] = useState<{
+    uid: string; name: string; category: string; price: string;
+  } | null>(null);
 
   const cameraRef = useRef<HTMLInputElement>(null);
   const galleryRef = useRef<HTMLInputElement>(null);
@@ -108,6 +122,11 @@ const SalePhotoImport: React.FC<Props> = ({ onImportComplete }) => {
   }, [products, justCreated]);
 
   const productOf = (id: string | null) => (id ? catalog.find((p) => p.id === id) : undefined);
+
+  const categoryOptions = useMemo(
+    () => Array.from(new Set(catalog.map((p) => p.category).filter(Boolean))).sort((a, b) => a.localeCompare(b, 'pt-BR')),
+    [catalog],
+  );
 
   const allLines = useMemo(() => pages.flatMap((p) => p.lines), [pages]);
   const selectedLines = allLines.filter((l) => l.selected);
@@ -154,6 +173,7 @@ const SalePhotoImport: React.FC<Props> = ({ onImportComplete }) => {
     setPages([]);
     setErrorMsg(null);
     setJustCreated([]);
+    setCreateDraft(null);
   };
 
   // ── 1. Foto → IA ───────────────────────────────────────────────────────────
@@ -216,7 +236,31 @@ const SalePhotoImport: React.FC<Props> = ({ onImportComplete }) => {
     }
   };
 
-  /** Casamento em camadas: IA → apelido aprendido → aproximado. */
+  /**
+   * Resolve um produto "candidato" contra sua família (mesmo nome, preços
+   * diferentes — ex.: 3 "Película" cadastradas, uma por modelo de tela).
+   * Família de 1 = sem ambiguidade, confirma direto. Família maior: o preço
+   * lido decide; sem vencedor claro, a família inteira vira as opções de
+   * escolha (pequena e certeira, ao contrário do catálogo inteiro).
+   */
+  const resolveFamily = (candidateId: string, unitPrice: number | null) => {
+    const candidate = catalog.find((p) => p.id === candidateId);
+    if (!candidate) return { productId: null, candidates: [], changed: false };
+
+    const family = familyOf(candidate.name, catalog);
+    if (family.length <= 1) return { productId: candidate.id, candidates: [], changed: false };
+
+    const { winner } = resolveByPrice(family, unitPrice);
+    if (winner) return { productId: winner.id, candidates: [], changed: winner.id !== candidate.id };
+
+    return {
+      productId: null,
+      candidates: family.map((f) => ({ id: f.id, name: `${f.name} — R$ ${money(Number(f.price))}` })),
+      changed: false,
+    };
+  };
+
+  /** Casamento em camadas: IA → apelido aprendido → aproximado — cada um revalidado pela família/preço. */
   const reconcile = (line: ApiLine, index: number): ExtractedLine => {
     const base: ExtractedLine = {
       ...line,
@@ -224,24 +268,47 @@ const SalePhotoImport: React.FC<Props> = ({ onImportComplete }) => {
       selected: true,
       suggested: false,
       fromAlias: false,
+      resolvedByPrice: false,
       candidates: [],
     };
 
     // A IA pode devolver um id que não existe mais (catálogo mudou) — não confiar.
-    if (line.product_id && catalog.some((p) => p.id === line.product_id)) return base;
+    if (line.product_id && catalog.some((p) => p.id === line.product_id)) {
+      const r = resolveFamily(line.product_id, line.unit_price);
+      return { ...base, product_id: r.productId, candidates: r.candidates, resolvedByPrice: r.changed };
+    }
 
     const guess = line.product_name_guess || line.raw_text;
 
     const aliasHit = aliases.get(normalizeText(guess));
     if (aliasHit && catalog.some((p) => p.id === aliasHit)) {
-      return { ...base, product_id: aliasHit, fromAlias: true };
+      // O apelido aponta para UM produto, mas se ele faz parte de uma família
+      // o preço desta venda pode apontar para outra variante — revalida sempre.
+      const r = resolveFamily(aliasHit, line.unit_price);
+      return {
+        ...base,
+        product_id: r.productId,
+        candidates: r.candidates,
+        fromAlias: r.candidates.length === 0,
+        resolvedByPrice: r.changed,
+      };
     }
 
     const match = matchProduct(guess, catalog);
+    if (match.best) {
+      const r = resolveFamily(match.best.id, line.unit_price);
+      return {
+        ...base,
+        product_id: r.productId,
+        candidates: r.candidates,
+        suggested: r.candidates.length === 0,
+        resolvedByPrice: r.changed,
+      };
+    }
+
     return {
       ...base,
-      product_id: match.best?.id ?? null,
-      suggested: !!match.best,
+      product_id: null,
       candidates: match.score >= AUTO_ACCEPT_SCORE
         ? []
         : match.candidates.map((c) => ({ id: c.item.id, name: c.item.name })),
@@ -269,10 +336,12 @@ const SalePhotoImport: React.FC<Props> = ({ onImportComplete }) => {
       lines: p.lines.map((l) => (l.uid === uid ? { ...l, ...changes } : l)),
     })));
 
-  const dropLine = (uid: string) =>
+  const dropLine = (uid: string) => {
     setPages((prev) => prev
       .map((p) => ({ ...p, lines: p.lines.filter((l) => l.uid !== uid) }))
       .filter((p) => p.lines.length > 0));
+    setCreateDraft((prev) => (prev?.uid === uid ? null : prev));
+  };
 
   const dropPage = (uid: string) => setPages((prev) => prev.filter((p) => p.uid !== uid));
 
@@ -287,36 +356,61 @@ const SalePhotoImport: React.FC<Props> = ({ onImportComplete }) => {
         if (l.uid !== uid) return l;
         // Preço do papel manda: só preenche se a IA não leu nenhum.
         const unit_price = l.unit_price === null ? Number(product?.price ?? 0) : l.unit_price;
-        return { ...l, product_id: productId, unit_price, suggested: false, fromAlias: false, candidates: [] };
+        return {
+          ...l, product_id: productId, unit_price,
+          suggested: false, fromAlias: false, resolvedByPrice: false, candidates: [],
+        };
       }),
     })));
   };
 
-  const handleCreateProduct = async (line: ExtractedLine) => {
-    const name = (line.product_name_guess || line.raw_text).trim().slice(0, 120);
+  /** Abre o formulário de cadastro pré-preenchido com o que a IA leu — tudo editável. */
+  const openCreateDraft = (line: ExtractedLine) => {
+    setCreateDraft({
+      uid: line.uid,
+      name: (line.product_name_guess || line.raw_text).trim().slice(0, 120),
+      category: '',
+      price: line.unit_price !== null ? String(line.unit_price) : '',
+    });
+  };
+
+  const submitCreateDraft = async () => {
+    if (!createDraft) return;
+    const name = createDraft.name.trim();
     if (!name) {
-      toast({ title: 'Sem nome para cadastrar', variant: 'destructive' });
+      toast({ title: 'Informe o nome do produto', variant: 'destructive' });
       return;
     }
-    setCreatingFor(line.uid);
+    const price = parseFloat(createDraft.price.replace(',', '.'));
+    if (Number.isNaN(price) || price < 0) {
+      toast({ title: 'Informe um preço válido', variant: 'destructive' });
+      return;
+    }
+
+    const line = allLines.find((l) => l.uid === createDraft.uid);
+    setCreatingFor(createDraft.uid);
     try {
       const { data, error } = await supabase.from('products').insert({
         name,
-        price: line.unit_price ?? 0,
+        price,
         cost: 0,
-        category: normalizeCategory(''),
+        category: normalizeCategory(createDraft.category),
         // A venda já aconteceu: nascendo com o estoque desta linha, o trigger
         // desconta em seguida e o produto termina zerado (em vez de negativo).
-        stock: line.quantity ?? 1,
+        stock: line?.quantity ?? 1,
         image: '', images: [], is_featured: false,
       }).select().single();
       if (error) throw error;
 
       setJustCreated((prev) => [...prev, data as Product]);
-      patch(line.uid, { product_id: (data as Product).id, suggested: false, candidates: [] });
+      patch(createDraft.uid, {
+        product_id: (data as Product).id, unit_price: price,
+        suggested: false, resolvedByPrice: false, candidates: [],
+      });
       queryClient.invalidateQueries({ queryKey: ['products'] });
       queryClient.invalidateQueries({ queryKey: ['admin-products'] });
       toast({ title: 'Produto cadastrado', description: `${name} — ajuste o estoque depois em Produtos.` });
+      setCreateDraft(null);
     } catch (err: any) {
       toast({ title: 'Erro ao cadastrar produto', description: err.message, variant: 'destructive' });
     } finally {
@@ -569,21 +663,12 @@ const SalePhotoImport: React.FC<Props> = ({ onImportComplete }) => {
                           </p>
 
                           <div className="grid grid-cols-2 sm:grid-cols-[1fr_5rem_7rem] gap-2.5">
-                            <Select value={line.product_id ?? ''} onValueChange={(v) => handleProductChange(line.uid, v)}>
-                              <SelectTrigger className="col-span-2 sm:col-span-1 bg-white/5 border-white/10 h-11 rounded-xl text-xs">
-                                <SelectValue placeholder="Escolha a peça" />
-                              </SelectTrigger>
-                              <SelectContent className="bg-[#0f0f0f] border-white/10 text-white rounded-2xl max-h-64">
-                                {catalog.map((p) => (
-                                  <SelectItem key={p.id} value={p.id} className="rounded-xl cursor-pointer text-xs">
-                                    <span className="flex justify-between gap-6 w-full">
-                                      <span className="truncate">{p.name}</span>
-                                      <span className="text-[#d4af37] shrink-0">R$ {money(Number(p.price))}</span>
-                                    </span>
-                                  </SelectItem>
-                                ))}
-                              </SelectContent>
-                            </Select>
+                            <ProductPicker
+                              products={catalog}
+                              value={line.product_id}
+                              onChange={(id) => handleProductChange(line.uid, id)}
+                              onCreateNew={() => openCreateDraft(line)}
+                            />
 
                             <Input
                               type="number" min="1" step="1" placeholder="Qtd"
@@ -622,6 +707,7 @@ const SalePhotoImport: React.FC<Props> = ({ onImportComplete }) => {
 
                           <div className="flex flex-wrap items-center gap-1.5">
                             {line.fromAlias && <Badge tone="gold">apelido aprendido</Badge>}
+                            {line.resolvedByPrice && <Badge tone="gold">escolhido pelo preço</Badge>}
                             {line.suggested && <Badge tone="amber">sugerido — confira</Badge>}
                             {line.confidence < 0.6 && <Badge tone="amber">conferir leitura</Badge>}
                             {line.warnings.map((w) => (
@@ -635,16 +721,65 @@ const SalePhotoImport: React.FC<Props> = ({ onImportComplete }) => {
                             {issue && <Badge tone={missingProduct ? 'amber' : 'red'}>{issue}</Badge>}
                           </div>
 
-                          {missingProduct && (
+                          {missingProduct && createDraft?.uid === line.uid ? (
+                            <div className="p-3 rounded-xl border border-[#d4af37]/25 bg-[#d4af37]/[0.04] space-y-2.5">
+                              <p className="text-[9px] font-black uppercase tracking-widest text-[#d4af37]/80">
+                                Novo produto
+                              </p>
+                              <div className="grid grid-cols-1 sm:grid-cols-[1fr_1fr_6rem] gap-2">
+                                <Input
+                                  value={createDraft.name}
+                                  onChange={(e) => setCreateDraft({ ...createDraft, name: e.target.value })}
+                                  placeholder="Nome do produto"
+                                  className="bg-white/5 border-white/10 h-10 rounded-xl text-xs"
+                                  aria-label="Nome do novo produto"
+                                />
+                                <Input
+                                  list="sale-photo-category-suggestions"
+                                  value={createDraft.category}
+                                  onChange={(e) => setCreateDraft({ ...createDraft, category: e.target.value })}
+                                  placeholder="Categoria"
+                                  className="bg-white/5 border-white/10 h-10 rounded-xl text-xs"
+                                  aria-label="Categoria do novo produto"
+                                />
+                                <Input
+                                  type="number" min="0" step="0.01"
+                                  value={createDraft.price}
+                                  onChange={(e) => setCreateDraft({ ...createDraft, price: e.target.value })}
+                                  placeholder="Preço"
+                                  className="bg-white/5 border-white/10 h-10 rounded-xl text-xs"
+                                  aria-label="Preço do novo produto"
+                                />
+                              </div>
+                              <div className="flex items-center gap-2">
+                                <Button
+                                  type="button" size="sm"
+                                  disabled={creatingFor === line.uid}
+                                  onClick={submitCreateDraft}
+                                  className="h-8 px-3 text-[9px] font-black uppercase tracking-widest bg-[#d4af37] text-black hover:bg-[#f2ca50] rounded-lg"
+                                >
+                                  {creatingFor === line.uid
+                                    ? <Loader2 className="w-3 h-3 animate-spin mr-1.5" />
+                                    : <Check className="w-3 h-3 mr-1.5" />}
+                                  Confirmar
+                                </Button>
+                                <Button
+                                  type="button" variant="ghost" size="sm"
+                                  disabled={creatingFor === line.uid}
+                                  onClick={() => setCreateDraft(null)}
+                                  className="h-8 px-3 text-[9px] font-black uppercase tracking-widest text-white/40 hover:text-white rounded-lg"
+                                >
+                                  Cancelar
+                                </Button>
+                              </div>
+                            </div>
+                          ) : missingProduct && (
                             <Button
                               type="button" variant="ghost" size="sm"
-                              disabled={creatingFor === line.uid}
-                              onClick={() => handleCreateProduct(line)}
+                              onClick={() => openCreateDraft(line)}
                               className="h-8 px-3 text-[9px] font-black uppercase tracking-widest text-[#d4af37] hover:bg-[#d4af37]/10 rounded-lg max-w-full"
                             >
-                              {creatingFor === line.uid
-                                ? <Loader2 className="w-3 h-3 animate-spin mr-1.5 shrink-0" />
-                                : <Plus className="w-3 h-3 mr-1.5 shrink-0" />}
+                              <Plus className="w-3 h-3 mr-1.5 shrink-0" />
                               <span className="truncate">
                                 Cadastrar "{(line.product_name_guess || line.raw_text).slice(0, 22)}"
                               </span>
@@ -711,12 +846,87 @@ const SalePhotoImport: React.FC<Props> = ({ onImportComplete }) => {
         </div>
       </div>
 
+      <datalist id="sale-photo-category-suggestions">
+        {categoryOptions.map((c) => <option key={c} value={c} />)}
+      </datalist>
+
       {/* usados também pelo botão "Outra página" */}
       <input ref={cameraRef} type="file" accept="image/*" capture="environment" className="hidden"
         onChange={(e) => { handleFile(e.target.files?.[0]); e.target.value = ''; }} />
       <input ref={galleryRef} type="file" accept="image/*" className="hidden"
         onChange={(e) => { handleFile(e.target.files?.[0]); e.target.value = ''; }} />
     </div>
+  );
+};
+
+/**
+ * Combobox pesquisável de produto: mostra nome E preço em cada opção — essencial
+ * quando existem variantes com o MESMO nome (ex.: várias "Película", uma por
+ * modelo de tela) e só o preço as diferencia visualmente na lista.
+ */
+const ProductPicker: React.FC<{
+  products: Product[];
+  value: string | null;
+  onChange: (id: string) => void;
+  onCreateNew: () => void;
+}> = ({ products, value, onChange, onCreateNew }) => {
+  const [open, setOpen] = useState(false);
+  const selected = value ? products.find((p) => p.id === value) : undefined;
+
+  return (
+    <Popover open={open} onOpenChange={setOpen}>
+      <PopoverTrigger asChild>
+        <button
+          type="button"
+          className="col-span-2 sm:col-span-1 flex items-center justify-between gap-2 bg-white/5 border border-white/10 h-11 rounded-xl text-xs px-3 text-left hover:border-white/20 transition-colors"
+        >
+          {selected ? (
+            <span className="flex-1 min-w-0 flex items-center justify-between gap-2">
+              <span className="truncate text-white">{selected.name}</span>
+              <span className="text-[#d4af37] shrink-0">R$ {money(Number(selected.price))}</span>
+            </span>
+          ) : (
+            <span className="text-white/35 truncate">Escolha a peça</span>
+          )}
+          <ChevronsUpDown className="w-3.5 h-3.5 text-white/25 shrink-0" />
+        </button>
+      </PopoverTrigger>
+      <PopoverContent
+        align="start"
+        className="p-0 w-[calc(100vw-2.5rem)] sm:w-96 bg-[#0f0f0f] border-white/10 rounded-2xl overflow-hidden"
+      >
+        <Command className="bg-transparent">
+          <CommandInput placeholder="Buscar produto…" className="text-xs h-11" />
+          <CommandList className="max-h-64">
+            <CommandEmpty className="py-6 text-center text-[11px] text-white/35">
+              Nada encontrado.
+            </CommandEmpty>
+            <CommandGroup>
+              {products.map((p) => (
+                <CommandItem
+                  key={p.id}
+                  value={`${p.name} ${p.id}`}
+                  onSelect={() => { onChange(p.id); setOpen(false); }}
+                  className="text-xs rounded-xl cursor-pointer flex items-center justify-between gap-3"
+                >
+                  <span className="truncate">{p.name}</span>
+                  <span className="text-[#d4af37] shrink-0">R$ {money(Number(p.price))}</span>
+                </CommandItem>
+              ))}
+            </CommandGroup>
+          </CommandList>
+          <div className="border-t border-white/5 p-1.5">
+            <button
+              type="button"
+              onClick={() => { setOpen(false); onCreateNew(); }}
+              className="w-full flex items-center gap-2 px-2.5 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest text-[#d4af37] hover:bg-[#d4af37]/10 transition-colors"
+            >
+              <Plus className="w-3.5 h-3.5" /> Cadastrar novo produto
+            </button>
+          </div>
+        </Command>
+      </PopoverContent>
+    </Popover>
   );
 };
 

@@ -146,3 +146,55 @@ export function matchProduct<T extends { id: string; name: string }>(
     candidates: scored.filter((c) => c.score >= SUGGEST_SCORE).slice(0, 3),
   };
 }
+
+// ─── Desambiguação por preço ──────────────────────────────────────────────────
+// Algumas lojas cadastram o MESMO nome de produto várias vezes — "Película",
+// "Capinha Iphone 11" — uma linha por variante, cada uma com um preço diferente
+// (o modelo do aparelho vira preço, não nome). No caderno o lojista escreve só
+// "pelicula 15,00": o nome sozinho não diz qual variante é, mas o preço diz.
+
+/** Todo produto do catálogo cujo nome normalizado é IGUAL ao informado. */
+export function familyOf<T extends { id: string; name: string }>(
+  name: string,
+  catalog: T[],
+): T[] {
+  const key = normalizeText(name);
+  if (!key) return [];
+  return catalog.filter((p) => normalizeText(p.name) === key);
+}
+
+/** Diferença mínima (em R$) entre o 1º e o 2º colocado para aceitar sozinho. */
+const PRICE_TIE_TOLERANCE = 2;
+
+export interface PriceResolution<T> {
+  /** Produto escolhido, ou null se o preço não diferencia com segurança. */
+  winner: T | null;
+  /** true quando havia mais de uma opção plausível (winner nulo por empate). */
+  tie: boolean;
+}
+
+/**
+ * Dentro de uma família (mesmo nome, preços diferentes), escolhe pelo preço
+ * lido. Só decide sozinho quando há um vencedor claro — a diferença entre o
+ * 1º e o 2º colocado precisa ser maior que PRICE_TIE_TOLERANCE. Preço exato
+ * sempre vence na hora. Sem preço lido, ou com dois preços igualmente perto,
+ * fica em aberto para o lojista escolher.
+ */
+export function resolveByPrice<T extends { price: number | string }>(
+  family: T[],
+  price: number | null,
+): PriceResolution<T> {
+  if (family.length === 0) return { winner: null, tie: false };
+  if (family.length === 1) return { winner: family[0], tie: false };
+  if (price === null) return { winner: null, tie: true };
+
+  const ranked = [...family].sort(
+    (a, b) => Math.abs(Number(a.price) - price) - Math.abs(Number(b.price) - price),
+  );
+  const d1 = Math.abs(Number(ranked[0].price) - price);
+  if (d1 === 0) return { winner: ranked[0], tie: false };
+
+  const d2 = ranked[1] ? Math.abs(Number(ranked[1].price) - price) : Infinity;
+  if (d2 - d1 < PRICE_TIE_TOLERANCE) return { winner: null, tie: true };
+  return { winner: ranked[0], tie: false };
+}

@@ -94,7 +94,8 @@ QUANDO ESTIVER EM DÚVIDA (regra mais importante)
 CASAMENTO COM O CATÁLOGO
 - Você recebe uma lista numerada "índice | nome | categoria | preço".
 - Devolva "product_index" apenas quando for razoavelmente o mesmo item. Abreviações são esperadas: "fone bt" → Fone Bluetooth, "carreg tipo c" → Carregador USB-C, "capinha" → Capa, "pelicula" → Película.
-- Se dois itens forem igualmente plausíveis, product_index: null e warnings ["produto_ambiguo"].
+- ALGUNS PRODUTOS TÊM VÁRIAS LINHAS COM O MESMO NOME no catálogo — cada uma é um modelo/variante diferente e só o PREÇO as distingue (ex.: três linhas "Película" com preços 10, 15 e 25 — uma por modelo de tela). Quando isso acontecer: use o preço que você leu na foto para escolher, entre as linhas de mesmo nome, a que tem o preço IGUAL ou MAIS PRÓXIMO. Só devolva product_index: null (com warnings ["produto_ambiguo"]) se o preço lido ficar realmente no meio do caminho entre duas variantes, sem dar para saber qual — não pelo nome repetido sozinho.
+- Fora desse caso de variantes por preço, se dois itens de nomes diferentes forem igualmente plausíveis, product_index: null e warnings ["produto_ambiguo"].
 - Se o preço lido for diferente do preço do produto no catálogo, MANTENHA o preço lido: o papel manda (venda de balcão costuma ter desconto). Não ajuste o valor para bater com o catálogo.
 - NÃO escolha um item só porque é o único da categoria.
 - Sempre preencha "product_name_guess" com sua melhor leitura do nome escrito, mesmo quando product_index for null.
