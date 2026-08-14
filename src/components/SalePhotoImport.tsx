@@ -788,7 +788,10 @@ const SalePhotoImport: React.FC<Props> = ({ onImportComplete }) => {
       {blockers.length > 0 && (
         <p className="text-[11px] text-amber-400/90 flex items-start gap-2">
           <AlertTriangle className="w-3.5 h-3.5 shrink-0 mt-0.5" />
-          <span>{blockers.length} {blockers.length === 1 ? 'linha precisa' : 'linhas precisam'} de ajuste antes de lançar.</span>
+          <span>
+            {blockers.length} {blockers.length === 1 ? 'linha precisa' : 'linhas precisam'} de ajuste antes de
+            lançar — {Array.from(new Set(blockers)).join(' · ')}.
+          </span>
         </p>
       )}
 
@@ -817,6 +820,13 @@ const SalePhotoImport: React.FC<Props> = ({ onImportComplete }) => {
           <Button
             type="button" onClick={handleSave}
             disabled={saving || selectedLines.length === 0 || blockers.length > 0}
+            title={
+              blockers.length > 0
+                ? `Resolva antes: ${Array.from(new Set(blockers)).join(' · ')}`
+                : selectedLines.length === 0
+                  ? 'Selecione ao menos uma venda'
+                  : undefined
+            }
             className="bg-[#d4af37] text-black font-black uppercase tracking-widest text-[10px] px-6 h-11 rounded-full hover:bg-[#f2ca50] disabled:opacity-40"
           >
             {saving
