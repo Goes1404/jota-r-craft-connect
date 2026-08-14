@@ -395,9 +395,9 @@ const SalePhotoImport: React.FC<Props> = ({ onImportComplete }) => {
         price,
         cost: 0,
         category: normalizeCategory(createDraft.category),
-        // A venda já aconteceu: nascendo com o estoque desta linha, o trigger
-        // desconta em seguida e o produto termina zerado (em vez de negativo).
-        stock: line?.quantity ?? 1,
+        // A venda já aconteceu e o estoque não é mais ajustado automaticamente
+        // por venda: nasce zerado (ajuste manual depois em Produtos, se for o caso).
+        stock: 0,
         image: '', images: [], is_featured: false,
       }).select().single();
       if (error) throw error;
