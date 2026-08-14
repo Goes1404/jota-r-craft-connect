@@ -72,7 +72,7 @@ PREÇO UNITÁRIO x TOTAL
 - SEMPRE que você dividir um valor pela quantidade para chegar no unitário, inclua "total_inconsistente" em warnings. Sem exceção — é esse aviso que faz o lojista conferir se o valor escrito era unitário ou total.
 
 O QUE NÃO É VENDA (ignore por completo, não crie linha)
-- Linhas de "TOTAL", "SOMA", "Total do dia", somas de coluna.
+- Linhas de "TOTAL", "SOMA", "Total do dia", somas de coluna. NÃO crie venda para elas — mas devolva o valor em "page_total" (veja abaixo).
 - Datas isoladas, cabeçalhos, numeração de página.
 - Texto IMPRESSO da agenda (dias da semana, "JUEVES/THURSDAY", números como "121/244", feriados). Só interessa o que foi escrito à MÃO.
 - Nomes de clientes sozinhos e recados.
@@ -99,6 +99,10 @@ CASAMENTO COM O CATÁLOGO
 - NÃO escolha um item só porque é o único da categoria.
 - Sempre preencha "product_name_guess" com sua melhor leitura do nome escrito, mesmo quando product_index for null.
 
+TOTAL DA PÁGINA
+- Se houver uma linha de total escrita à mão ("TOTAL 350,00", "soma = 350"), devolva esse número em "page_total". Serve para o sistema conferir se alguma venda escapou da leitura.
+- Sem linha de total → page_total: null.
+
 DATA DA PÁGINA
 - Se houver data escrita à mão ("12/08", "05/08"), devolva em "page_date" no formato ISO (AAAA-MM-DD). Formato brasileiro é dd/mm.
 - Sem ano → use o ano da data de hoje informada. Só use o ano ANTERIOR se a data ficar mais de 7 dias no futuro: uma página de caderno costuma ser de hoje ou de poucos dias atrás, e adiantar um dia é normal.
@@ -108,7 +112,7 @@ FOTO IMPRESTÁVEL
 - Se não for um caderno de vendas, ou estiver ilegível/escura demais: {"unreadable": true, "reason": "...", "lines": [], "page_date": null}.
 
 FORMATO DE SAÍDA
-{"page_date": "AAAA-MM-DD"|null, "unreadable": false, "lines": [{"raw_text": string, "product_index": number|null, "product_name_guess": string, "quantity": number|null, "unit_price": number|null, "confidence": number 0..1, "warnings": string[]}]}`;
+{"page_date": "AAAA-MM-DD"|null, "page_total": number|null, "unreadable": false, "lines": [{"raw_text": string, "product_index": number|null, "product_name_guess": string, "quantity": number|null, "unit_price": number|null, "confidence": number 0..1, "warnings": string[]}]}`;
 
 /** Resultado normalizado de qualquer provedor de visão. */
 interface VisionResult {
@@ -451,6 +455,8 @@ serve(async (req) => {
     const pageDate = typeof parsed?.page_date === "string" && /^\d{4}-\d{2}-\d{2}$/.test(parsed.page_date)
       ? parsed.page_date
       : null;
+    const rawTotal = Number(parsed?.page_total);
+    const pageTotal = Number.isFinite(rawTotal) && rawTotal > 0 ? Math.round(rawTotal * 100) / 100 : null;
 
     console.log(`parse-sale-photo: ${lines.length} linha(s) via ${provider} para ${user.id}`);
 
@@ -458,6 +464,7 @@ serve(async (req) => {
       success: true,
       unreadable: false,
       page_date: pageDate,
+      page_total: pageTotal,
       catalog_truncated: catalogTruncated,
       lines,
     });
