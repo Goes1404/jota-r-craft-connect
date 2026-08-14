@@ -721,7 +721,7 @@ const SalePhotoImport: React.FC<Props> = ({ onImportComplete }) => {
                             {issue && <Badge tone={missingProduct ? 'amber' : 'red'}>{issue}</Badge>}
                           </div>
 
-                          {missingProduct && createDraft?.uid === line.uid ? (
+                          {createDraft?.uid === line.uid ? (
                             <div className="p-3 rounded-xl border border-[#d4af37]/25 bg-[#d4af37]/[0.04] space-y-2.5">
                               <p className="text-[9px] font-black uppercase tracking-widest text-[#d4af37]/80">
                                 Novo produto
