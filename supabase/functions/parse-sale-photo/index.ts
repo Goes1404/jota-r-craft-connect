@@ -4,6 +4,10 @@
 // devolve as linhas estruturadas (produto, quantidade, preço) já casadas com
 // o catálogo. Quem grava as vendas é o cliente, depois da revisão humana.
 //
+// Provedor de visão: usa GEMINI_API_KEY quando existir (camada gratuita do
+// Google AI Studio), senão cai para OPENAI_API_KEY. Assim a loja não fica
+// refém do saldo de uma única conta.
+//
 // Só admin (mesmo padrão de generate-ad-image). Não está em config.toml, então
 // herda verify_jwt = true — o admin logado manda JWT real e a função nunca
 // pode ser chamada anonimamente.
@@ -41,7 +45,12 @@ const ALLOWED_WARNINGS = new Set([
 
 const MAX_CATALOG = 400;
 const MAX_PAYLOAD = 8_000_000; // ~8MB de base64
-const OPENAI_TIMEOUT_MS = 50_000;
+const TIMEOUT_MS = 50_000;
+
+// gemini-2.5-flash lê manuscrito bem melhor; se a chave não tiver acesso,
+// caímos para o 2.0-flash, que está na camada gratuita há mais tempo.
+const GEMINI_MODEL = Deno.env.get("GEMINI_MODEL") || "gemini-2.5-flash";
+const GEMINI_FALLBACK_MODEL = "gemini-2.0-flash";
 
 const SYSTEM_PROMPT = `Você lê a FOTO de uma página de caderno onde um lojista brasileiro anota vendas à mão (vendas de balcão e por WhatsApp). Devolva SOMENTE um objeto JSON válido, sem markdown e sem texto fora do JSON.
 
@@ -86,9 +95,9 @@ CASAMENTO COM O CATÁLOGO
 - Sempre preencha "product_name_guess" com sua melhor leitura do nome escrito, mesmo quando product_index for null.
 
 DATA DA PÁGINA
-- Se houver data no topo ("12/08", "12/08/26"), devolva em "page_date" no formato ISO (AAAA-MM-DD). Formato brasileiro é dd/mm.
+- Se houver data escrita à mão ("12/08", "05/08"), devolva em "page_date" no formato ISO (AAAA-MM-DD). Formato brasileiro é dd/mm.
 - Sem ano → use o ano da data de hoje informada; se isso jogar a data no futuro, use o ano anterior.
-- Sem data na página → page_date: null.
+- Sem data escrita à mão → page_date: null.
 
 FOTO IMPRESTÁVEL
 - Se não for um caderno de vendas, ou estiver ilegível/escura demais: {"unreadable": true, "reason": "...", "lines": [], "page_date": null}.
@@ -96,12 +105,142 @@ FOTO IMPRESTÁVEL
 FORMATO DE SAÍDA
 {"page_date": "AAAA-MM-DD"|null, "unreadable": false, "lines": [{"raw_text": string, "product_index": number|null, "product_name_guess": string, "quantity": number|null, "unit_price": number|null, "confidence": number 0..1, "warnings": string[]}]}`;
 
+/** Resultado normalizado de qualquer provedor de visão. */
+interface VisionResult {
+  ok: boolean;
+  text?: string;
+  error?: string;
+}
+
+/** Separa "data:image/webp;base64,XXX" em mime + base64 puro (o Gemini exige separados). */
+function splitDataUrl(value: string): { mimeType: string; data: string } {
+  const match = /^data:([^;]+);base64,(.*)$/s.exec(value);
+  if (match) return { mimeType: match[1], data: match[2] };
+  return { mimeType: "image/jpeg", data: value };
+}
+
+// ─── Google Gemini (camada gratuita do AI Studio) ────────────────────────────
+async function callGemini(
+  apiKey: string,
+  model: string,
+  userText: string,
+  dataUrl: string,
+  signal: AbortSignal,
+): Promise<VisionResult & { modelMissing?: boolean }> {
+  const { mimeType, data } = splitDataUrl(dataUrl);
+
+  const resp = await fetch(
+    `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`,
+    {
+      method: "POST",
+      signal,
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        systemInstruction: { parts: [{ text: SYSTEM_PROMPT }] },
+        contents: [{
+          role: "user",
+          parts: [
+            { text: userText },
+            { inline_data: { mime_type: mimeType, data } },
+          ],
+        }],
+        generationConfig: {
+          temperature: 0,
+          maxOutputTokens: 4096,
+          responseMimeType: "application/json",
+        },
+      }),
+    },
+  );
+
+  if (!resp.ok) {
+    const detail = await resp.text();
+    console.error(`parse-sale-photo: Gemini ${resp.status} (${model})`, detail.slice(0, 500));
+    // 404 = modelo indisponível para esta chave → quem chamou tenta o fallback.
+    if (resp.status === 404) return { ok: false, modelMissing: true, error: "modelo indisponível" };
+    return { ok: false, error: describeGeminiFailure(resp.status, detail) };
+  }
+
+  const body = await resp.json();
+  const text: string = body?.candidates?.[0]?.content?.parts
+    ?.map((p: any) => p?.text ?? "")
+    .join("") ?? "";
+
+  if (!text) {
+    // Sem texto normalmente é bloqueio de segurança do Gemini.
+    const reason = body?.candidates?.[0]?.finishReason ?? body?.promptFeedback?.blockReason ?? "";
+    console.error("parse-sale-photo: Gemini sem conteúdo. finishReason:", reason);
+    return { ok: false, error: "A IA não retornou leitura para esta foto. Tente outra foto, mais nítida." };
+  }
+  return { ok: true, text };
+}
+
+function describeGeminiFailure(status: number, body: string): string {
+  let reason = "";
+  try {
+    reason = String(JSON.parse(body)?.error?.status ?? "");
+  } catch { /* corpo não-JSON */ }
+
+  if (status === 400 && /API_KEY_INVALID|API key not valid/i.test(body)) {
+    return "A chave do Gemini é inválida. Gere outra em aistudio.google.com e atualize o secret GEMINI_API_KEY no Supabase.";
+  }
+  if (status === 429 || reason === "RESOURCE_EXHAUSTED") {
+    return "Limite gratuito do Gemini atingido por agora. Espere um minuto e tente de novo.";
+  }
+  if (status === 403) {
+    return "A chave do Gemini não tem permissão para este modelo. Confira em aistudio.google.com se a API está habilitada.";
+  }
+  if (status >= 500) {
+    return "O Gemini está instável agora. Tente de novo em alguns instantes.";
+  }
+  return "A IA não conseguiu processar a foto agora. Tente de novo em instantes.";
+}
+
+// ─── OpenAI (usado só quando não há GEMINI_API_KEY) ──────────────────────────
+async function callOpenAI(
+  apiKey: string,
+  userText: string,
+  dataUrl: string,
+  signal: AbortSignal,
+): Promise<VisionResult> {
+  const resp = await fetch("https://api.openai.com/v1/chat/completions", {
+    method: "POST",
+    signal,
+    headers: { "Content-Type": "application/json", Authorization: `Bearer ${apiKey}` },
+    body: JSON.stringify({
+      model: "gpt-4o",
+      temperature: 0,
+      max_tokens: 2000,
+      response_format: { type: "json_object" },
+      messages: [
+        { role: "system", content: SYSTEM_PROMPT },
+        {
+          role: "user",
+          content: [
+            { type: "text", text: userText },
+            // detail "high" é essencial para escrita à mão
+            { type: "image_url", image_url: { url: dataUrl, detail: "high" } },
+          ],
+        },
+      ],
+    }),
+  });
+
+  if (!resp.ok) {
+    const detail = await resp.text();
+    console.error("parse-sale-photo: OpenAI", resp.status, detail.slice(0, 500));
+    return { ok: false, error: describeOpenAiFailure(resp.status, detail) };
+  }
+  const body = await resp.json();
+  return { ok: true, text: body?.choices?.[0]?.message?.content ?? "" };
+}
+
 /**
  * Traduz a falha da OpenAI numa instrução acionável. Sem isso, um problema
  * permanente (crédito acabou) vira "tente de novo em instantes" e o lojista
  * fica tentando para sempre achando que é bug.
  */
-function describeOpenAiFailure(status: number, body: string, org: string, project: string): string {
+function describeOpenAiFailure(status: number, body: string): string {
   let code = "";
   let type = "";
   try {
@@ -111,17 +250,13 @@ function describeOpenAiFailure(status: number, body: string, org: string, projec
   } catch { /* corpo não-JSON: cai nas regras por status */ }
 
   if (type === "insufficient_quota" || code === "credit_balance_exhausted") {
-    return `A conta da OpenAI usada por esta chave está sem crédito (organização: ${org}, projeto: ${project}). Se você acabou de adicionar saldo, confirme que foi NESTA organização e que o projeto não está com limite de gasto zerado. Enquanto isso, use 'Registrar Venda' para lançar manualmente.`;
+    return "A conta da OpenAI está sem crédito. Configure o secret GEMINI_API_KEY no Supabase (camada gratuita do Google AI Studio) ou adicione saldo na OpenAI. Enquanto isso, use 'Registrar Venda' para lançar manualmente.";
   }
   if (status === 401 || code === "invalid_api_key") {
     return "A chave da OpenAI está inválida ou expirou. Atualize o secret OPENAI_API_KEY no painel do Supabase.";
   }
-  if (status === 429) {
-    return "Muitas leituras seguidas. Espere alguns segundos e tente de novo.";
-  }
-  if (status >= 500) {
-    return "A OpenAI está instável agora. Tente de novo em alguns instantes.";
-  }
+  if (status === 429) return "Muitas leituras seguidas. Espere alguns segundos e tente de novo.";
+  if (status >= 500) return "A OpenAI está instável agora. Tente de novo em alguns instantes.";
   return "A IA não conseguiu processar a foto agora. Tente de novo em instantes.";
 }
 
@@ -153,26 +288,39 @@ serve(async (req) => {
     if (isAdmin !== true) return json({ error: "Apenas administradores" }, 403);
     // ─────────────────────────────────────────────────────────────────────────
 
+    const GEMINI_API_KEY = Deno.env.get("GEMINI_API_KEY");
     const OPENAI_API_KEY = Deno.env.get("OPENAI_API_KEY");
-    if (!OPENAI_API_KEY) return json({ error: "OPENAI_API_KEY não configurada" }, 500);
+    const provider: "gemini" | "openai" | null =
+      GEMINI_API_KEY ? "gemini" : (OPENAI_API_KEY ? "openai" : null);
+
+    if (!provider) {
+      return json({ error: "Nenhuma chave de IA configurada. Defina GEMINI_API_KEY (grátis) ou OPENAI_API_KEY no Supabase." }, 500);
+    }
 
     const { imageBase64, diagnose } = await req.json();
 
-    // Diagnóstico de conta (admin): consulta /v1/models, que NÃO consome
-    // crédito, só para revelar se a chave é válida e de qual organização ela é.
-    // Não devolve a chave — apenas prefixo mascarado e cabeçalhos da OpenAI.
+    // Diagnóstico (admin): mostra qual provedor está ativo e se a chave responde.
+    // Não devolve a chave — apenas prefixo mascarado e status HTTP.
     if (diagnose === true) {
-      const probe = await fetch("https://api.openai.com/v1/models", {
-        headers: { Authorization: `Bearer ${OPENAI_API_KEY}` },
-      });
-      const probeBody = await probe.text();
+      const mask = (k?: string) => (k ? `${k.slice(0, 8)}…${k.slice(-4)} (${k.length})` : null);
+      let probeStatus: number | null = null;
+      if (provider === "gemini") {
+        const r = await fetch(
+          `https://generativelanguage.googleapis.com/v1beta/models?key=${GEMINI_API_KEY}`,
+        );
+        probeStatus = r.status;
+      } else {
+        const r = await fetch("https://api.openai.com/v1/models", {
+          headers: { Authorization: `Bearer ${OPENAI_API_KEY}` },
+        });
+        probeStatus = r.status;
+      }
       return json({
-        key_prefix: `${OPENAI_API_KEY.slice(0, 12)}…${OPENAI_API_KEY.slice(-4)}`,
-        key_length: OPENAI_API_KEY.length,
-        models_status: probe.status,
-        openai_organization: probe.headers.get("openai-organization"),
-        openai_project: probe.headers.get("openai-project"),
-        body_preview: probeBody.slice(0, 400),
+        provider,
+        model: provider === "gemini" ? GEMINI_MODEL : "gpt-4o",
+        gemini_key: mask(GEMINI_API_KEY),
+        openai_key: mask(OPENAI_API_KEY),
+        probe_status: probeStatus,
       });
     }
 
@@ -187,8 +335,6 @@ serve(async (req) => {
       : `data:image/jpeg;base64,${imageBase64}`;
 
     // ── Catálogo: lido no servidor (fonte da verdade, sempre atual) ──────────
-    // Usa o client do próprio admin: products tem leitura pública, então não
-    // precisamos de service_role — a função inteira roda sem privilégio elevado.
     const { data: products, error: prodErr } = await authedClient
       .from("products")
       .select("id, name, category, price, stock")
@@ -202,47 +348,33 @@ serve(async (req) => {
     const catalogTruncated = (products ?? []).length > MAX_CATALOG;
 
     // Catálogo NUMERADO — o modelo devolve o índice, nunca o UUID. Isso torna
-    // impossível alucinar um product_id e economiza ~14 tokens por produto.
+    // impossível alucinar um product_id e economiza tokens.
     const catalogText = catalog
       .map((p, i) => `${i + 1} | ${p.name} | ${p.category ?? "-"} | ${Number(p.price).toFixed(2)}`)
       .join("\n");
 
     const hojeISO = new Date().toISOString().slice(0, 10);
+    const userText = `Data de hoje: ${hojeISO}.\n\nCATÁLOGO (índice | nome | categoria | preço):\n${catalogText || "(catálogo vazio)"}\n\nExtraia as vendas da foto.`;
 
     // ── Chamada de visão ─────────────────────────────────────────────────────
     const controller = new AbortController();
-    const timeout = setTimeout(() => controller.abort(), OPENAI_TIMEOUT_MS);
+    const timeout = setTimeout(() => controller.abort(), TIMEOUT_MS);
 
-    let openaiResp: Response;
+    let result: VisionResult;
     try {
-      openaiResp = await fetch("https://api.openai.com/v1/chat/completions", {
-        method: "POST",
-        signal: controller.signal,
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${OPENAI_API_KEY}`,
-        },
-        body: JSON.stringify({
-          model: "gpt-4o", // gpt-4o-mini erra muito mais em manuscrito
-          temperature: 0,
-          max_tokens: 2000,
-          response_format: { type: "json_object" },
-          messages: [
-            { role: "system", content: SYSTEM_PROMPT },
-            {
-              role: "user",
-              content: [
-                {
-                  type: "text",
-                  text: `Data de hoje: ${hojeISO}.\n\nCATÁLOGO (índice | nome | categoria | preço):\n${catalogText || "(catálogo vazio)"}\n\nExtraia as vendas da foto.`,
-                },
-                // detail "high" é essencial para escrita à mão
-                { type: "image_url", image_url: { url: dataUrl, detail: "high" } },
-              ],
-            },
-          ],
-        }),
-      });
+      if (provider === "gemini") {
+        result = await callGemini(GEMINI_API_KEY!, GEMINI_MODEL, userText, dataUrl, controller.signal);
+        // Modelo não liberado para esta chave: tenta o da camada gratuita antiga.
+        if ((result as any).modelMissing) {
+          console.log(`parse-sale-photo: ${GEMINI_MODEL} indisponível, tentando ${GEMINI_FALLBACK_MODEL}`);
+          result = await callGemini(GEMINI_API_KEY!, GEMINI_FALLBACK_MODEL, userText, dataUrl, controller.signal);
+          if ((result as any).modelMissing) {
+            result = { ok: false, error: "Nenhum modelo de visão do Gemini está disponível para esta chave." };
+          }
+        }
+      } else {
+        result = await callOpenAI(OPENAI_API_KEY!, userText, dataUrl, controller.signal);
+      }
     } catch (err) {
       clearTimeout(timeout);
       if ((err as Error).name === "AbortError") {
@@ -252,31 +384,20 @@ serve(async (req) => {
     }
     clearTimeout(timeout);
 
-    if (!openaiResp.ok) {
-      const detail = await openaiResp.text();
-      // Loga a org/projeto dono da chave: quando o saldo é adicionado na conta
-      // errada, é isto que mostra onde o crédito precisa entrar.
-      const org = openaiResp.headers.get("openai-organization") ?? "?";
-      const project = openaiResp.headers.get("openai-project") ?? "?";
-      console.error("parse-sale-photo: OpenAI", openaiResp.status, "| org:", org, "| project:", project, detail);
-      // 200 + { error }: functions.invoke opaca qualquer não-2xx e a mensagem se perde.
-      return json({ error: describeOpenAiFailure(openaiResp.status, detail, org, project) });
-    }
-
-    const completion = await openaiResp.json();
-    const raw: string = completion?.choices?.[0]?.message?.content ?? "";
+    // 200 + { error }: functions.invoke opaca qualquer não-2xx e a mensagem se perde.
+    if (!result.ok) return json({ error: result.error });
 
     // ── Sanitização (nunca confiar direto na saída do modelo) ────────────────
     let parsed: any;
     try {
-      const cleaned = raw
+      const cleaned = (result.text ?? "")
         .replace(/^```json\s*/i, "")
         .replace(/^```\s*/i, "")
         .replace(/```\s*$/i, "")
         .trim();
       parsed = JSON.parse(cleaned);
     } catch {
-      console.error("parse-sale-photo: JSON inválido do modelo:", raw.slice(0, 400));
+      console.error("parse-sale-photo: JSON inválido do modelo:", (result.text ?? "").slice(0, 400));
       return json({ success: true, unreadable: true, page_date: null, lines: [], catalog_truncated: catalogTruncated });
     }
 
@@ -326,7 +447,7 @@ serve(async (req) => {
       ? parsed.page_date
       : null;
 
-    console.log(`parse-sale-photo: ${lines.length} linha(s) extraída(s) por ${user.id}`);
+    console.log(`parse-sale-photo: ${lines.length} linha(s) via ${provider} para ${user.id}`);
 
     return json({
       success: true,
